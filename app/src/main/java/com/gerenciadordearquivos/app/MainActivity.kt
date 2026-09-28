@@ -1,22 +1,20 @@
+
 package com.gerenciadordearquivos.app
 
+import android.app.Activity
 import android.os.Bundle
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        try {
-            setContentView(R.layout.activity_main)
-        } catch (e: Exception) {
-            val erro = TextView(this)
-            erro.text = "ERRO AO ABRIR O APLICATIVO:\n\n${e.javaClass.name}\n\n${e.message}"
-            erro.textSize = 16f
-            erro.setPadding(30, 30, 30, 30)
-            setContentView(erro)
-        }
+        val texto = TextView(this)
+        texto.text = "Gerenciador de Arquivos"
+        texto.textSize = 24f
+        texto.setPadding(32, 32, 32, 32)
+
+        setContentView(texto)
     }
 }
