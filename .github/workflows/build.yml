@@ -22,8 +22,6 @@ jobs:
 
       - name: Configurar Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '9.5'
 
       - name: Compilar projeto
         run: gradle assembleDebug
