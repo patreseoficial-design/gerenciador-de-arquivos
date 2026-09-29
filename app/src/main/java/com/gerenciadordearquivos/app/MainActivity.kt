@@ -1,13 +1,18 @@
 package com.gerenciadordearquivos.app
 
+import android.app.Activity
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.TextView
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_main)
+        val texto = TextView(this)
+        texto.text = "TESTE - Gerenciador de Arquivos"
+        texto.textSize = 24f
+
+        setContentView(texto)
     }
 }
