@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Cabeçalho -->
+        <!-- CABEÇALHO -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="64dp"
@@ -21,69 +21,273 @@
             android:textSize="21sp"
             android:textStyle="bold" />
 
-        <!-- Primeira linha -->
+        <!-- LINHA 1 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="12dp">
+            android:padding="8dp">
 
-            <TextView
+            <!-- Armazenamento -->
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="120dp"
+                android:layout_height="125dp"
                 android:layout_weight="1"
-                android:layout_marginEnd="6dp"
+                android:layout_margin="4dp"
                 android:background="#FFFFFF"
                 android:gravity="center"
-                android:text="Armazenamento&#10;principal"
-                android:textColor="#222222"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:orientation="vertical">
 
-            <TextView
+                <ImageView
+                    android:layout_width="55dp"
+                    android:layout_height="55dp"
+                    android:src="@android:drawable/ic_menu_save"
+                    android:contentDescription="Armazenamento" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Armazenamento"
+                    android:textColor="#222222"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- Recentes -->
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="120dp"
+                android:layout_height="125dp"
                 android:layout_weight="1"
-                android:layout_marginStart="6dp"
+                android:layout_margin="4dp"
                 android:background="#FFFFFF"
                 android:gravity="center"
-                android:text="Arquivos&#10;recentes"
-                android:textColor="#222222"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="55dp"
+                    android:layout_height="55dp"
+                    android:src="@android:drawable/ic_menu_recent_history"
+                    android:contentDescription="Arquivos recentes" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Recentes"
+                    android:textColor="#222222"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- Aplicativos -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="125dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp"
+                android:background="#FFFFFF"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="55dp"
+                    android:layout_height="55dp"
+                    android:src="@android:drawable/ic_menu_view"
+                    android:contentDescription="Aplicativos" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Aplicativos"
+                    android:textColor="#222222"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-        <!-- Segunda linha -->
+        <!-- LINHA 2 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="12dp">
+            android:padding="8dp">
 
-            <TextView
+            <!-- Imagens -->
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="120dp"
+                android:layout_height="125dp"
                 android:layout_weight="1"
-                android:layout_marginEnd="6dp"
+                android:layout_margin="4dp"
                 android:background="#FFFFFF"
                 android:gravity="center"
-                android:text="Aplicativos"
-                android:textColor="#222222"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:orientation="vertical">
 
-            <TextView
+                <ImageView
+                    android:layout_width="55dp"
+                    android:layout_height="55dp"
+                    android:src="@android:drawable/ic_menu_gallery"
+                    android:contentDescription="Imagens" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Imagens"
+                    android:textColor="#222222"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- Vídeos -->
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="120dp"
+                android:layout_height="125dp"
                 android:layout_weight="1"
-                android:layout_marginStart="6dp"
+                android:layout_margin="4dp"
                 android:background="#FFFFFF"
                 android:gravity="center"
-                android:text="Lixeira"
-                android:textColor="#222222"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="55dp"
+                    android:layout_height="55dp"
+                    android:src="@android:drawable/ic_media_play"
+                    android:contentDescription="Vídeos" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Vídeos"
+                    android:textColor="#222222"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- Áudios -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="125dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp"
+                android:background="#FFFFFF"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="55dp"
+                    android:layout_height="55dp"
+                    android:src="@android:drawable/ic_media_ff"
+                    android:contentDescription="Áudios" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Áudios"
+                    android:textColor="#222222"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- LINHA 3 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <!-- Documentos -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="125dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp"
+                android:background="#FFFFFF"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="55dp"
+                    android:layout_height="55dp"
+                    android:src="@android:drawable/ic_menu_edit"
+                    android:contentDescription="Documentos" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Documentos"
+                    android:textColor="#222222"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- Downloads -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="125dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp"
+                android:background="#FFFFFF"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="55dp"
+                    android:layout_height="55dp"
+                    android:src="@android:drawable/stat_sys_download"
+                    android:contentDescription="Downloads" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Downloads"
+                    android:textColor="#222222"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- Lixeira -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="125dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp"
+                android:background="#FFFFFF"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="55dp"
+                    android:layout_height="55dp"
+                    android:src="@android:drawable/ic_menu_delete"
+                    android:contentDescription="Lixeira" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Lixeira"
+                    android:textColor="#222222"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
