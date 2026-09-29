@@ -2,6 +2,8 @@ package com.gerenciadordearquivos.app
 
 import android.app.Activity
 import android.os.Bundle
+import android.graphics.Color
+import android.view.Gravity
 import android.widget.TextView
 
 class MainActivity : Activity() {
@@ -9,10 +11,14 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val texto = TextView(this)
-        texto.text = "TESTE - Gerenciador de Arquivos"
-        texto.textSize = 24f
+        val tela = TextView(this)
 
-        setContentView(texto)
+        tela.text = "TESTE DEFINITIVO\n\nMAIN ACTIVITY NOVA"
+        tela.textSize = 26f
+        tela.setTextColor(Color.WHITE)
+        tela.setBackgroundColor(Color.BLACK)
+        tela.gravity = Gravity.CENTER
+
+        setContentView(tela)
     }
 }
