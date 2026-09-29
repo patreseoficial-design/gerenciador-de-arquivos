@@ -1,256 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F3F3F3">
+    android:orientation="vertical"
+    android:background="#F2F2F2">
 
-    <LinearLayout
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="64dp"
+        android:background="#000000"
+        android:gravity="center"
+        android:text="Gerenciador de Arquivos"
+        android:textColor="#FFFFFF"
+        android:textSize="21sp"
+        android:textStyle="bold" />
 
-        <!-- CABEÇALHO -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_margin="16dp"
+        android:background="#FFFFFF"
+        android:gravity="center"
+        android:text="💾&#10;&#10;Armazenamento principal"
+        android:textColor="#222222"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:background="#000000"
-            android:gravity="center"
-            android:text="Gerenciador de Arquivos"
-            android:textColor="#FFFFFF"
-            android:textSize="21sp"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <!-- PESQUISA -->
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:background="#FFFFFF"
-                android:gravity="center_vertical"
-                android:paddingStart="16dp"
-                android:text="🔍   Pesquisar arquivos"
-                android:textColor="#777777"
-                android:textSize="16sp" />
-
-            <!-- ARMAZENAMENTO -->
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="105dp"
-                android:layout_marginTop="16dp"
-                android:background="#FFFFFF"
-                android:gravity="center_vertical"
-                android:padding="18dp"
-                android:text="💾   Armazenamento principal&#10;&#10;       Acessar arquivos do dispositivo"
-                android:textColor="#222222"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:id="@+id/armazenamento_principal" />
-
-            <!-- TÍTULO -->
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
-                android:text="Acesso rápido"
-                android:textColor="#222222"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <!-- LINHA 1 -->
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="105dp"
-                    android:layout_marginEnd="5dp"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:gravity="center"
-                    android:text="🕘&#10;&#10;Arquivos recentes"
-                    android:textColor="#222222"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="105dp"
-                    android:layout_marginStart="5dp"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:gravity="center"
-                    android:text="📱&#10;&#10;Aplicativos"
-                    android:textColor="#222222"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-
-            <!-- LINHA 2 -->
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="105dp"
-                    android:layout_marginEnd="5dp"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:gravity="center"
-                    android:text="📊&#10;&#10;Análise de&#10;armazenamento"
-                    android:textColor="#222222"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="105dp"
-                    android:layout_marginStart="5dp"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:gravity="center"
-                    android:text="🎬&#10;&#10;Vídeos"
-                    android:textColor="#222222"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-
-            <!-- LINHA 3 -->
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="105dp"
-                    android:layout_marginEnd="5dp"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:gravity="center"
-                    android:text="🎵&#10;&#10;Áudios"
-                    android:textColor="#222222"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="105dp"
-                    android:layout_marginStart="5dp"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:gravity="center"
-                    android:text="✨&#10;&#10;Novos arquivos"
-                    android:textColor="#222222"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-
-            <!-- LINHA 4 -->
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="105dp"
-                    android:layout_marginEnd="5dp"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:gravity="center"
-                    android:text="🖼️&#10;&#10;Imagens"
-                    android:textColor="#222222"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="105dp"
-                    android:layout_marginStart="5dp"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:gravity="center"
-                    android:text="📄&#10;&#10;Documentos"
-                    android:textColor="#222222"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-
-            <!-- LINHA 5 -->
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="105dp"
-                    android:layout_marginEnd="5dp"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:gravity="center"
-                    android:text="🗑️&#10;&#10;Lixeira"
-                    android:textColor="#222222"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="105dp"
-                    android:layout_marginStart="5dp"
-                    android:layout_weight="1"
-                    android:background="#FFFFFF"
-                    android:gravity="center"
-                    android:text="📥&#10;&#10;Download"
-                    android:textColor="#222222"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-
-            <!-- CONFIGURAÇÕES -->
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:layout_marginTop="10dp"
-                android:background="#FFFFFF"
-                android:gravity="center"
-                android:text="⚙️   Configurações"
-                android:textColor="#222222"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-</ScrollView>
+</LinearLayout>
