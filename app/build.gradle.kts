@@ -27,4 +27,5 @@ kotlin {
 
 dependencies {
     implementation("androidx.appcompat:appcompat:1.7.1")
+    implementation("androidx.recyclerview:recyclerview:1.4.0")
 }
