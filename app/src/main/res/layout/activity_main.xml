@@ -5,40 +5,297 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F2F2F2">
+    android:background="#F5F5F5">
 
-    <TextView
+    <!-- CABEÇALHO -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="64dp"
+        android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="16dp"
-        android:text="Gerenciador de Arquivos"
-        android:textColor="#000000"
-        android:textSize="20sp"
+        android:paddingEnd="12dp"
+        android:background="#FFFFFF">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:text="Gerenciador de Arquivos"
+            android:textColor="#222222"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="🔍"
+            android:textSize="24sp" />
+
+        <TextView
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="⋮"
+            android:textColor="#222222"
+            android:textSize="28sp" />
+
+    </LinearLayout>
+
+    <!-- ARMAZENAMENTO -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="110dp"
+        android:layout_margin="12dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#FFFFFF">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Armazenamento interno"
+            android:textColor="#222222"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/storageInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Calculando armazenamento..."
+            android:textColor="#666666"
+            android:textSize="14sp" />
+
+        <ProgressBar
+            android:id="@+id/storageProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:layout_marginTop="8dp"
+            android:max="100"
+            android:progress="0" />
+
+    </LinearLayout>
+
+    <!-- TÍTULO DAS CATEGORIAS -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp"
+        android:text="Categorias"
+        android:textColor="#222222"
+        android:textSize="18sp"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/pathText"
+    <!-- CATEGORIAS -->
+    <GridLayout
         android:layout_width="match_parent"
-        android:layout_height="45dp"
-        android:padding="10dp"
-        android:ellipsize="middle"
-        android:maxLines="1"
-        android:text="/"
-        android:textColor="#555555"
-        android:textSize="13sp" />
+        android:layout_height="wrap_content"
+        android:columnCount="3"
+        android:rowCount="2"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
 
-    <Button
-        android:id="@+id/backButton"
+        <!-- IMAGENS -->
+        <LinearLayout
+            android:id="@+id/categoryImages"
+            android:layout_width="0dp"
+            android:layout_height="105dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="55dp"
+                android:gravity="center"
+                android:text="🖼️"
+                android:textSize="40sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Imagens"
+                android:textColor="#333333"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <!-- VÍDEOS -->
+        <LinearLayout
+            android:id="@+id/categoryVideos"
+            android:layout_width="0dp"
+            android:layout_height="105dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="55dp"
+                android:gravity="center"
+                android:text="🎬"
+                android:textSize="40sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Vídeos"
+                android:textColor="#333333"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <!-- ÁUDIOS -->
+        <LinearLayout
+            android:id="@+id/categoryAudio"
+            android:layout_width="0dp"
+            android:layout_height="105dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="55dp"
+                android:gravity="center"
+                android:text="🎵"
+                android:textSize="40sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Áudios"
+                android:textColor="#333333"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <!-- DOCUMENTOS -->
+        <LinearLayout
+            android:id="@+id/categoryDocuments"
+            android:layout_width="0dp"
+            android:layout_height="105dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="55dp"
+                android:gravity="center"
+                android:text="📄"
+                android:textSize="40sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Documentos"
+                android:textColor="#333333"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <!-- DOWNLOADS -->
+        <LinearLayout
+            android:id="@+id/categoryDownloads"
+            android:layout_width="0dp"
+            android:layout_height="105dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="55dp"
+                android:gravity="center"
+                android:text="📥"
+                android:textSize="40sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Downloads"
+                android:textColor="#333333"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <!-- APK -->
+        <LinearLayout
+            android:id="@+id/categoryApk"
+            android:layout_width="0dp"
+            android:layout_height="105dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="55dp"
+                android:gravity="center"
+                android:text="📦"
+                android:textSize="40sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Aplicativos"
+                android:textColor="#333333"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+    </GridLayout>
+
+    <!-- ARQUIVOS / PASTAS -->
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="⬅ Voltar" />
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="8dp"
+        android:text="Arquivos e pastas"
+        android:textColor="#222222"
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
     <ListView
         android:id="@+id/fileList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:dividerHeight="1dp" />
+        android:dividerHeight="1dp"
+        android:background="#FFFFFF" />
 
 </LinearLayout>
