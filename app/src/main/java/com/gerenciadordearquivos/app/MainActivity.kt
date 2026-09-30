@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
@@ -61,10 +60,7 @@ class MainActivity : AppCompatActivity() {
 
         configurarBotoes()
 
-        if (
-            android.os.Build.VERSION.SDK_INT >=
-            android.os.Build.VERSION_CODES.R
-        ) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
 
             if (!Environment.isExternalStorageManager()) {
 
@@ -247,7 +243,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun formatarBytes(bytes: Long): String {
 
-        if (bytes <= 0) return "0 B"
+        if (bytes <= 0) {
+            return "0 B"
+        }
 
         val unidades =
             arrayOf(
@@ -294,6 +292,9 @@ class MainActivity : AppCompatActivity() {
 
         currentPath.text =
             pasta.absolutePath
+
+        fileList.visibility = View.VISIBLE
+        mediaGrid.visibility = View.GONE
 
         fileList.removeAllViews()
 
@@ -373,8 +374,7 @@ class MainActivity : AppCompatActivity() {
                             "📄  ${arquivo.name}"
                         }
 
-                    item.textSize =
-                        16f
+                    item.textSize = 16f
 
                     item.setPadding(
                         25,
@@ -609,8 +609,7 @@ class MainActivity : AppCompatActivity() {
                     item.text =
                         "🎵  ${arquivo.name}"
 
-                    item.textSize =
-                        16f
+                    item.textSize = 16f
 
                     item.setPadding(
                         25,
@@ -746,8 +745,7 @@ class MainActivity : AppCompatActivity() {
                     item.text =
                         "📄  ${arquivo.name}"
 
-                    item.textSize =
-                        16f
+                    item.textSize = 16f
 
                     item.setPadding(
                         25,
@@ -895,8 +893,7 @@ class MainActivity : AppCompatActivity() {
                             "📄  ${arquivo.name}"
                         }
 
-                    item.textSize =
-                        16f
+                    item.textSize = 16f
 
                     item.setPadding(
                         25,
@@ -994,16 +991,17 @@ class MainActivity : AppCompatActivity() {
         fileList.removeAllViews()
 
         val apps =
-            packageManager.getInstalledApplications(
-                0
-            ).sortedBy {
-                packageManager
-                    .getApplicationLabel(it)
-                    .toString()
-                    .lowercase(
-                        Locale.getDefault()
-                    )
-            }
+            packageManager
+                .getInstalledApplications(0)
+                .sortedBy {
+
+                    packageManager
+                        .getApplicationLabel(it)
+                        .toString()
+                        .lowercase(
+                            Locale.getDefault()
+                        )
+                }
 
         for (app in apps) {
 
@@ -1018,8 +1016,7 @@ class MainActivity : AppCompatActivity() {
             item.text =
                 "📱  $nome"
 
-            item.textSize =
-                16f
+            item.textSize = 16f
 
             item.setPadding(
                 25,
@@ -1080,9 +1077,9 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    // ============================================================
+    // =========================================================
     // ABRIR ARQUIVO
-    // ============================================================
+    // =========================================================
 
     private fun abrirArquivo(
         arquivo: File
@@ -1132,15 +1129,12 @@ class MainActivity : AppCompatActivity() {
 
             try {
 
-                // Abre diretamente.
-                // NÃO usa createChooser().
                 startActivity(intent)
 
             } catch (
                 e: ActivityNotFoundException
             ) {
 
-                // Segunda tentativa com MIME genérico.
                 val intentGenerico =
                     Intent(Intent.ACTION_VIEW).apply {
 
@@ -1189,9 +1183,9 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    // ============================================================
+    // =========================================================
     // MIME TYPE
-    // ============================================================
+    // =========================================================
 
     private fun obterTipoMime(
         arquivo: File
@@ -1204,6 +1198,7 @@ class MainActivity : AppCompatActivity() {
         ) {
 
             // IMAGENS
+
             "jpg",
             "jpeg" ->
                 "image/jpeg"
@@ -1228,6 +1223,7 @@ class MainActivity : AppCompatActivity() {
 
 
             // VÍDEOS
+
             "mp4" ->
                 "video/mp4"
 
@@ -1251,6 +1247,7 @@ class MainActivity : AppCompatActivity() {
 
 
             // ÁUDIO
+
             "mp3" ->
                 "audio/mpeg"
 
@@ -1277,6 +1274,7 @@ class MainActivity : AppCompatActivity() {
 
 
             // DOCUMENTOS
+
             "pdf" ->
                 "application/pdf"
 
@@ -1312,7 +1310,8 @@ class MainActivity : AppCompatActivity() {
                 "application/vnd.openxmlformats-officedocument.presentationml.presentation"
 
 
-            // ARQUIVOS COMPACTADOS
+            // COMPACTADOS
+
             "zip" ->
                 "application/zip"
 
@@ -1324,20 +1323,22 @@ class MainActivity : AppCompatActivity() {
 
 
             // APK
+
             "apk" ->
                 "application/vnd.android.package-archive"
 
 
-            // OUTROS
+            // DESCONHECIDO
+
             else ->
                 "*/*"
         }
     }
 
 
-    // ============================================================
+    // =========================================================
     // MINIATURAS
-    // ============================================================
+    // =========================================================
 
     private fun carregarMiniatura(
         arquivo: File
@@ -1373,8 +1374,7 @@ class MainActivity : AppCompatActivity() {
                 return null
             }
 
-            var sample =
-                1
+            var sample = 1
 
             val maior =
                 maxOf(
@@ -1418,9 +1418,9 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    // ============================================================
+    // =========================================================
     // ADAPTER DAS MINIATURAS
-    // ============================================================
+    // =========================================================
 
     private inner class MediaAdapter(
         private val arquivos: List<File>,
