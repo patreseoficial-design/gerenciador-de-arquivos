@@ -53,7 +53,7 @@
     </LinearLayout>
 
 
-    <!-- TELA PRINCIPAL -->
+    <!-- HOME -->
     <ScrollView
         android:id="@+id/homeScroll"
         android:layout_width="match_parent"
@@ -65,7 +65,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="12dp">
-
 
             <!-- PESQUISA -->
             <LinearLayout
@@ -107,7 +106,7 @@
                 android:layout_height="14dp"/>
 
 
-            <!-- ARMAZENAMENTO PRINCIPAL -->
+            <!-- ARMAZENAMENTO -->
             <LinearLayout
                 android:id="@+id/categoryStorage"
                 android:layout_width="match_parent"
@@ -171,14 +170,12 @@
                 android:layout_height="14dp"/>
 
 
-            <!-- GRADE -->
-
+            <!-- LINHA 1 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="115dp"
                 android:orientation="horizontal">
 
-                <!-- DOWNLOADS -->
                 <LinearLayout
                     android:id="@+id/categoryDownloads"
                     android:layout_width="0dp"
@@ -210,7 +207,6 @@
                 </LinearLayout>
 
 
-                <!-- ANÁLISE -->
                 <LinearLayout
                     android:id="@+id/categoryAnalysis"
                     android:layout_width="0dp"
@@ -241,7 +237,6 @@
                 </LinearLayout>
 
 
-                <!-- IMAGENS -->
                 <LinearLayout
                     android:id="@+id/categoryImages"
                     android:layout_width="0dp"
@@ -274,12 +269,12 @@
             </LinearLayout>
 
 
+            <!-- LINHA 2 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="115dp"
                 android:orientation="horizontal">
 
-                <!-- ÁUDIO -->
                 <LinearLayout
                     android:id="@+id/categoryAudio"
                     android:layout_width="0dp"
@@ -310,7 +305,6 @@
                 </LinearLayout>
 
 
-                <!-- VÍDEOS -->
                 <LinearLayout
                     android:id="@+id/categoryVideos"
                     android:layout_width="0dp"
@@ -341,7 +335,6 @@
                 </LinearLayout>
 
 
-                <!-- DOCUMENTOS -->
                 <LinearLayout
                     android:id="@+id/categoryDocuments"
                     android:layout_width="0dp"
@@ -374,12 +367,12 @@
             </LinearLayout>
 
 
+            <!-- LINHA 3 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="115dp"
                 android:orientation="horizontal">
 
-                <!-- APLICATIVOS -->
                 <LinearLayout
                     android:id="@+id/categoryApps"
                     android:layout_width="0dp"
@@ -410,7 +403,6 @@
                 </LinearLayout>
 
 
-                <!-- LIXEIRA -->
                 <LinearLayout
                     android:id="@+id/categoryTrash"
                     android:layout_width="0dp"
@@ -441,7 +433,6 @@
                 </LinearLayout>
 
 
-                <!-- ESPAÇO -->
                 <Space
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -450,11 +441,11 @@
             </LinearLayout>
 
         </LinearLayout>
+
     </ScrollView>
 
 
     <!-- TELA DE ARQUIVOS -->
-
     <LinearLayout
         android:id="@+id/fileScreen"
         android:layout_width="match_parent"
@@ -504,6 +495,8 @@
             android:textColor="#777777"
             android:textSize="12sp"/>
 
+
+        <!-- LISTA NORMAL -->
         <ListView
             android:id="@+id/fileList"
             android:layout_width="match_parent"
@@ -511,6 +504,22 @@
             android:layout_weight="1"
             android:dividerHeight="1dp"
             android:background="#FFFFFF"/>
+
+
+        <!-- GRADE DE IMAGENS/VÍDEOS -->
+        <GridView
+            android:id="@+id/mediaGrid"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:numColumns="3"
+            android:columnWidth="110dp"
+            android:horizontalSpacing="4dp"
+            android:verticalSpacing="6dp"
+            android:stretchMode="columnWidth"
+            android:gravity="center"
+            android:background="#FFFFFF"
+            android:visibility="gone"/>
 
     </LinearLayout>
 
