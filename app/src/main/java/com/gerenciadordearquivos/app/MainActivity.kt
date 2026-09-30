@@ -5,7 +5,6 @@ import android.content.ClipData
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.ThumbnailUtils
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -14,7 +13,12 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import java.io.File
@@ -24,1045 +28,1032 @@ import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var homeScroll: ScrollView
-    private lateinit var fileScreen: LinearLayout
+    private lateinit var homeScroll: View
+    private lateinit var fileScreen: View
     private lateinit var fileScreenTitle: TextView
     private lateinit var currentPath: TextView
-    private lateinit var fileList: ListView
-    private lateinit var mediaGrid: GridView
+    private lateinit var fileList: LinearLayout
+    private lateinit var mediaGrid: androidx.recyclerview.widget.RecyclerView
     private lateinit var storageInfo: TextView
     private lateinit var storageProgress: ProgressBar
     private lateinit var searchEdit: EditText
 
-    private var currentDirectory: File? = null
-
-    private var currentMediaFiles =
-        mutableListOf<File>()
-
-    private val rootPath: File
-        get() = Environment.getExternalStorageDirectory()
+    private val rootPath =
+        Environment.getExternalStorageDirectory()
 
 
-    override fun onCreate(
-        savedInstanceState: Bundle?
-    ) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(
-            R.layout.activity_main
-        )
+        setContentView(R.layout.activity_main)
 
-        inicializarViews()
-        configurarBotoes()
+        homeScroll = findViewById(R.id.homeScroll)
+        fileScreen = findViewById(R.id.fileScreen)
+        fileScreenTitle = findViewById(R.id.fileScreenTitle)
+        currentPath = findViewById(R.id.currentPath)
+        fileList = findViewById(R.id.fileList)
+        mediaGrid = findViewById(R.id.mediaGrid)
+        storageInfo = findViewById(R.id.storageInfo)
+        storageProgress = findViewById(R.id.storageProgress)
+        searchEdit = findViewById(R.id.searchEdit)
+
         atualizarArmazenamento()
 
-        if (!temPermissao()) {
-            pedirPermissao()
+        configurarBotoes()
+
+        if (
+            android.os.Build.VERSION.SDK_INT >=
+            android.os.Build.VERSION_CODES.R
+        ) {
+
+            if (!Environment.isExternalStorageManager()) {
+
+                try {
+
+                    val intent = Intent(
+                        Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                        Uri.parse("package:$packageName")
+                    )
+
+                    startActivity(intent)
+
+                } catch (e: Exception) {
+
+                    val intent = Intent(
+                        Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
+                    )
+
+                    startActivity(intent)
+                }
+            }
         }
     }
 
-
-    // =========================================================
-    // VIEWS
-    // =========================================================
-
-    private fun inicializarViews() {
-
-        homeScroll =
-            findViewById(R.id.homeScroll)
-
-        fileScreen =
-            findViewById(R.id.fileScreen)
-
-        fileScreenTitle =
-            findViewById(R.id.fileScreenTitle)
-
-        currentPath =
-            findViewById(R.id.currentPath)
-
-        fileList =
-            findViewById(R.id.fileList)
-
-        mediaGrid =
-            findViewById(R.id.mediaGrid)
-
-        storageInfo =
-            findViewById(R.id.storageInfo)
-
-        storageProgress =
-            findViewById(R.id.storageProgress)
-
-        searchEdit =
-            findViewById(R.id.searchEdit)
-    }
-
-
-    // =========================================================
-    // BOTÕES DA HOME
-    // =========================================================
 
     private fun configurarBotoes() {
 
-        findViewById<View>(
-            R.id.categoryStorage
-        ).setOnClickListener {
+        findViewById<View>(R.id.btnArmazenamento)
+            .setOnClickListener {
 
-            abrirPasta(
-                rootPath,
-                "Armazenamento principal"
-            )
-        }
-
-
-        findViewById<View>(
-            R.id.categoryDownloads
-        ).setOnClickListener {
-
-            val pasta =
-                Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOWNLOADS
-                )
-
-            abrirPasta(
-                pasta,
-                "Downloads"
-            )
-        }
-
-
-        findViewById<View>(
-            R.id.categoryImages
-        ).setOnClickListener {
-
-            abrirImagens()
-        }
-
-
-        findViewById<View>(
-            R.id.categoryVideos
-        ).setOnClickListener {
-
-            abrirVideos()
-        }
-
-
-        findViewById<View>(
-            R.id.categoryAudio
-        ).setOnClickListener {
-
-            abrirAudio()
-        }
-
-
-        findViewById<View>(
-            R.id.categoryDocuments
-        ).setOnClickListener {
-
-            abrirDocumentos()
-        }
-
-
-        findViewById<View>(
-            R.id.categoryApps
-        ).setOnClickListener {
-
-            abrirAplicativos()
-        }
-
-
-        findViewById<View>(
-            R.id.categoryTrash
-        ).setOnClickListener {
-
-            abrirLixeira()
-        }
-
-
-        findViewById<View>(
-            R.id.categoryAnalysis
-        ).setOnClickListener {
-
-            analisarArmazenamento()
-        }
-
-
-        searchEdit.setOnEditorActionListener {
-                _,
-                _,
-                _ ->
-
-            val texto =
-                searchEdit.text
-                    .toString()
-                    .trim()
-
-            if (texto.isNotEmpty()) {
-
-                pesquisarArquivos(
-                    texto
+                carregarArquivos(
+                    rootPath,
+                    "Armazenamento"
                 )
             }
+
+
+        findViewById<View>(R.id.btnDownloads)
+            .setOnClickListener {
+
+                val pasta =
+                    Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOWNLOADS
+                    )
+
+                carregarArquivos(
+                    pasta,
+                    "Downloads"
+                )
+            }
+
+
+        findViewById<View>(R.id.btnImagens)
+            .setOnClickListener {
+
+                buscarMidias(
+                    listOf(
+                        File(rootPath, "DCIM"),
+                        File(rootPath, "Pictures")
+                    ),
+                    true
+                )
+            }
+
+
+        findViewById<View>(R.id.btnVideos)
+            .setOnClickListener {
+
+                buscarMidias(
+                    listOf(
+                        File(rootPath, "DCIM"),
+                        File(rootPath, "Movies")
+                    ),
+                    false
+                )
+            }
+
+
+        findViewById<View>(R.id.btnAudio)
+            .setOnClickListener {
+
+                buscarAudio()
+            }
+
+
+        findViewById<View>(R.id.btnDocumentos)
+            .setOnClickListener {
+
+                buscarDocumentos()
+            }
+
+
+        findViewById<View>(R.id.btnAplicativos)
+            .setOnClickListener {
+
+                abrirAplicativos()
+            }
+
+
+        findViewById<View>(R.id.btnLixeira)
+            .setOnClickListener {
+
+                abrirLixeira()
+            }
+
+
+        findViewById<View>(R.id.btnAnalise)
+            .setOnClickListener {
+
+                analisarArmazenamento()
+            }
+
+
+        findViewById<View>(R.id.btnBuscar)
+            .setOnClickListener {
+
+                realizarBusca()
+            }
+
+
+        findViewById<View>(R.id.btnVoltar)
+            .setOnClickListener {
+
+                voltarInicio()
+            }
+
+
+        searchEdit.setOnEditorActionListener { _, _, _ ->
+
+            realizarBusca()
 
             true
         }
     }
 
 
-    // =========================================================
-    // ARMAZENAMENTO
-    // =========================================================
+    private fun voltarInicio() {
+
+        fileScreen.visibility = View.GONE
+        homeScroll.visibility = View.VISIBLE
+    }
+
 
     private fun atualizarArmazenamento() {
 
-        thread {
+        try {
 
-            try {
+            val stat =
+                android.os.StatFs(rootPath.absolutePath)
 
-                val stat =
-                    android.os.StatFs(
-                        rootPath.path
-                    )
+            val total =
+                stat.totalBytes
 
-                val total =
-                    stat.totalBytes
+            val disponivel =
+                stat.availableBytes
 
-                val disponivel =
-                    stat.availableBytes
+            val usado =
+                total - disponivel
 
-                val usado =
-                    total - disponivel
+            val percentual =
+                (
+                    usado.toDouble() /
+                        total.toDouble()
+                    * 100
+                ).toInt()
 
-                val percentual =
-                    (
-                        usado.toDouble() /
-                        total.toDouble() *
-                        100
-                    ).toInt()
+            storageInfo.text =
+                "${formatarBytes(usado)} usados de ${formatarBytes(total)}"
 
-                val totalGB =
-                    total /
-                        1024.0 /
-                        1024.0 /
-                        1024.0
+            storageProgress.progress =
+                percentual
 
-                val usadoGB =
-                    usado /
-                        1024.0 /
-                        1024.0 /
-                        1024.0
+        } catch (e: Exception) {
 
-                val disponivelGB =
-                    disponivel /
-                        1024.0 /
-                        1024.0 /
-                        1024.0
-
-
-                runOnUiThread {
-
-                    storageInfo.text =
-                        String.format(
-                            Locale.getDefault(),
-                            "%.1f GB usados de %.1f GB\n%.1f GB livres",
-                            usadoGB,
-                            totalGB,
-                            disponivelGB
-                        )
-
-                    storageProgress.progress =
-                        percentual
-                }
-
-            } catch (e: Exception) {
-
-                e.printStackTrace()
-            }
+            storageInfo.text =
+                "Não foi possível calcular o armazenamento"
         }
     }
 
 
-    // =========================================================
-    // IMAGENS
-    // =========================================================
+    private fun formatarBytes(bytes: Long): String {
 
-    private fun abrirImagens() {
+        if (bytes <= 0) return "0 B"
 
-        buscarMidias(
-            titulo = "Imagens",
-            pastas = listOf(
-                File(rootPath, "DCIM"),
-                File(rootPath, "Pictures")
-            ),
-            tipo = "imagem"
+        val unidades =
+            arrayOf(
+                "B",
+                "KB",
+                "MB",
+                "GB",
+                "TB"
+            )
+
+        var valor =
+            bytes.toDouble()
+
+        var indice = 0
+
+        while (
+            valor >= 1024 &&
+            indice < unidades.size - 1
+        ) {
+
+            valor /= 1024
+            indice++
+        }
+
+        return String.format(
+            Locale.getDefault(),
+            "%.1f %s",
+            valor,
+            unidades[indice]
         )
     }
 
 
-    // =========================================================
-    // VÍDEOS
-    // =========================================================
-
-    private fun abrirVideos() {
-
-        buscarMidias(
-            titulo = "Vídeos",
-            pastas = listOf(
-                File(rootPath, "DCIM"),
-                File(rootPath, "Movies")
-            ),
-            tipo = "video"
-        )
-    }
-
-
-    // =========================================================
-    // BUSCAR MÍDIAS
-    // =========================================================
-
-    private fun buscarMidias(
-        titulo: String,
-        pastas: List<File>,
-        tipo: String
-    ) {
-
-        mostrarTelaArquivos(
-            titulo
-        )
-
-        mostrarGrade()
-
-        currentPath.text =
-            "Procurando..."
-
-        mediaGrid.adapter =
-            null
-
-
-        thread {
-
-            val arquivos =
-                mutableListOf<File>()
-
-
-            for (pasta in pastas) {
-
-                if (pasta.exists()) {
-
-                    procurarMidias(
-                        pasta,
-                        arquivos,
-                        tipo
-                    )
-                }
-            }
-
-
-            arquivos.sortBy {
-
-                it.name.lowercase(
-                    Locale.getDefault()
-                )
-            }
-
-
-            runOnUiThread {
-
-                currentMediaFiles =
-                    arquivos
-
-
-                currentPath.text =
-                    "${arquivos.size} arquivo(s)"
-
-
-                mediaGrid.adapter =
-                    MediaAdapter(
-                        arquivos
-                    )
-
-
-                mediaGrid.setOnItemClickListener {
-                        _,
-                        _,
-                        position,
-                        _ ->
-
-                    if (
-                        position <
-                        currentMediaFiles.size
-                    ) {
-
-                        abrirArquivo(
-                            currentMediaFiles[
-                                position
-                            ]
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-
-    private fun procurarMidias(
-        pasta: File,
-        resultado: MutableList<File>,
-        tipo: String
-    ) {
-
-        if (resultado.size >= 500) {
-            return
-        }
-
-
-        val arquivos =
-            try {
-                pasta.listFiles()
-            } catch (e: Exception) {
-                null
-            }
-                ?: return
-
-
-        for (arquivo in arquivos) {
-
-            if (arquivo.isDirectory) {
-
-                if (
-                    !arquivo.name
-                        .startsWith(".")
-                ) {
-
-                    procurarMidias(
-                        arquivo,
-                        resultado,
-                        tipo
-                    )
-                }
-
-            } else {
-
-                val correto =
-                    if (tipo == "imagem") {
-
-                        ehImagem(
-                            arquivo
-                        )
-
-                    } else {
-
-                        ehVideo(
-                            arquivo
-                        )
-                    }
-
-
-                if (correto) {
-
-                    resultado.add(
-                        arquivo
-                    )
-                }
-            }
-
-
-            if (resultado.size >= 500) {
-                return
-            }
-        }
-    }
-
-
-    // =========================================================
-    // ÁUDIO
-    // =========================================================
-
-    private fun abrirAudio() {
-
-        buscarArquivosPorTipo(
-            titulo = "Áudio",
-            pastas = listOf(
-                File(rootPath, "Music"),
-                File(rootPath, "Recordings"),
-                File(rootPath, "DCIM")
-            ),
-            tipo = "audio"
-        )
-    }
-
-
-    // =========================================================
-    // DOCUMENTOS
-    // =========================================================
-
-    private fun abrirDocumentos() {
-
-        buscarArquivosPorTipo(
-            titulo = "Documentos",
-            pastas = listOf(
-                Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOCUMENTS
-                ),
-                File(rootPath, "Download")
-            ),
-            tipo = "documento"
-        )
-    }
-
-
-    private fun buscarArquivosPorTipo(
-        titulo: String,
-        pastas: List<File>,
-        tipo: String
-    ) {
-
-        mostrarTelaArquivos(
-            titulo
-        )
-
-        mostrarLista()
-
-        currentPath.text =
-            "Procurando..."
-
-
-        thread {
-
-            val encontrados =
-                mutableListOf<File>()
-
-
-            for (pasta in pastas) {
-
-                if (pasta.exists()) {
-
-                    procurarTipo(
-                        pasta,
-                        encontrados,
-                        tipo
-                    )
-                }
-            }
-
-
-            encontrados.sortBy {
-
-                it.name.lowercase(
-                    Locale.getDefault()
-                )
-            }
-
-
-            runOnUiThread {
-
-                currentPath.text =
-                    "${encontrados.size} arquivo(s)"
-
-
-                val nomes =
-                    encontrados.map {
-
-                        when (tipo) {
-
-                            "audio" ->
-                                "🎵  ${it.name}"
-
-                            "documento" ->
-                                "📄  ${it.name}"
-
-                            else ->
-                                "📄  ${it.name}"
-                        }
-                    }
-
-
-                fileList.adapter =
-                    ArrayAdapter(
-                        this,
-                        android.R.layout.simple_list_item_1,
-                        nomes
-                    )
-
-
-                fileList.setOnItemClickListener {
-                        _,
-                        _,
-                        position,
-                        _ ->
-
-                    if (
-                        position <
-                        encontrados.size
-                    ) {
-
-                        abrirArquivo(
-                            encontrados[
-                                position
-                            ]
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-
-    private fun procurarTipo(
-        pasta: File,
-        resultado: MutableList<File>,
-        tipo: String
-    ) {
-
-        if (resultado.size >= 500) {
-            return
-        }
-
-
-        val arquivos =
-            try {
-                pasta.listFiles()
-            } catch (e: Exception) {
-                null
-            }
-                ?: return
-
-
-        for (arquivo in arquivos) {
-
-            if (arquivo.isDirectory) {
-
-                if (
-                    !arquivo.name
-                        .startsWith(".")
-                ) {
-
-                    procurarTipo(
-                        arquivo,
-                        resultado,
-                        tipo
-                    )
-                }
-
-            } else {
-
-                val correto =
-                    when (tipo) {
-
-                        "audio" ->
-                            ehAudio(
-                                arquivo
-                            )
-
-                        "documento" ->
-                            ehDocumento(
-                                arquivo
-                            )
-
-                        else ->
-                            false
-                    }
-
-
-                if (correto) {
-
-                    resultado.add(
-                        arquivo
-                    )
-                }
-            }
-
-
-            if (resultado.size >= 500) {
-                return
-            }
-        }
-    }
-
-
-    // =========================================================
-    // ARMAZENAMENTO PRINCIPAL
-    // =========================================================
-
-    private fun abrirPasta(
+    private fun carregarArquivos(
         pasta: File,
         titulo: String
     ) {
 
-        if (!pasta.exists()) {
+        homeScroll.visibility = View.GONE
+        fileScreen.visibility = View.VISIBLE
+
+        fileScreenTitle.text =
+            titulo
+
+        currentPath.text =
+            pasta.absolutePath
+
+        fileList.removeAllViews()
+
+        if (!pasta.exists() || !pasta.isDirectory) {
+
+            val vazio =
+                TextView(this)
+
+            vazio.text =
+                "Pasta não encontrada"
+
+            vazio.setPadding(
+                30,
+                30,
+                30,
+                30
+            )
+
+            fileList.addView(vazio)
+
+            return
+        }
+
+        thread {
+
+            val arquivos =
+                try {
+
+                    pasta.listFiles()
+                        ?.sortedWith(
+                            compareBy<File> {
+                                !it.isDirectory
+                            }.thenBy {
+                                it.name.lowercase()
+                            }
+                        )
+                        ?: emptyList()
+
+                } catch (e: Exception) {
+
+                    emptyList()
+                }
+
+            runOnUiThread {
+
+                fileList.removeAllViews()
+
+                if (arquivos.isEmpty()) {
+
+                    val vazio =
+                        TextView(this)
+
+                    vazio.text =
+                        "Pasta vazia"
+
+                    vazio.setPadding(
+                        30,
+                        30,
+                        30,
+                        30
+                    )
+
+                    fileList.addView(vazio)
+
+                    return@runOnUiThread
+                }
+
+                for (arquivo in arquivos) {
+
+                    val item =
+                        TextView(this)
+
+                    item.text =
+                        if (arquivo.isDirectory) {
+                            "📁  ${arquivo.name}"
+                        } else {
+                            "📄  ${arquivo.name}"
+                        }
+
+                    item.textSize =
+                        16f
+
+                    item.setPadding(
+                        25,
+                        25,
+                        25,
+                        25
+                    )
+
+                    item.setOnClickListener {
+
+                        if (arquivo.isDirectory) {
+
+                            carregarArquivos(
+                                arquivo,
+                                arquivo.name
+                            )
+
+                        } else {
+
+                            abrirArquivo(arquivo)
+                        }
+                    }
+
+                    fileList.addView(item)
+                }
+            }
+        }
+    }
+
+
+    private fun buscarMidias(
+        pastas: List<File>,
+        imagens: Boolean
+    ) {
+
+        homeScroll.visibility = View.GONE
+        fileScreen.visibility = View.VISIBLE
+
+        fileScreenTitle.text =
+            if (imagens) {
+                "Imagens"
+            } else {
+                "Vídeos"
+            }
+
+        currentPath.text =
+            "Carregando..."
+
+        fileList.visibility = View.GONE
+        mediaGrid.visibility = View.VISIBLE
+
+        mediaGrid.layoutManager =
+            androidx.recyclerview.widget.GridLayoutManager(
+                this,
+                3
+            )
+
+        thread {
+
+            val resultado =
+                mutableListOf<File>()
+
+            for (pasta in pastas) {
+
+                buscarRecursivo(
+                    pasta,
+                    resultado,
+                    imagens,
+                    500
+                )
+
+                if (resultado.size >= 500) {
+                    break
+                }
+            }
+
+            runOnUiThread {
+
+                currentPath.text =
+                    "${resultado.size} arquivo(s)"
+
+                mediaGrid.adapter =
+                    MediaAdapter(
+                        resultado
+                    ) { arquivo ->
+
+                        abrirArquivo(arquivo)
+                    }
+            }
+        }
+    }
+
+
+    private fun buscarRecursivo(
+        pasta: File,
+        resultado: MutableList<File>,
+        imagens: Boolean,
+        limite: Int
+    ) {
+
+        if (
+            resultado.size >= limite ||
+            !pasta.exists() ||
+            !pasta.isDirectory
+        ) {
+            return
+        }
+
+        val arquivos =
+            try {
+
+                pasta.listFiles()
+
+            } catch (e: Exception) {
+
+                null
+            } ?: return
+
+        for (arquivo in arquivos) {
+
+            if (resultado.size >= limite) {
+                break
+            }
+
+            if (arquivo.isDirectory) {
+
+                buscarRecursivo(
+                    arquivo,
+                    resultado,
+                    imagens,
+                    limite
+                )
+
+            } else {
+
+                val extensao =
+                    arquivo.extension.lowercase(
+                        Locale.getDefault()
+                    )
+
+                if (imagens) {
+
+                    if (
+                        extensao in setOf(
+                            "jpg",
+                            "jpeg",
+                            "png",
+                            "gif",
+                            "webp",
+                            "bmp",
+                            "heic",
+                            "heif"
+                        )
+                    ) {
+
+                        resultado.add(arquivo)
+                    }
+
+                } else {
+
+                    if (
+                        extensao in setOf(
+                            "mp4",
+                            "m4v",
+                            "mkv",
+                            "avi",
+                            "mov",
+                            "3gp",
+                            "webm"
+                        )
+                    ) {
+
+                        resultado.add(arquivo)
+                    }
+                }
+            }
+        }
+    }
+
+
+    private fun buscarAudio() {
+
+        homeScroll.visibility = View.GONE
+        fileScreen.visibility = View.VISIBLE
+
+        fileScreenTitle.text =
+            "Áudios"
+
+        currentPath.text =
+            "Carregando..."
+
+        fileList.visibility = View.VISIBLE
+        mediaGrid.visibility = View.GONE
+
+        val pastas =
+            listOf(
+                File(rootPath, "Music"),
+                File(rootPath, "Recordings"),
+                File(rootPath, "DCIM")
+            )
+
+        thread {
+
+            val resultado =
+                mutableListOf<File>()
+
+            for (pasta in pastas) {
+
+                buscarAudioRecursivo(
+                    pasta,
+                    resultado,
+                    500
+                )
+
+                if (resultado.size >= 500) {
+                    break
+                }
+            }
+
+            runOnUiThread {
+
+                fileList.removeAllViews()
+
+                currentPath.text =
+                    "${resultado.size} áudio(s)"
+
+                for (arquivo in resultado) {
+
+                    val item =
+                        TextView(this)
+
+                    item.text =
+                        "🎵  ${arquivo.name}"
+
+                    item.textSize =
+                        16f
+
+                    item.setPadding(
+                        25,
+                        25,
+                        25,
+                        25
+                    )
+
+                    item.setOnClickListener {
+
+                        abrirArquivo(arquivo)
+                    }
+
+                    fileList.addView(item)
+                }
+            }
+        }
+    }
+
+
+    private fun buscarAudioRecursivo(
+        pasta: File,
+        resultado: MutableList<File>,
+        limite: Int
+    ) {
+
+        if (
+            resultado.size >= limite ||
+            !pasta.exists() ||
+            !pasta.isDirectory
+        ) {
+            return
+        }
+
+        val arquivos =
+            try {
+                pasta.listFiles()
+            } catch (e: Exception) {
+                null
+            } ?: return
+
+        for (arquivo in arquivos) {
+
+            if (resultado.size >= limite) {
+                break
+            }
+
+            if (arquivo.isDirectory) {
+
+                buscarAudioRecursivo(
+                    arquivo,
+                    resultado,
+                    limite
+                )
+
+            } else {
+
+                val ext =
+                    arquivo.extension.lowercase(
+                        Locale.getDefault()
+                    )
+
+                if (
+                    ext in setOf(
+                        "mp3",
+                        "wav",
+                        "ogg",
+                        "m4a",
+                        "aac",
+                        "flac",
+                        "opus",
+                        "amr"
+                    )
+                ) {
+
+                    resultado.add(arquivo)
+                }
+            }
+        }
+    }
+
+
+    private fun buscarDocumentos() {
+
+        homeScroll.visibility = View.GONE
+        fileScreen.visibility = View.VISIBLE
+
+        fileScreenTitle.text =
+            "Documentos"
+
+        currentPath.text =
+            "Documentos"
+
+        fileList.visibility = View.VISIBLE
+        mediaGrid.visibility = View.GONE
+
+        val pastas =
+            listOf(
+                Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOCUMENTS
+                ),
+                Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS
+                )
+            )
+
+        thread {
+
+            val resultado =
+                mutableListOf<File>()
+
+            for (pasta in pastas) {
+
+                buscarDocumentosRecursivo(
+                    pasta,
+                    resultado,
+                    500
+                )
+            }
+
+            runOnUiThread {
+
+                fileList.removeAllViews()
+
+                currentPath.text =
+                    "${resultado.size} documento(s)"
+
+                for (arquivo in resultado) {
+
+                    val item =
+                        TextView(this)
+
+                    item.text =
+                        "📄  ${arquivo.name}"
+
+                    item.textSize =
+                        16f
+
+                    item.setPadding(
+                        25,
+                        25,
+                        25,
+                        25
+                    )
+
+                    item.setOnClickListener {
+
+                        abrirArquivo(arquivo)
+                    }
+
+                    fileList.addView(item)
+                }
+            }
+        }
+    }
+
+
+    private fun buscarDocumentosRecursivo(
+        pasta: File,
+        resultado: MutableList<File>,
+        limite: Int
+    ) {
+
+        if (
+            resultado.size >= limite ||
+            !pasta.exists() ||
+            !pasta.isDirectory
+        ) {
+            return
+        }
+
+        val arquivos =
+            try {
+                pasta.listFiles()
+            } catch (e: Exception) {
+                null
+            } ?: return
+
+        for (arquivo in arquivos) {
+
+            if (resultado.size >= limite) {
+                break
+            }
+
+            if (arquivo.isDirectory) {
+
+                buscarDocumentosRecursivo(
+                    arquivo,
+                    resultado,
+                    limite
+                )
+
+            } else {
+
+                val ext =
+                    arquivo.extension.lowercase(
+                        Locale.getDefault()
+                    )
+
+                if (
+                    ext in setOf(
+                        "pdf",
+                        "txt",
+                        "csv",
+                        "html",
+                        "htm",
+                        "doc",
+                        "docx",
+                        "xls",
+                        "xlsx",
+                        "ppt",
+                        "pptx",
+                        "rtf"
+                    )
+                ) {
+
+                    resultado.add(arquivo)
+                }
+            }
+        }
+    }
+
+
+    private fun realizarBusca() {
+
+        val termo =
+            searchEdit.text.toString().trim()
+
+        if (termo.isEmpty()) {
 
             Toast.makeText(
                 this,
-                "Pasta não encontrada",
+                "Digite algo para pesquisar",
                 Toast.LENGTH_SHORT
             ).show()
 
             return
         }
 
-
-        mostrarTelaArquivos(
-            titulo
-        )
-
-        mostrarLista()
-
-        currentDirectory =
-            pasta
-
-        carregarArquivos(
-            pasta
-        )
-    }
-
-
-    private fun mostrarTelaArquivos(
-        titulo: String
-    ) {
-
-        homeScroll.visibility =
-            View.GONE
-
-        fileScreen.visibility =
-            View.VISIBLE
+        homeScroll.visibility = View.GONE
+        fileScreen.visibility = View.VISIBLE
 
         fileScreenTitle.text =
-            titulo
-    }
-
-
-    private fun mostrarLista() {
-
-        fileList.visibility =
-            View.VISIBLE
-
-        mediaGrid.visibility =
-            View.GONE
-    }
-
-
-    private fun mostrarGrade() {
-
-        fileList.visibility =
-            View.GONE
-
-        mediaGrid.visibility =
-            View.VISIBLE
-    }
-
-
-    // =========================================================
-    // LISTAR PASTA
-    // =========================================================
-
-    private fun carregarArquivos(
-        pasta: File
-    ) {
-
-        currentDirectory =
-            pasta
+            "Busca"
 
         currentPath.text =
-            pasta.absolutePath
+            "Pesquisando..."
 
+        fileList.visibility = View.VISIBLE
+        mediaGrid.visibility = View.GONE
+
+        thread {
+
+            val resultado =
+                mutableListOf<File>()
+
+            buscarPorNome(
+                rootPath,
+                termo.lowercase(
+                    Locale.getDefault()
+                ),
+                resultado,
+                300
+            )
+
+            runOnUiThread {
+
+                fileList.removeAllViews()
+
+                currentPath.text =
+                    "${resultado.size} resultado(s)"
+
+                for (arquivo in resultado) {
+
+                    val item =
+                        TextView(this)
+
+                    item.text =
+                        if (arquivo.isDirectory) {
+                            "📁  ${arquivo.name}"
+                        } else {
+                            "📄  ${arquivo.name}"
+                        }
+
+                    item.textSize =
+                        16f
+
+                    item.setPadding(
+                        25,
+                        25,
+                        25,
+                        25
+                    )
+
+                    item.setOnClickListener {
+
+                        if (arquivo.isDirectory) {
+
+                            carregarArquivos(
+                                arquivo,
+                                arquivo.name
+                            )
+
+                        } else {
+
+                            abrirArquivo(arquivo)
+                        }
+                    }
+
+                    fileList.addView(item)
+                }
+            }
+        }
+    }
+
+
+    private fun buscarPorNome(
+        pasta: File,
+        termo: String,
+        resultado: MutableList<File>,
+        limite: Int
+    ) {
+
+        if (
+            resultado.size >= limite ||
+            !pasta.exists() ||
+            !pasta.isDirectory
+        ) {
+            return
+        }
 
         val arquivos =
             try {
-
                 pasta.listFiles()
-                    ?.sortedWith(
-
-                        compareBy<File> {
-                            !it.isDirectory
-
-                        }.thenBy {
-
-                            it.name.lowercase(
-                                Locale.getDefault()
-                            )
-                        }
-
-                    )
-
             } catch (e: Exception) {
-
                 null
+            } ?: return
+
+        for (arquivo in arquivos) {
+
+            if (resultado.size >= limite) {
+                break
             }
-                ?: emptyList()
-
-
-        val nomes =
-            arquivos.map {
-
-                if (it.isDirectory) {
-
-                    "📁  ${it.name}"
-
-                } else {
-
-                    when {
-
-                        ehImagem(it) ->
-                            "🖼️  ${it.name}"
-
-                        ehVideo(it) ->
-                            "🎬  ${it.name}"
-
-                        ehAudio(it) ->
-                            "🎵  ${it.name}"
-
-                        ehDocumento(it) ->
-                            "📄  ${it.name}"
-
-                        else ->
-                            "📄  ${it.name}"
-                    }
-                }
-            }
-
-
-        fileList.adapter =
-            ArrayAdapter(
-                this,
-                android.R.layout.simple_list_item_1,
-                nomes
-            )
-
-
-        fileList.setOnItemClickListener {
-                _,
-                _,
-                position,
-                _ ->
 
             if (
-                position >= arquivos.size
+                arquivo.name.lowercase(
+                    Locale.getDefault()
+                ).contains(termo)
             ) {
-                return@setOnItemClickListener
+
+                resultado.add(arquivo)
             }
-
-
-            val arquivo =
-                arquivos[position]
-
 
             if (arquivo.isDirectory) {
 
-                abrirPasta(
+                buscarPorNome(
                     arquivo,
-                    arquivo.name
-                )
-
-            } else {
-
-                abrirArquivo(
-                    arquivo
+                    termo,
+                    resultado,
+                    limite
                 )
             }
         }
     }
 
-
-    // =========================================================
-    // APLICATIVOS
-    // =========================================================
 
     private fun abrirAplicativos() {
 
-        mostrarTelaArquivos(
+        homeScroll.visibility = View.GONE
+        fileScreen.visibility = View.VISIBLE
+
+        fileScreenTitle.text =
             "Aplicativos"
-        )
-
-        mostrarLista()
-
-
-        val pm =
-            packageManager
-
-
-        val aplicativos =
-            pm.getInstalledApplications(0)
-                .filter {
-
-                    pm.getLaunchIntentForPackage(
-                        it.packageName
-                    ) != null
-
-                }
-                .sortedBy {
-
-                    pm.getApplicationLabel(
-                        it
-                    ).toString().lowercase(
-                        Locale.getDefault()
-                    )
-                }
-
 
         currentPath.text =
-            "${aplicativos.size} aplicativos instalados"
+            "Aplicativos instalados"
 
+        fileList.visibility = View.VISIBLE
+        mediaGrid.visibility = View.GONE
 
-        val adapter =
-            object : BaseAdapter() {
+        fileList.removeAllViews()
 
-                override fun getCount():
-                    Int {
+        val apps =
+            packageManager.getInstalledApplications(
+                0
+            ).sortedBy {
+                packageManager
+                    .getApplicationLabel(it)
+                    .toString()
+                    .lowercase(
+                        Locale.getDefault()
+                    )
+            }
 
-                    return aplicativos.size
-                }
+        for (app in apps) {
 
+            val nome =
+                packageManager
+                    .getApplicationLabel(app)
+                    .toString()
 
-                override fun getItem(
-                    position: Int
-                ): Any {
+            val item =
+                TextView(this)
 
-                    return aplicativos[
-                        position
-                    ]
-                }
+            item.text =
+                "📱  $nome"
 
+            item.textSize =
+                16f
 
-                override fun getItemId(
-                    position: Int
-                ): Long {
+            item.setPadding(
+                25,
+                25,
+                25,
+                25
+            )
 
-                    return position.toLong()
-                }
+            item.setOnClickListener {
 
-
-                override fun getView(
-                    position: Int,
-                    convertView: View?,
-                    parent: ViewGroup
-                ): View {
-
-                    val layout =
-                        LinearLayout(
-                            this@MainActivity
+                val intent =
+                    packageManager
+                        .getLaunchIntentForPackage(
+                            app.packageName
                         )
 
-                    layout.orientation =
-                        LinearLayout.HORIZONTAL
+                if (intent != null) {
 
-                    layout.gravity =
-                        android.view.Gravity
-                            .CENTER_VERTICAL
+                    startActivity(intent)
 
-                    layout.setPadding(
-                        20,
-                        10,
-                        20,
-                        10
-                    )
+                } else {
 
-
-                    val icon =
-                        ImageView(
-                            this@MainActivity
-                        )
-
-
-                    icon.layoutParams =
-                        LinearLayout.LayoutParams(
-                            55,
-                            55
-                        )
-
-
-                    icon.setImageDrawable(
-                        aplicativos[
-                            position
-                        ].loadIcon(pm)
-                    )
-
-
-                    val nome =
-                        TextView(
-                            this@MainActivity
-                        )
-
-
-                    nome.text =
-                        pm.getApplicationLabel(
-                            aplicativos[
-                                position
-                            ]
-                        )
-
-
-                    nome.textSize =
-                        16f
-
-                    nome.setTextColor(
-                        android.graphics.Color
-                            .DKGRAY
-                    )
-
-                    nome.setPadding(
-                        20,
-                        0,
-                        0,
-                        0
-                    )
-
-
-                    nome.layoutParams =
-                        LinearLayout.LayoutParams(
-                            0,
-                            -1,
-                            1f
-                        )
-
-
-                    layout.addView(
-                        icon
-                    )
-
-                    layout.addView(
-                        nome
-                    )
-
-
-                    return layout
+                    Toast.makeText(
+                        this,
+                        "Não foi possível abrir o aplicativo",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
 
-
-        fileList.adapter =
-            adapter
-
-
-        fileList.setOnItemClickListener {
-                _,
-                _,
-                position,
-                _ ->
-
-            val aplicativo =
-                aplicativos[
-                    position
-                ]
-
-
-            val intent =
-                pm.getLaunchIntentForPackage(
-                    aplicativo.packageName
-                )
-
-
-            if (intent != null) {
-
-                startActivity(
-                    intent
-                )
-            }
+            fileList.addView(item)
         }
     }
 
-
-    // =========================================================
-    // LIXEIRA
-    // =========================================================
 
     private fun abrirLixeira() {
 
@@ -1072,218 +1063,26 @@ class MainActivity : AppCompatActivity() {
                 ".GerenciadorArquivos/.Lixeira"
             )
 
-
-        if (!lixeira.exists()) {
-            lixeira.mkdirs()
-        }
-
-
-        abrirPasta(
+        carregarArquivos(
             lixeira,
             "Lixeira"
         )
     }
 
 
-    // =========================================================
-    // PESQUISA
-    // =========================================================
-
-    private fun pesquisarArquivos(
-        termo: String
-    ) {
-
-        mostrarTelaArquivos(
-            "Pesquisa"
-        )
-
-        mostrarLista()
-
-        currentDirectory =
-            null
-
-        currentPath.text =
-            "Procurando por \"$termo\"..."
-
-
-        fileList.adapter =
-            ArrayAdapter<String>(
-                this,
-                android.R.layout.simple_list_item_1,
-                listOf(
-                    "Pesquisando..."
-                )
-            )
-
-
-        thread {
-
-            val encontrados =
-                mutableListOf<File>()
-
-
-            procurarRecursivamente(
-                rootPath,
-                termo.lowercase(
-                    Locale.getDefault()
-                ),
-                encontrados
-            )
-
-
-            runOnUiThread {
-
-                currentPath.text =
-                    "${encontrados.size} resultado(s)"
-
-
-                val nomes =
-                    encontrados.map {
-
-                        when {
-
-                            it.isDirectory ->
-                                "📁  ${it.name}"
-
-                            ehImagem(it) ->
-                                "🖼️  ${it.name}"
-
-                            ehVideo(it) ->
-                                "🎬  ${it.name}"
-
-                            ehAudio(it) ->
-                                "🎵  ${it.name}"
-
-                            else ->
-                                "📄  ${it.name}"
-                        }
-                    }
-
-
-                fileList.adapter =
-                    ArrayAdapter(
-                        this,
-                        android.R.layout.simple_list_item_1,
-                        nomes
-                    )
-
-
-                fileList.setOnItemClickListener {
-                        _,
-                        _,
-                        position,
-                        _ ->
-
-                    if (
-                        position >= encontrados.size
-                    ) {
-                        return@setOnItemClickListener
-                    }
-
-
-                    val arquivo =
-                        encontrados[
-                            position
-                        ]
-
-
-                    if (
-                        arquivo.isDirectory
-                    ) {
-
-                        abrirPasta(
-                            arquivo,
-                            arquivo.name
-                        )
-
-                    } else {
-
-                        abrirArquivo(
-                            arquivo
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-
-    private fun procurarRecursivamente(
-        pasta: File,
-        termo: String,
-        resultado: MutableList<File>
-    ) {
-
-        if (resultado.size >= 300) {
-            return
-        }
-
-
-        val arquivos =
-            try {
-                pasta.listFiles()
-            } catch (e: Exception) {
-                null
-            }
-                ?: return
-
-
-        for (arquivo in arquivos) {
-
-            if (
-                arquivo.name
-                    .lowercase(
-                        Locale.getDefault()
-                    )
-                    .contains(termo)
-            ) {
-
-                resultado.add(
-                    arquivo
-                )
-            }
-
-
-            if (
-                arquivo.isDirectory &&
-                !arquivo.name
-                    .startsWith(".")
-            ) {
-
-                procurarRecursivamente(
-                    arquivo,
-                    termo,
-                    resultado
-                )
-            }
-
-
-            if (resultado.size >= 300) {
-                return
-            }
-        }
-    }
-
-
-    // =========================================================
-    // ANÁLISE
-    // =========================================================
-
     private fun analisarArmazenamento() {
-
-        atualizarArmazenamento()
 
         Toast.makeText(
             this,
-            "Armazenamento atualizado",
+            "Análise do armazenamento em desenvolvimento",
             Toast.LENGTH_SHORT
         ).show()
     }
 
 
-    // =========================================================
+    // ============================================================
     // ABRIR ARQUIVO
-    // =========================================================
+    // ============================================================
 
     private fun abrirArquivo(
         arquivo: File
@@ -1291,7 +1090,7 @@ class MainActivity : AppCompatActivity() {
 
         try {
 
-            if (!arquivo.exists() || !arquivo.isFile) {
+            if (!arquivo.exists()) {
 
                 Toast.makeText(
                     this,
@@ -1302,25 +1101,18 @@ class MainActivity : AppCompatActivity() {
                 return
             }
 
-
             val uri =
                 FileProvider.getUriForFile(
                     this,
-                    "${packageName}.fileprovider",
+                    "${applicationContext.packageName}.fileprovider",
                     arquivo
                 )
-
 
             val tipo =
-                obterTipoMime(
-                    arquivo
-                )
-
+                obterTipoMime(arquivo)
 
             val intent =
-                Intent(
-                    Intent.ACTION_VIEW
-                ).apply {
+                Intent(Intent.ACTION_VIEW).apply {
 
                     setDataAndType(
                         uri,
@@ -1338,25 +1130,55 @@ class MainActivity : AppCompatActivity() {
                         )
                 }
 
+            try {
 
-            // Abre diretamente.
-            // NÃO usa "Abrir com".
-            startActivity(
-                intent
-            )
+                // Abre diretamente.
+                // NÃO usa createChooser().
+                startActivity(intent)
 
+            } catch (
+                e: ActivityNotFoundException
+            ) {
 
-        } catch (e: ActivityNotFoundException) {
+                // Segunda tentativa com MIME genérico.
+                val intentGenerico =
+                    Intent(Intent.ACTION_VIEW).apply {
 
-            Toast.makeText(
-                this,
-                "Não há aplicativo instalado para abrir este tipo de arquivo",
-                Toast.LENGTH_LONG
-            ).show()
+                        setDataAndType(
+                            uri,
+                            "*/*"
+                        )
+
+                        addFlags(
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+
+                        clipData =
+                            ClipData.newRawUri(
+                                "arquivo",
+                                uri
+                            )
+                    }
+
+                try {
+
+                    startActivity(
+                        intentGenerico
+                    )
+
+                } catch (
+                    e2: ActivityNotFoundException
+                ) {
+
+                    Toast.makeText(
+                        this,
+                        "Nenhum aplicativo instalado consegue abrir este arquivo",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
 
         } catch (e: Exception) {
-
-            e.printStackTrace()
 
             Toast.makeText(
                 this,
@@ -1367,9 +1189,9 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    // =========================================================
-    // MIME
-    // =========================================================
+    // ============================================================
+    // MIME TYPE
+    // ============================================================
 
     private fun obterTipoMime(
         arquivo: File
@@ -1381,6 +1203,7 @@ class MainActivity : AppCompatActivity() {
             )
         ) {
 
+            // IMAGENS
             "jpg",
             "jpeg" ->
                 "image/jpeg"
@@ -1404,7 +1227,11 @@ class MainActivity : AppCompatActivity() {
                 "image/heif"
 
 
+            // VÍDEOS
             "mp4" ->
+                "video/mp4"
+
+            "m4v" ->
                 "video/mp4"
 
             "mkv" ->
@@ -1422,10 +1249,8 @@ class MainActivity : AppCompatActivity() {
             "webm" ->
                 "video/webm"
 
-            "m4v" ->
-                "video/mp4"
 
-
+            // ÁUDIO
             "mp3" ->
                 "audio/mpeg"
 
@@ -1451,6 +1276,7 @@ class MainActivity : AppCompatActivity() {
                 "audio/amr"
 
 
+            // DOCUMENTOS
             "pdf" ->
                 "application/pdf"
 
@@ -1464,6 +1290,8 @@ class MainActivity : AppCompatActivity() {
             "htm" ->
                 "text/html"
 
+            "rtf" ->
+                "application/rtf"
 
             "doc" ->
                 "application/msword"
@@ -1471,13 +1299,11 @@ class MainActivity : AppCompatActivity() {
             "docx" ->
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
-
             "xls" ->
                 "application/vnd.ms-excel"
 
             "xlsx" ->
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-
 
             "ppt" ->
                 "application/vnd.ms-powerpoint"
@@ -1486,6 +1312,7 @@ class MainActivity : AppCompatActivity() {
                 "application/vnd.openxmlformats-officedocument.presentationml.presentation"
 
 
+            // ARQUIVOS COMPACTADOS
             "zip" ->
                 "application/zip"
 
@@ -1496,303 +1323,170 @@ class MainActivity : AppCompatActivity() {
                 "application/x-7z-compressed"
 
 
+            // APK
             "apk" ->
                 "application/vnd.android.package-archive"
 
 
+            // OUTROS
             else ->
                 "*/*"
         }
     }
 
 
-    // =========================================================
-    // TIPOS DE ARQUIVO
-    // =========================================================
+    // ============================================================
+    // MINIATURAS
+    // ============================================================
 
-    private fun ehImagem(
+    private fun carregarMiniatura(
         arquivo: File
-    ): Boolean {
+    ): Bitmap? {
 
-        return when (
-            arquivo.extension.lowercase(
-                Locale.getDefault()
+        try {
+
+            if (!arquivo.exists()) {
+                return null
+            }
+
+            val options =
+                BitmapFactory.Options()
+
+            options.inJustDecodeBounds =
+                true
+
+            BitmapFactory.decodeFile(
+                arquivo.absolutePath,
+                options
             )
-        ) {
 
-            "jpg",
-            "jpeg",
-            "png",
-            "gif",
-            "webp",
-            "bmp",
-            "heic",
-            "heif" -> true
+            val largura =
+                options.outWidth
 
-            else -> false
-        }
-    }
-
-
-    private fun ehVideo(
-        arquivo: File
-    ): Boolean {
-
-        return when (
-            arquivo.extension.lowercase(
-                Locale.getDefault()
-            )
-        ) {
-
-            "mp4",
-            "mkv",
-            "avi",
-            "mov",
-            "3gp",
-            "webm",
-            "m4v" -> true
-
-            else -> false
-        }
-    }
-
-
-    private fun ehAudio(
-        arquivo: File
-    ): Boolean {
-
-        return when (
-            arquivo.extension.lowercase(
-                Locale.getDefault()
-            )
-        ) {
-
-            "mp3",
-            "wav",
-            "ogg",
-            "m4a",
-            "aac",
-            "flac",
-            "opus",
-            "amr" -> true
-
-            else -> false
-        }
-    }
-
-
-    private fun ehDocumento(
-        arquivo: File
-    ): Boolean {
-
-        return when (
-            arquivo.extension.lowercase(
-                Locale.getDefault()
-            )
-        ) {
-
-            "pdf",
-            "txt",
-            "doc",
-            "docx",
-            "xls",
-            "xlsx",
-            "ppt",
-            "pptx",
-            "csv",
-            "rtf" -> true
-
-            else -> false
-        }
-    }
-
-
-    // =========================================================
-    // VOLTAR
-    // =========================================================
-
-    override fun onBackPressed() {
-
-        if (
-            fileScreen.visibility ==
-            View.VISIBLE
-        ) {
-
-            val pastaAtual =
-                currentDirectory
-
+            val altura =
+                options.outHeight
 
             if (
-                pastaAtual != null &&
-                pastaAtual.absolutePath !=
-                rootPath.absolutePath
+                largura <= 0 ||
+                altura <= 0
+            ) {
+                return null
+            }
+
+            var sample =
+                1
+
+            val maior =
+                maxOf(
+                    largura,
+                    altura
+                )
+
+            while (
+                maior / sample > 300
             ) {
 
-                val pai =
-                    pastaAtual.parentFile
-
-
-                if (
-                    pai != null &&
-                    pai.exists()
-                ) {
-
-                    abrirPasta(
-                        pai,
-                        pai.name
-                    )
-
-                    return
-                }
+                sample *= 2
             }
 
+            val optionsFinal =
+                BitmapFactory.Options()
 
-            fileScreen.visibility =
-                View.GONE
+            optionsFinal.inSampleSize =
+                sample
 
-            homeScroll.visibility =
-                View.VISIBLE
+            optionsFinal.inPreferredConfig =
+                Bitmap.Config.RGB_565
 
-            return
-        }
+            return BitmapFactory.decodeFile(
+                arquivo.absolutePath,
+                optionsFinal
+            )
 
-
-        super.onBackPressed()
-    }
-
-
-    // =========================================================
-    // PERMISSÃO
-    // =========================================================
-
-    private fun temPermissao(): Boolean {
-
-        return if (
-            android.os.Build.VERSION.SDK_INT >=
-            android.os.Build.VERSION_CODES.R
+        } catch (
+            e: OutOfMemoryError
         ) {
 
-            Environment.isExternalStorageManager()
+            return null
 
-        } else {
-
-            true
-        }
-    }
-
-
-    private fun pedirPermissao() {
-
-        if (
-            android.os.Build.VERSION.SDK_INT >=
-            android.os.Build.VERSION_CODES.R
+        } catch (
+            e: Exception
         ) {
 
-            try {
-
-                val intent =
-                    Intent(
-                        Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
-                    )
-
-
-                intent.data =
-                    Uri.parse(
-                        "package:$packageName"
-                    )
-
-
-                startActivity(
-                    intent
-                )
-
-            } catch (e: Exception) {
-
-                startActivity(
-                    Intent(
-                        Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
-                    )
-                )
-            }
+            return null
         }
     }
 
 
-    // =========================================================
+    // ============================================================
     // ADAPTER DAS MINIATURAS
-    // =========================================================
+    // ============================================================
 
-    inner class MediaAdapter(
-        private val arquivos: List<File>
-    ) : BaseAdapter() {
-
-        override fun getCount(): Int {
-            return arquivos.size
-        }
+    private inner class MediaAdapter(
+        private val arquivos: List<File>,
+        private val aoClicar: (File) -> Unit
+    ) :
+        androidx.recyclerview.widget.RecyclerView.Adapter<MediaAdapter.ViewHolder>() {
 
 
-        override fun getItem(
-            position: Int
-        ): Any {
+        inner class ViewHolder(
+            view: View
+        ) :
+            androidx.recyclerview.widget.RecyclerView.ViewHolder(
+                view
+            ) {
 
-            return arquivos[position]
-        }
-
-
-        override fun getItemId(
-            position: Int
-        ): Long {
-
-            return position.toLong()
-        }
-
-
-        override fun getView(
-            position: Int,
-            convertView: View?,
-            parent: ViewGroup
-        ): View {
-
-            val view =
-                convertView
-                    ?: LayoutInflater
-                        .from(this@MainActivity)
-                        .inflate(
-                            R.layout.item_media,
-                            parent,
-                            false
-                        )
-
-
-            val image =
+            val thumbnail =
                 view.findViewById<ImageView>(
                     R.id.mediaThumbnail
                 )
 
-
-            val name =
+            val nome =
                 view.findViewById<TextView>(
                     R.id.mediaName
                 )
+        }
 
+
+        override fun onCreateViewHolder(
+            parent: ViewGroup,
+            viewType: Int
+        ): ViewHolder {
+
+            val view =
+                LayoutInflater.from(parent.context)
+                    .inflate(
+                        R.layout.item_media,
+                        parent,
+                        false
+                    )
+
+            return ViewHolder(view)
+        }
+
+
+        override fun onBindViewHolder(
+            holder: ViewHolder,
+            position: Int
+        ) {
 
             val arquivo =
                 arquivos[position]
 
-
-            name.text =
+            holder.nome.text =
                 arquivo.name
 
-
-            // Marca a ImageView com o arquivo atual.
-            image.tag =
+            holder.thumbnail.tag =
                 arquivo.absolutePath
 
-
-            image.setImageResource(
+            holder.thumbnail.setImageResource(
                 android.R.drawable.ic_menu_gallery
             )
 
+            holder.itemView.setOnClickListener {
+
+                aoClicar(arquivo)
+            }
 
             thread {
 
@@ -1801,138 +1495,28 @@ class MainActivity : AppCompatActivity() {
                         arquivo
                     )
 
+                holder.thumbnail.post {
 
-                runOnUiThread {
-
-                    // Verifica se a ImageView ainda
-                    // pertence ao mesmo arquivo.
                     if (
-                        image.tag ==
+                        holder.thumbnail.tag ==
                         arquivo.absolutePath
                     ) {
 
                         if (bitmap != null) {
 
-                            image.setImageBitmap(
+                            holder.thumbnail.setImageBitmap(
                                 bitmap
                             )
                         }
                     }
                 }
             }
-
-
-            return view
         }
-    }
 
 
-    // =========================================================
-    // MINIATURAS
-    // =========================================================
+        override fun getItemCount(): Int {
 
-    private fun carregarMiniatura(
-        arquivo: File
-    ): Bitmap? {
-
-        return try {
-
-            if (ehImagem(arquivo)) {
-
-                // Primeiro descobre o tamanho
-                // sem carregar a imagem.
-                val opcoes =
-                    BitmapFactory.Options().apply {
-                        inJustDecodeBounds = true
-                    }
-
-
-                BitmapFactory.decodeFile(
-                    arquivo.absolutePath,
-                    opcoes
-                )
-
-
-                val larguraOriginal =
-                    opcoes.outWidth
-
-                val alturaOriginal =
-                    opcoes.outHeight
-
-
-                if (
-                    larguraOriginal <= 0 ||
-                    alturaOriginal <= 0
-                ) {
-                    return null
-                }
-
-
-                // Tamanho máximo da miniatura.
-                val tamanhoMaximo =
-                    300
-
-
-                var escala =
-                    1
-
-
-                while (
-                    larguraOriginal / escala >
-                        tamanhoMaximo ||
-                    alturaOriginal / escala >
-                        tamanhoMaximo
-                ) {
-
-                    escala *= 2
-                }
-
-
-                val opcoesFinais =
-                    BitmapFactory.Options().apply {
-
-                        inSampleSize =
-                            escala
-
-                        // RGB_565 usa menos memória
-                        // para miniaturas.
-                        inPreferredConfig =
-                            Bitmap.Config.RGB_565
-
-                        inDither =
-                            true
-                    }
-
-
-                BitmapFactory.decodeFile(
-                    arquivo.absolutePath,
-                    opcoesFinais
-                )
-
-
-            } else if (ehVideo(arquivo)) {
-
-                ThumbnailUtils.createVideoThumbnail(
-                    arquivo.absolutePath,
-                    MediaStore.Video.Thumbnails.MINI_KIND
-                )
-
-            } else {
-
-                null
-            }
-
-        } catch (e: OutOfMemoryError) {
-
-            System.gc()
-
-            null
-
-        } catch (e: Exception) {
-
-            e.printStackTrace()
-
-            null
+            return arquivos.size
         }
     }
 }
