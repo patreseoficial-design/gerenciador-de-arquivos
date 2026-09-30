@@ -29,7 +29,6 @@
         </activity>
 
 
-        <!-- Permite que outros aplicativos abram os arquivos -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
