@@ -14,7 +14,7 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="16dp"
-        android:paddingEnd="12dp"
+        android:paddingEnd="8dp"
         android:background="#FFFFFF">
 
         <TextView
@@ -28,14 +28,16 @@
             android:textStyle="bold" />
 
         <TextView
-            android:layout_width="48dp"
+            android:id="@+id/searchButton"
+            android:layout_width="52dp"
             android:layout_height="match_parent"
             android:gravity="center"
             android:text="🔍"
             android:textSize="24sp" />
 
         <TextView
-            android:layout_width="40dp"
+            android:id="@+id/menuButton"
+            android:layout_width="45dp"
             android:layout_height="match_parent"
             android:gravity="center"
             android:text="⋮"
@@ -65,8 +67,8 @@
             android:id="@+id/storageInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Calculando armazenamento..."
+            android:layout_marginTop="6dp"
+            android:text="Calculando..."
             android:textColor="#666666"
             android:textSize="14sp" />
 
@@ -81,24 +83,22 @@
 
     </LinearLayout>
 
-    <!-- TÍTULO DAS CATEGORIAS -->
+    <!-- CATEGORIAS -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingStart="16dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="8dp"
+        android:paddingBottom="6dp"
         android:text="Categorias"
         android:textColor="#222222"
         android:textSize="18sp"
         android:textStyle="bold" />
 
-    <!-- CATEGORIAS -->
-    <GridLayout
+    <!-- LINHA 1 -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:columnCount="3"
-        android:rowCount="2"
+        android:layout_height="105dp"
+        android:orientation="horizontal"
         android:paddingStart="8dp"
         android:paddingEnd="8dp">
 
@@ -106,8 +106,8 @@
         <LinearLayout
             android:id="@+id/categoryImages"
             android:layout_width="0dp"
-            android:layout_height="105dp"
-            android:layout_columnWeight="1"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:layout_margin="4dp"
             android:gravity="center"
             android:orientation="vertical"
@@ -135,8 +135,8 @@
         <LinearLayout
             android:id="@+id/categoryVideos"
             android:layout_width="0dp"
-            android:layout_height="105dp"
-            android:layout_columnWeight="1"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:layout_margin="4dp"
             android:gravity="center"
             android:orientation="vertical"
@@ -164,8 +164,8 @@
         <LinearLayout
             android:id="@+id/categoryAudio"
             android:layout_width="0dp"
-            android:layout_height="105dp"
-            android:layout_columnWeight="1"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:layout_margin="4dp"
             android:gravity="center"
             android:orientation="vertical"
@@ -189,12 +189,22 @@
 
         </LinearLayout>
 
+    </LinearLayout>
+
+    <!-- LINHA 2 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="105dp"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+
         <!-- DOCUMENTOS -->
         <LinearLayout
             android:id="@+id/categoryDocuments"
             android:layout_width="0dp"
-            android:layout_height="105dp"
-            android:layout_columnWeight="1"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:layout_margin="4dp"
             android:gravity="center"
             android:orientation="vertical"
@@ -222,8 +232,8 @@
         <LinearLayout
             android:id="@+id/categoryDownloads"
             android:layout_width="0dp"
-            android:layout_height="105dp"
-            android:layout_columnWeight="1"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:layout_margin="4dp"
             android:gravity="center"
             android:orientation="vertical"
@@ -247,12 +257,12 @@
 
         </LinearLayout>
 
-        <!-- APK -->
+        <!-- APLICATIVOS -->
         <LinearLayout
             android:id="@+id/categoryApk"
             android:layout_width="0dp"
-            android:layout_height="105dp"
-            android:layout_columnWeight="1"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:layout_margin="4dp"
             android:gravity="center"
             android:orientation="vertical"
@@ -276,15 +286,15 @@
 
         </LinearLayout>
 
-    </GridLayout>
+    </LinearLayout>
 
-    <!-- ARQUIVOS / PASTAS -->
+    <!-- ARQUIVOS -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingStart="16dp"
         android:paddingTop="12dp"
-        android:paddingBottom="8dp"
+        android:paddingBottom="6dp"
         android:text="Arquivos e pastas"
         android:textColor="#222222"
         android:textSize="18sp"
@@ -295,7 +305,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:dividerHeight="1dp"
-        android:background="#FFFFFF" />
+        android:background="#FFFFFF"
+        android:dividerHeight="1dp" />
 
 </LinearLayout>
