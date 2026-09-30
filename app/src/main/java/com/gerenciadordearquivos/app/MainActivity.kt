@@ -1,5 +1,7 @@
 package com.gerenciadordearquivos.app
 
+import android.content.ActivityNotFoundException
+import android.content.ClipData
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -23,28 +25,19 @@ import kotlin.concurrent.thread
 class MainActivity : AppCompatActivity() {
 
     private lateinit var homeScroll: ScrollView
-
     private lateinit var fileScreen: LinearLayout
-
     private lateinit var fileScreenTitle: TextView
-
     private lateinit var currentPath: TextView
-
     private lateinit var fileList: ListView
-
     private lateinit var mediaGrid: GridView
-
     private lateinit var storageInfo: TextView
-
     private lateinit var storageProgress: ProgressBar
-
     private lateinit var searchEdit: EditText
 
     private var currentDirectory: File? = null
 
     private var currentMediaFiles =
         mutableListOf<File>()
-
 
     private val rootPath: File
         get() = Environment.getExternalStorageDirectory()
@@ -53,7 +46,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(
         savedInstanceState: Bundle?
     ) {
-
         super.onCreate(savedInstanceState)
 
         setContentView(
@@ -61,17 +53,18 @@ class MainActivity : AppCompatActivity() {
         )
 
         inicializarViews()
-
         configurarBotoes()
-
         atualizarArmazenamento()
-
 
         if (!temPermissao()) {
             pedirPermissao()
         }
     }
 
+
+    // =========================================================
+    // VIEWS
+    // =========================================================
 
     private fun inicializarViews() {
 
@@ -126,10 +119,9 @@ class MainActivity : AppCompatActivity() {
         ).setOnClickListener {
 
             val pasta =
-                Environment
-                    .getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_DOWNLOADS
-                    )
+                Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS
+                )
 
             abrirPasta(
                 pasta,
@@ -224,59 +216,66 @@ class MainActivity : AppCompatActivity() {
 
         thread {
 
-            val stat =
-                android.os.StatFs(
-                    rootPath.path
-                )
+            try {
 
-            val total =
-                stat.totalBytes
-
-            val disponivel =
-                stat.availableBytes
-
-            val usado =
-                total - disponivel
-
-            val percentual =
-                (
-                    usado.toDouble() /
-                    total.toDouble() *
-                    100
-                ).toInt()
-
-            val totalGB =
-                total /
-                    1024.0 /
-                    1024.0 /
-                    1024.0
-
-            val usadoGB =
-                usado /
-                    1024.0 /
-                    1024.0 /
-                    1024.0
-
-            val disponivelGB =
-                disponivel /
-                    1024.0 /
-                    1024.0 /
-                    1024.0
-
-
-            runOnUiThread {
-
-                storageInfo.text =
-                    String.format(
-                        Locale.getDefault(),
-                        "%.1f GB usados de %.1f GB\n%.1f GB livres",
-                        usadoGB,
-                        totalGB,
-                        disponivelGB
+                val stat =
+                    android.os.StatFs(
+                        rootPath.path
                     )
 
-                storageProgress.progress =
-                    percentual
+                val total =
+                    stat.totalBytes
+
+                val disponivel =
+                    stat.availableBytes
+
+                val usado =
+                    total - disponivel
+
+                val percentual =
+                    (
+                        usado.toDouble() /
+                        total.toDouble() *
+                        100
+                    ).toInt()
+
+                val totalGB =
+                    total /
+                        1024.0 /
+                        1024.0 /
+                        1024.0
+
+                val usadoGB =
+                    usado /
+                        1024.0 /
+                        1024.0 /
+                        1024.0
+
+                val disponivelGB =
+                    disponivel /
+                        1024.0 /
+                        1024.0 /
+                        1024.0
+
+
+                runOnUiThread {
+
+                    storageInfo.text =
+                        String.format(
+                            Locale.getDefault(),
+                            "%.1f GB usados de %.1f GB\n%.1f GB livres",
+                            usadoGB,
+                            totalGB,
+                            disponivelGB
+                        )
+
+                    storageProgress.progress =
+                        percentual
+                }
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
             }
         }
     }
@@ -334,7 +333,6 @@ class MainActivity : AppCompatActivity() {
 
         currentPath.text =
             "Procurando..."
-
 
         mediaGrid.adapter =
             null
@@ -418,7 +416,11 @@ class MainActivity : AppCompatActivity() {
 
 
         val arquivos =
-            pasta.listFiles()
+            try {
+                pasta.listFiles()
+            } catch (e: Exception) {
+                null
+            }
                 ?: return
 
 
@@ -498,10 +500,9 @@ class MainActivity : AppCompatActivity() {
         buscarArquivosPorTipo(
             titulo = "Documentos",
             pastas = listOf(
-                Environment
-                    .getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_DOCUMENTS
-                    ),
+                Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOCUMENTS
+                ),
                 File(rootPath, "Download")
             ),
             tipo = "documento"
@@ -578,8 +579,7 @@ class MainActivity : AppCompatActivity() {
                 fileList.adapter =
                     ArrayAdapter(
                         this,
-                        android.R.layout
-                            .simple_list_item_1,
+                        android.R.layout.simple_list_item_1,
                         nomes
                     )
 
@@ -619,7 +619,11 @@ class MainActivity : AppCompatActivity() {
 
 
         val arquivos =
-            pasta.listFiles()
+            try {
+                pasta.listFiles()
+            } catch (e: Exception) {
+                null
+            }
                 ?: return
 
 
@@ -762,20 +766,27 @@ class MainActivity : AppCompatActivity() {
 
 
         val arquivos =
-            pasta.listFiles()
-                ?.sortedWith(
+            try {
 
-                    compareBy<File> {
-                        !it.isDirectory
+                pasta.listFiles()
+                    ?.sortedWith(
 
-                    }.thenBy {
+                        compareBy<File> {
+                            !it.isDirectory
 
-                        it.name.lowercase(
-                            Locale.getDefault()
-                        )
-                    }
+                        }.thenBy {
 
-                )
+                            it.name.lowercase(
+                                Locale.getDefault()
+                            )
+                        }
+
+                    )
+
+            } catch (e: Exception) {
+
+                null
+            }
                 ?: emptyList()
 
 
@@ -812,8 +823,7 @@ class MainActivity : AppCompatActivity() {
         fileList.adapter =
             ArrayAdapter(
                 this,
-                android.R.layout
-                    .simple_list_item_1,
+                android.R.layout.simple_list_item_1,
                 nomes
             )
 
@@ -1099,8 +1109,7 @@ class MainActivity : AppCompatActivity() {
         fileList.adapter =
             ArrayAdapter<String>(
                 this,
-                android.R.layout
-                    .simple_list_item_1,
+                android.R.layout.simple_list_item_1,
                 listOf(
                     "Pesquisando..."
                 )
@@ -1154,8 +1163,7 @@ class MainActivity : AppCompatActivity() {
                 fileList.adapter =
                     ArrayAdapter(
                         this,
-                        android.R.layout
-                            .simple_list_item_1,
+                        android.R.layout.simple_list_item_1,
                         nomes
                     )
 
@@ -1165,6 +1173,13 @@ class MainActivity : AppCompatActivity() {
                         _,
                         position,
                         _ ->
+
+                    if (
+                        position >= encontrados.size
+                    ) {
+                        return@setOnItemClickListener
+                    }
+
 
                     val arquivo =
                         encontrados[
@@ -1205,7 +1220,11 @@ class MainActivity : AppCompatActivity() {
 
 
         val arquivos =
-            pasta.listFiles()
+            try {
+                pasta.listFiles()
+            } catch (e: Exception) {
+                null
+            }
                 ?: return
 
 
@@ -1254,7 +1273,6 @@ class MainActivity : AppCompatActivity() {
 
         atualizarArmazenamento()
 
-
         Toast.makeText(
             this,
             "Armazenamento atualizado",
@@ -1273,7 +1291,7 @@ class MainActivity : AppCompatActivity() {
 
         try {
 
-            if (!arquivo.exists()) {
+            if (!arquivo.exists() || !arquivo.isFile) {
 
                 Toast.makeText(
                     this,
@@ -1288,7 +1306,7 @@ class MainActivity : AppCompatActivity() {
             val uri =
                 FileProvider.getUriForFile(
                     this,
-                    "${applicationContext.packageName}.fileprovider",
+                    "${packageName}.fileprovider",
                     arquivo
                 )
 
@@ -1313,33 +1331,32 @@ class MainActivity : AppCompatActivity() {
                         Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
 
-                    addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK
-                    )
+                    clipData =
+                        ClipData.newRawUri(
+                            "arquivo",
+                            uri
+                        )
                 }
 
 
-            if (
-                intent.resolveActivity(
-                    packageManager
-                ) != null
-            ) {
+            // Abre diretamente.
+            // NÃO usa "Abrir com".
+            startActivity(
+                intent
+            )
 
-                startActivity(
-                    intent
-                )
 
-            } else {
+        } catch (e: ActivityNotFoundException) {
 
-                Toast.makeText(
-                    this,
-                    "Nenhum aplicativo pode abrir este arquivo",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-
+            Toast.makeText(
+                this,
+                "Não há aplicativo instalado para abrir este tipo de arquivo",
+                Toast.LENGTH_LONG
+            ).show()
 
         } catch (e: Exception) {
+
+            e.printStackTrace()
 
             Toast.makeText(
                 this,
@@ -1404,6 +1421,9 @@ class MainActivity : AppCompatActivity() {
 
             "webm" ->
                 "video/webm"
+
+            "m4v" ->
+                "video/mp4"
 
 
             "mp3" ->
@@ -1652,8 +1672,7 @@ class MainActivity : AppCompatActivity() {
             android.os.Build.VERSION_CODES.R
         ) {
 
-            Environment
-                .isExternalStorageManager()
+            Environment.isExternalStorageManager()
 
         } else {
 
@@ -1673,8 +1692,7 @@ class MainActivity : AppCompatActivity() {
 
                 val intent =
                     Intent(
-                        Settings
-                            .ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
+                        Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
                     )
 
 
@@ -1692,8 +1710,7 @@ class MainActivity : AppCompatActivity() {
 
                 startActivity(
                     Intent(
-                        Settings
-                            .ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
+                        Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
                     )
                 )
             }
@@ -1767,9 +1784,13 @@ class MainActivity : AppCompatActivity() {
                 arquivo.name
 
 
+            // Marca a ImageView com o arquivo atual.
+            image.tag =
+                arquivo.absolutePath
+
+
             image.setImageResource(
-                android.R.drawable
-                    .ic_menu_gallery
+                android.R.drawable.ic_menu_gallery
             )
 
 
@@ -1783,10 +1804,11 @@ class MainActivity : AppCompatActivity() {
 
                 runOnUiThread {
 
+                    // Verifica se a ImageView ainda
+                    // pertence ao mesmo arquivo.
                     if (
                         image.tag ==
-                        arquivo.absolutePath ||
-                        image.tag == null
+                        arquivo.absolutePath
                     ) {
 
                         if (bitmap != null) {
@@ -1798,10 +1820,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-
-
-            image.tag =
-                arquivo.absolutePath
 
 
             return view
@@ -1821,25 +1839,98 @@ class MainActivity : AppCompatActivity() {
 
             if (ehImagem(arquivo)) {
 
-                BitmapFactory
-                    .decodeFile(
-                        arquivo.absolutePath
-                    )
+                // Primeiro descobre o tamanho
+                // sem carregar a imagem.
+                val opcoes =
+                    BitmapFactory.Options().apply {
+                        inJustDecodeBounds = true
+                    }
+
+
+                BitmapFactory.decodeFile(
+                    arquivo.absolutePath,
+                    opcoes
+                )
+
+
+                val larguraOriginal =
+                    opcoes.outWidth
+
+                val alturaOriginal =
+                    opcoes.outHeight
+
+
+                if (
+                    larguraOriginal <= 0 ||
+                    alturaOriginal <= 0
+                ) {
+                    return null
+                }
+
+
+                // Tamanho máximo da miniatura.
+                val tamanhoMaximo =
+                    300
+
+
+                var escala =
+                    1
+
+
+                while (
+                    larguraOriginal / escala >
+                        tamanhoMaximo ||
+                    alturaOriginal / escala >
+                        tamanhoMaximo
+                ) {
+
+                    escala *= 2
+                }
+
+
+                val opcoesFinais =
+                    BitmapFactory.Options().apply {
+
+                        inSampleSize =
+                            escala
+
+                        // RGB_565 usa menos memória
+                        // para miniaturas.
+                        inPreferredConfig =
+                            Bitmap.Config.RGB_565
+
+                        inDither =
+                            true
+                    }
+
+
+                BitmapFactory.decodeFile(
+                    arquivo.absolutePath,
+                    opcoesFinais
+                )
+
 
             } else if (ehVideo(arquivo)) {
 
-                ThumbnailUtils
-                    .createVideoThumbnail(
-                        arquivo.absolutePath,
-                        MediaStore.Video.Thumbnails.MINI_KIND
-                    )
+                ThumbnailUtils.createVideoThumbnail(
+                    arquivo.absolutePath,
+                    MediaStore.Video.Thumbnails.MINI_KIND
+                )
 
             } else {
 
                 null
             }
 
+        } catch (e: OutOfMemoryError) {
+
+            System.gc()
+
+            null
+
         } catch (e: Exception) {
+
+            e.printStackTrace()
 
             null
         }
