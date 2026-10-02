@@ -15,37 +15,25 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <!-- ================================================= -->
         <!-- VISUALIZADOR DE PDF -->
-        <!-- ================================================= -->
-
         <activity
             android:name=".PdfViewerActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
 
-        <!-- ================================================= -->
         <!-- VISUALIZADOR DE IMAGENS -->
-        <!-- ================================================= -->
-
         <activity
             android:name=".ImageViewerActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
 
-        <!-- ================================================= -->
         <!-- VISUALIZADOR / EXTRATOR DE ZIP -->
-        <!-- ================================================= -->
-
         <activity
             android:name=".ZipViewerActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
 
-        <!-- ================================================= -->
         <!-- TELA PRINCIPAL -->
-        <!-- ================================================= -->
-
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -62,14 +50,7 @@
 
         </activity>
 
-        <!-- ================================================= -->
         <!-- FILE PROVIDER -->
-        <!-- ================================================= -->
-        <!--
-            Usado somente quando o usuário escolher
-            abrir/compartilhar um arquivo em outro aplicativo.
-        -->
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
