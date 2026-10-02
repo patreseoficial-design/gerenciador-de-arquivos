@@ -119,13 +119,12 @@
                 android:clickable="true"
                 android:focusable="true">
 
-                <TextView
+                <ImageView
                     android:layout_width="75dp"
                     android:layout_height="75dp"
-                    android:gravity="center"
-                    android:text="▰"
-                    android:textColor="#777777"
-                    android:textSize="48sp"/>
+                    android:src="@drawable/armazenamento"
+                    android:scaleType="centerInside"
+                    android:contentDescription="Armazenamento principal"/>
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -176,6 +175,7 @@
                 android:layout_height="115dp"
                 android:orientation="horizontal">
 
+                <!-- DOWNLOADS -->
                 <LinearLayout
                     android:id="@+id/categoryDownloads"
                     android:layout_width="0dp"
@@ -188,14 +188,12 @@
                     android:clickable="true"
                     android:focusable="true">
 
-                    <TextView
+                    <ImageView
                         android:layout_width="65dp"
                         android:layout_height="65dp"
-                        android:gravity="center"
-                        android:text="↓"
-                        android:textColor="#D99A3A"
-                        android:textSize="48sp"
-                        android:textStyle="bold"/>
+                        android:src="@drawable/downloads"
+                        android:scaleType="centerInside"
+                        android:contentDescription="Downloads"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -207,6 +205,7 @@
                 </LinearLayout>
 
 
+                <!-- ANÁLISE -->
                 <LinearLayout
                     android:id="@+id/categoryAnalysis"
                     android:layout_width="0dp"
@@ -219,13 +218,12 @@
                     android:clickable="true"
                     android:focusable="true">
 
-                    <TextView
+                    <ImageView
                         android:layout_width="65dp"
                         android:layout_height="65dp"
-                        android:gravity="center"
-                        android:text="◕"
-                        android:textColor="#666666"
-                        android:textSize="52sp"/>
+                        android:src="@drawable/armazenamento"
+                        android:scaleType="centerInside"
+                        android:contentDescription="Análise do armazenamento"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -237,6 +235,7 @@
                 </LinearLayout>
 
 
+                <!-- IMAGENS -->
                 <LinearLayout
                     android:id="@+id/categoryImages"
                     android:layout_width="0dp"
@@ -249,13 +248,12 @@
                     android:clickable="true"
                     android:focusable="true">
 
-                    <TextView
+                    <ImageView
                         android:layout_width="65dp"
                         android:layout_height="65dp"
-                        android:gravity="center"
-                        android:text="▱"
-                        android:textColor="#7131A8"
-                        android:textSize="50sp"/>
+                        android:src="@drawable/imagens"
+                        android:scaleType="centerInside"
+                        android:contentDescription="Imagens"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -275,6 +273,7 @@
                 android:layout_height="115dp"
                 android:orientation="horizontal">
 
+                <!-- ÁUDIO -->
                 <LinearLayout
                     android:id="@+id/categoryAudio"
                     android:layout_width="0dp"
@@ -287,13 +286,12 @@
                     android:clickable="true"
                     android:focusable="true">
 
-                    <TextView
+                    <ImageView
                         android:layout_width="65dp"
                         android:layout_height="65dp"
-                        android:gravity="center"
-                        android:text="♫"
-                        android:textColor="#008F83"
-                        android:textSize="50sp"/>
+                        android:src="@drawable/audios"
+                        android:scaleType="centerInside"
+                        android:contentDescription="Áudio"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -305,6 +303,7 @@
                 </LinearLayout>
 
 
+                <!-- VÍDEOS -->
                 <LinearLayout
                     android:id="@+id/categoryVideos"
                     android:layout_width="0dp"
@@ -317,13 +316,12 @@
                     android:clickable="true"
                     android:focusable="true">
 
-                    <TextView
+                    <ImageView
                         android:layout_width="65dp"
                         android:layout_height="65dp"
-                        android:gravity="center"
-                        android:text="▣"
-                        android:textColor="#C52E32"
-                        android:textSize="48sp"/>
+                        android:src="@drawable/videos"
+                        android:scaleType="centerInside"
+                        android:contentDescription="Vídeos"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -335,6 +333,7 @@
                 </LinearLayout>
 
 
+                <!-- DOCUMENTOS -->
                 <LinearLayout
                     android:id="@+id/categoryDocuments"
                     android:layout_width="0dp"
@@ -347,13 +346,12 @@
                     android:clickable="true"
                     android:focusable="true">
 
-                    <TextView
+                    <ImageView
                         android:layout_width="65dp"
                         android:layout_height="65dp"
-                        android:gravity="center"
-                        android:text="☰"
-                        android:textColor="#1976C9"
-                        android:textSize="45sp"/>
+                        android:src="@drawable/documentos"
+                        android:scaleType="centerInside"
+                        android:contentDescription="Documentos"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -373,6 +371,7 @@
                 android:layout_height="115dp"
                 android:orientation="horizontal">
 
+                <!-- APLICATIVOS -->
                 <LinearLayout
                     android:id="@+id/categoryApps"
                     android:layout_width="0dp"
@@ -385,13 +384,12 @@
                     android:clickable="true"
                     android:focusable="true">
 
-                    <TextView
+                    <ImageView
                         android:layout_width="65dp"
                         android:layout_height="65dp"
-                        android:gravity="center"
-                        android:text="●"
-                        android:textColor="#91C82E"
-                        android:textSize="48sp"/>
+                        android:src="@drawable/aplicativos"
+                        android:scaleType="centerInside"
+                        android:contentDescription="Aplicativos"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -403,6 +401,7 @@
                 </LinearLayout>
 
 
+                <!-- LIXEIRA -->
                 <LinearLayout
                     android:id="@+id/categoryTrash"
                     android:layout_width="0dp"
@@ -415,13 +414,12 @@
                     android:clickable="true"
                     android:focusable="true">
 
-                    <TextView
+                    <ImageView
                         android:layout_width="65dp"
                         android:layout_height="65dp"
-                        android:gravity="center"
-                        android:text="♜"
-                        android:textColor="#777777"
-                        android:textSize="46sp"/>
+                        android:src="@drawable/lixeira"
+                        android:scaleType="centerInside"
+                        android:contentDescription="Lixeira"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -433,10 +431,34 @@
                 </LinearLayout>
 
 
-                <Space
+                <!-- CARTÃO DE MEMÓRIA -->
+                <LinearLayout
+                    android:id="@+id/categoryMemoryCard"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"/>
+                    android:layout_weight="1"
+                    android:layout_margin="4dp"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:background="#FFFFFF"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="65dp"
+                        android:layout_height="65dp"
+                        android:src="@drawable/cartao_memoria"
+                        android:scaleType="centerInside"
+                        android:contentDescription="Cartão de memória"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cartão de memória"
+                        android:textColor="#222222"
+                        android:textSize="14sp"/>
+
+                </LinearLayout>
 
             </LinearLayout>
 
