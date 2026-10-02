@@ -3,15 +3,19 @@
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Acesso ao armazenamento -->
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
-        android:label="Gerenciador de Arquivos"
-        android:theme="@style/AppTheme"
-        android:supportsRtl="true">
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
 
+        <!-- Tela principal -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -28,7 +32,11 @@
 
         </activity>
 
-
+        <!--
+            FileProvider.
+            Usado somente quando o usuário quiser
+            compartilhar/abrir um arquivo em outro aplicativo.
+        -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
