@@ -1,30 +1,43 @@
 package com.gerenciadordearquivos.app
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
-import android.widget.*
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import java.io.File
 
 class ImageViewerActivity : AppCompatActivity() {
 
+    private lateinit var imagem: ImageView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val caminho =
-            intent.getStringExtra("arquivo")
+        val caminho = intent.getStringExtra("arquivo")
 
         if (caminho.isNullOrEmpty()) {
+            Toast.makeText(
+                this,
+                "Imagem inválida",
+                Toast.LENGTH_LONG
+            ).show()
+
             finish()
             return
         }
 
-        val arquivo =
-            File(caminho)
+        val arquivo = File(caminho)
 
-        if (!arquivo.exists()) {
+        if (!arquivo.exists() || !arquivo.isFile) {
             Toast.makeText(
                 this,
                 "Imagem não encontrada",
@@ -38,24 +51,21 @@ class ImageViewerActivity : AppCompatActivity() {
         criarInterface(arquivo)
     }
 
-    private fun criarInterface(
-        arquivo: File
-    ) {
+    private fun criarInterface(arquivo: File) {
 
-        val raiz =
-            LinearLayout(this)
+        val raiz = LinearLayout(this)
 
-        raiz.orientation =
-            LinearLayout.VERTICAL
+        raiz.orientation = LinearLayout.VERTICAL
 
         raiz.setBackgroundColor(
             Color.BLACK
         )
 
-        // BARRA
+        // =====================================================
+        // BARRA SUPERIOR
+        // =====================================================
 
-        val barra =
-            LinearLayout(this)
+        val barra = LinearLayout(this)
 
         barra.orientation =
             LinearLayout.HORIZONTAL
@@ -74,12 +84,17 @@ class ImageViewerActivity : AppCompatActivity() {
             Color.rgb(21, 101, 192)
         )
 
-        val voltar =
-            Button(this)
+        // BOTÃO VOLTAR
+
+        val voltar = Button(this)
 
         voltar.text = "‹"
 
         voltar.textSize = 28f
+
+        voltar.setTextColor(
+            Color.WHITE
+        )
 
         voltar.setOnClickListener {
             finish()
@@ -93,14 +108,15 @@ class ImageViewerActivity : AppCompatActivity() {
             )
         )
 
-        val nome =
-            TextView(this)
+        // NOME DO ARQUIVO
 
-        nome.text =
-            arquivo.name
+        val nome = TextView(this)
 
-        nome.textColor =
+        nome.text = arquivo.name
+
+        nome.setTextColor(
             Color.WHITE
+        )
 
         nome.textSize = 15f
 
@@ -112,60 +128,219 @@ class ImageViewerActivity : AppCompatActivity() {
         nome.ellipsize =
             android.text.TextUtils.TruncateAt.END
 
-        barra.addView(
-            nome,
+        val nomeParams =
             LinearLayout.LayoutParams(
                 0,
                 55,
                 1f
             )
+
+        nomeParams.leftMargin = 8
+
+        barra.addView(
+            nome,
+            nomeParams
         )
 
         raiz.addView(
             barra,
             LinearLayout.LayoutParams(
-                -1,
+                ViewGroup.LayoutParams.MATCH_PARENT,
                 65
             )
         )
 
-        // IMAGEM
+        // =====================================================
+        // ÁREA DA IMAGEM
+        // =====================================================
 
-        val imagem =
-            ImageView(this)
+        val scroll = ScrollView(this)
+
+        scroll.setBackgroundColor(
+            Color.BLACK
+        )
+
+        imagem = ImageView(this)
 
         imagem.scaleType =
             ImageView.ScaleType.FIT_CENTER
 
-        val bitmap =
-            BitmapFactory.decodeFile(
-                arquivo.absolutePath
-            )
+        imagem.adjustViewBounds =
+            true
 
-        if (bitmap != null) {
+        imagem.setBackgroundColor(
+            Color.BLACK
+        )
 
-            imagem.setImageBitmap(
-                bitmap
-            )
+        // =====================================================
+        // CARREGAR IMAGEM
+        // =====================================================
 
-        } else {
+        val bitmap = carregarImagem(
+            arquivo
+        )
+
+        if (bitmap == null) {
 
             Toast.makeText(
                 this,
                 "Não foi possível carregar a imagem",
                 Toast.LENGTH_LONG
             ).show()
+
+            finish()
+            return
         }
 
-        raiz.addView(
+        imagem.setImageBitmap(
+            bitmap
+        )
+
+        scroll.addView(
             imagem,
+            ScrollView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+
+        raiz.addView(
+            scroll,
             LinearLayout.LayoutParams(
-                -1,
+                ViewGroup.LayoutParams.MATCH_PARENT,
                 0,
                 1f
             )
         )
 
+        // =====================================================
+        // INFORMAÇÕES DA IMAGEM
+        // =====================================================
+
+        val informacoes = TextView(this)
+
+        informacoes.setTextColor(
+            Color.WHITE
+        )
+
+        informacoes.textSize = 12f
+
+        informacoes.gravity =
+            Gravity.CENTER
+
+        informacoes.setPadding(
+            8,
+            5,
+            8,
+            5
+        )
+
+        informacoes.text =
+            "${bitmap.width} × ${bitmap.height}"
+
+        raiz.addView(
+            informacoes,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                40
+            )
+        )
+
         setContentView(raiz)
+    }
+
+    // =========================================================
+    // CARREGAMENTO SEGURO DA IMAGEM
+    // =========================================================
+
+    private fun carregarImagem(
+        arquivo: File
+    ): Bitmap? {
+
+        return try {
+
+            // Primeiro descobrimos o tamanho
+            // sem carregar a imagem inteira na memória.
+
+            val limites =
+                BitmapFactory.Options()
+
+            limites.inJustDecodeBounds =
+                true
+
+            BitmapFactory.decodeFile(
+                arquivo.absolutePath,
+                limites
+            )
+
+            val largura =
+                limites.outWidth
+
+            val altura =
+                limites.outHeight
+
+            if (
+                largura <= 0 ||
+                altura <= 0
+            ) {
+                return null
+            }
+
+            // Limite para evitar estouro de memória
+            // em celulares mais simples.
+
+            val tamanhoMaximo = 4096
+
+            var sample = 1
+
+            while (
+                largura / sample > tamanhoMaximo ||
+                altura / sample > tamanhoMaximo
+            ) {
+                sample *= 2
+            }
+
+            val opcoes =
+                BitmapFactory.Options()
+
+            opcoes.inSampleSize =
+                sample
+
+            opcoes.inPreferredConfig =
+                Bitmap.Config.ARGB_8888
+
+            BitmapFactory.decodeFile(
+                arquivo.absolutePath,
+                opcoes
+            )
+
+        } catch (
+            _: OutOfMemoryError
+        ) {
+
+            null
+
+        } catch (
+            _: Exception
+        ) {
+
+            null
+        }
+    }
+
+    // =========================================================
+    // LIMPEZA
+    // =========================================================
+
+    override fun onDestroy() {
+
+        if (::imagem.isInitialized) {
+
+            imagem.setImageDrawable(
+                null
+            )
+        }
+
+        super.onDestroy()
     }
 }
