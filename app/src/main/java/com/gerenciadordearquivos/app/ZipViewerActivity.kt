@@ -3,7 +3,12 @@ package com.gerenciadordearquivos.app
 import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
-import android.widget.*
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.ListView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import java.io.File
 import java.io.FileOutputStream
@@ -24,13 +29,19 @@ class ZipViewerActivity : AppCompatActivity() {
         val caminho = intent.getStringExtra("arquivo")
 
         if (caminho.isNullOrEmpty()) {
+            Toast.makeText(
+                this,
+                "ZIP inválido",
+                Toast.LENGTH_LONG
+            ).show()
+
             finish()
             return
         }
 
         arquivoZip = File(caminho)
 
-        if (!arquivoZip!!.exists()) {
+        if (!arquivoZip!!.exists() || !arquivoZip!!.isFile) {
             Toast.makeText(
                 this,
                 "ZIP não encontrado",
@@ -45,23 +56,32 @@ class ZipViewerActivity : AppCompatActivity() {
         carregarZip()
     }
 
+    // =========================================================
+    // INTERFACE
+    // =========================================================
+
     private fun criarInterface() {
 
         val raiz = LinearLayout(this)
 
-        raiz.orientation = LinearLayout.VERTICAL
+        raiz.orientation =
+            LinearLayout.VERTICAL
 
-        raiz.setBackgroundColor(Color.WHITE)
+        raiz.setBackgroundColor(
+            Color.WHITE
+        )
 
-        // ==========================
+        // =====================================================
         // BARRA SUPERIOR
-        // ==========================
+        // =====================================================
 
         val barra = LinearLayout(this)
 
-        barra.orientation = LinearLayout.HORIZONTAL
+        barra.orientation =
+            LinearLayout.HORIZONTAL
 
-        barra.gravity = Gravity.CENTER_VERTICAL
+        barra.gravity =
+            Gravity.CENTER_VERTICAL
 
         barra.setPadding(
             8,
@@ -71,10 +91,16 @@ class ZipViewerActivity : AppCompatActivity() {
         )
 
         barra.setBackgroundColor(
-            Color.rgb(21, 101, 192)
+            Color.rgb(
+                21,
+                101,
+                192
+            )
         )
 
-        // BOTÃO VOLTAR
+        // =====================================================
+        // VOLTAR
+        // =====================================================
 
         val voltar = Button(this)
 
@@ -82,7 +108,9 @@ class ZipViewerActivity : AppCompatActivity() {
 
         voltar.textSize = 28f
 
-        voltar.setTextColor(Color.WHITE)
+        voltar.setTextColor(
+            Color.WHITE
+        )
 
         voltar.setOnClickListener {
             finish()
@@ -96,34 +124,46 @@ class ZipViewerActivity : AppCompatActivity() {
             )
         )
 
+        // =====================================================
         // TÍTULO
+        // =====================================================
 
         val titulo = TextView(this)
 
-        titulo.text = arquivoZip?.name ?: "ZIP"
+        titulo.text =
+            arquivoZip?.name ?: "ZIP"
 
-        // CORRIGIDO
-        titulo.setTextColor(Color.WHITE)
+        titulo.setTextColor(
+            Color.WHITE
+        )
 
         titulo.textSize = 16f
 
-        titulo.gravity = Gravity.CENTER_VERTICAL
+        titulo.gravity =
+            Gravity.CENTER_VERTICAL
 
         titulo.maxLines = 1
 
         titulo.ellipsize =
             android.text.TextUtils.TruncateAt.END
 
-        barra.addView(
-            titulo,
+        val tituloParams =
             LinearLayout.LayoutParams(
                 0,
                 55,
                 1f
             )
+
+        tituloParams.leftMargin = 8
+
+        barra.addView(
+            titulo,
+            tituloParams
         )
 
+        // =====================================================
         // BOTÃO EXTRAIR
+        // =====================================================
 
         val extrair = Button(this)
 
@@ -149,9 +189,9 @@ class ZipViewerActivity : AppCompatActivity() {
             )
         )
 
-        // ==========================
-        // LISTA
-        // ==========================
+        // =====================================================
+        // LISTA DO ZIP
+        // =====================================================
 
         lista = ListView(this)
 
@@ -164,10 +204,22 @@ class ZipViewerActivity : AppCompatActivity() {
             )
         )
 
-        setContentView(raiz)
+        setContentView(
+            raiz
+        )
     }
 
+    // =========================================================
+    // LER ZIP
+    // =========================================================
+
     private fun carregarZip() {
+
+        val zipAtual = arquivoZip
+
+        if (zipAtual == null || !zipAtual.exists()) {
+            return
+        }
 
         Thread {
 
@@ -175,34 +227,47 @@ class ZipViewerActivity : AppCompatActivity() {
 
                 entradas.clear()
 
-                ZipFile(arquivoZip!!).use { zip ->
+                ZipFile(
+                    zipAtual
+                ).use { zip ->
 
-                    val enumeracao = zip.entries()
+                    val enumeracao =
+                        zip.entries()
 
-                    while (enumeracao.hasMoreElements()) {
+                    while (
+                        enumeracao.hasMoreElements()
+                    ) {
 
-                        val entrada = enumeracao.nextElement()
+                        val entrada =
+                            enumeracao.nextElement()
 
-                        entradas.add(entrada)
+                        entradas.add(
+                            entrada
+                        )
                     }
                 }
 
                 runOnUiThread {
 
-                    val nomes = entradas.map { entrada ->
+                    val nomes =
+                        entradas.map { entrada ->
 
-                        if (entrada.isDirectory) {
-                            "📁  ${entrada.name}"
-                        } else {
-                            "📄  ${entrada.name}"
+                            if (entrada.isDirectory) {
+
+                                "📁  ${entrada.name}"
+
+                            } else {
+
+                                "📄  ${entrada.name}"
+                            }
                         }
-                    }
 
-                    lista.adapter = ArrayAdapter(
-                        this,
-                        android.R.layout.simple_list_item_1,
-                        nomes
-                    )
+                    lista.adapter =
+                        ArrayAdapter(
+                            this,
+                            android.R.layout.simple_list_item_1,
+                            nomes
+                        )
 
                     if (entradas.isEmpty()) {
 
@@ -229,14 +294,21 @@ class ZipViewerActivity : AppCompatActivity() {
         }.start()
     }
 
+    // =========================================================
+    // EXTRAIR ZIP
+    // =========================================================
+
     private fun extrairZip() {
 
-        val zipFile = arquivoZip
+        val zipFile =
+            arquivoZip
 
         if (
             zipFile == null ||
-            !zipFile.exists()
+            !zipFile.exists() ||
+            !zipFile.isFile
         ) {
+
             Toast.makeText(
                 this,
                 "ZIP não encontrado",
@@ -246,13 +318,38 @@ class ZipViewerActivity : AppCompatActivity() {
             return
         }
 
-        val destino = File(
-            zipFile.parentFile,
-            zipFile.nameWithoutExtension
-        )
+        val pastaPai =
+            zipFile.parentFile
 
-        if (!destino.exists()) {
-            destino.mkdirs()
+        if (pastaPai == null) {
+
+            Toast.makeText(
+                this,
+                "Não foi possível determinar a pasta de destino",
+                Toast.LENGTH_LONG
+            ).show()
+
+            return
+        }
+
+        val destino =
+            File(
+                pastaPai,
+                zipFile.nameWithoutExtension
+            )
+
+        if (
+            !destino.exists() &&
+            !destino.mkdirs()
+        ) {
+
+            Toast.makeText(
+                this,
+                "Não foi possível criar a pasta de destino",
+                Toast.LENGTH_LONG
+            ).show()
+
+            return
         }
 
         Toast.makeText(
@@ -265,25 +362,32 @@ class ZipViewerActivity : AppCompatActivity() {
 
             try {
 
-                ZipFile(zipFile).use { zip ->
+                ZipFile(
+                    zipFile
+                ).use { zip ->
 
-                    val buffer = ByteArray(8192)
+                    val buffer =
+                        ByteArray(8192)
 
-                    val enumeracao = zip.entries()
+                    val enumeracao =
+                        zip.entries()
 
-                    while (enumeracao.hasMoreElements()) {
+                    while (
+                        enumeracao.hasMoreElements()
+                    ) {
 
                         val entrada =
                             enumeracao.nextElement()
 
-                        val arquivoDestino = File(
-                            destino,
-                            entrada.name
-                        )
+                        val arquivoDestino =
+                            File(
+                                destino,
+                                entrada.name
+                            )
 
-                        // ==========================
-                        // PROTEÇÃO ZIP SLIP
-                        // ==========================
+                        // =================================================
+                        // PROTEÇÃO CONTRA ZIP SLIP
+                        // =================================================
 
                         val caminhoDestino =
                             arquivoDestino.canonicalPath
@@ -297,8 +401,13 @@ class ZipViewerActivity : AppCompatActivity() {
                                 caminhoBase
                             )
                         ) {
+
                             continue
                         }
+
+                        // =================================================
+                        // PASTA
+                        // =================================================
 
                         if (entrada.isDirectory) {
 
@@ -308,6 +417,10 @@ class ZipViewerActivity : AppCompatActivity() {
 
                             arquivoDestino.parentFile
                                 ?.mkdirs()
+
+                            // =================================================
+                            // ARQUIVO
+                            // =================================================
 
                             zip.getInputStream(
                                 entrada
@@ -320,13 +433,19 @@ class ZipViewerActivity : AppCompatActivity() {
                                     while (true) {
 
                                         val quantidade =
-                                            entradaStream.read(buffer)
+                                            entradaStream.read(
+                                                buffer
+                                            )
 
-                                        if (quantidade == -1) {
+                                        if (
+                                            quantidade == -1
+                                        ) {
                                             break
                                         }
 
-                                        if (quantidade > 0) {
+                                        if (
+                                            quantidade > 0
+                                        ) {
 
                                             saida.write(
                                                 buffer,
@@ -346,4 +465,22 @@ class ZipViewerActivity : AppCompatActivity() {
                     Toast.makeText(
                         this,
                         "Extraído em:\n${destino.absolutePath}",
-                       
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+
+                runOnUiThread {
+
+                    Toast.makeText(
+                        this,
+                        "Erro ao extrair ZIP: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+
+        }.start()
+    }
+}
