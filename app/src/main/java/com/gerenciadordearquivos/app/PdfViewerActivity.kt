@@ -6,7 +6,13 @@ import android.graphics.pdf.PdfRenderer
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.view.Gravity
-import android.widget.*
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import java.io.File
 
@@ -24,9 +30,11 @@ class PdfViewerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val caminho = intent.getStringExtra("arquivo")
+        val caminho =
+            intent.getStringExtra("arquivo")
 
         if (caminho.isNullOrEmpty()) {
+
             Toast.makeText(
                 this,
                 "Arquivo PDF inválido",
@@ -37,9 +45,11 @@ class PdfViewerActivity : AppCompatActivity() {
             return
         }
 
-        val arquivo = File(caminho)
+        val arquivo =
+            File(caminho)
 
-        if (!arquivo.exists()) {
+        if (!arquivo.exists() || !arquivo.isFile) {
+
             Toast.makeText(
                 this,
                 "PDF não encontrado",
@@ -54,16 +64,22 @@ class PdfViewerActivity : AppCompatActivity() {
 
         try {
 
-            descriptor = ParcelFileDescriptor.open(
-                arquivo,
-                ParcelFileDescriptor.MODE_READ_ONLY
-            )
+            descriptor =
+                ParcelFileDescriptor.open(
+                    arquivo,
+                    ParcelFileDescriptor.MODE_READ_ONLY
+                )
 
-            renderer = PdfRenderer(descriptor!!)
+            renderer =
+                PdfRenderer(
+                    descriptor!!
+                )
 
-            totalPaginas = renderer!!.pageCount
+            totalPaginas =
+                renderer!!.pageCount
 
             if (totalPaginas <= 0) {
+
                 Toast.makeText(
                     this,
                     "PDF sem páginas",
@@ -88,25 +104,38 @@ class PdfViewerActivity : AppCompatActivity() {
         }
     }
 
+    // =========================================================
+    // INTERFACE
+    // =========================================================
+
     private fun criarInterface() {
 
-        val raiz = LinearLayout(this)
+        val raiz =
+            LinearLayout(this)
 
-        raiz.orientation = LinearLayout.VERTICAL
+        raiz.orientation =
+            LinearLayout.VERTICAL
 
         raiz.setBackgroundColor(
-            Color.rgb(30, 30, 30)
+            Color.rgb(
+                30,
+                30,
+                30
+            )
         )
 
-        // ==========================
+        // =====================================================
         // BARRA SUPERIOR
-        // ==========================
+        // =====================================================
 
-        val barra = LinearLayout(this)
+        val barra =
+            LinearLayout(this)
 
-        barra.orientation = LinearLayout.HORIZONTAL
+        barra.orientation =
+            LinearLayout.HORIZONTAL
 
-        barra.gravity = Gravity.CENTER_VERTICAL
+        barra.gravity =
+            Gravity.CENTER_VERTICAL
 
         barra.setPadding(
             12,
@@ -116,18 +145,29 @@ class PdfViewerActivity : AppCompatActivity() {
         )
 
         barra.setBackgroundColor(
-            Color.rgb(21, 101, 192)
+            Color.rgb(
+                21,
+                101,
+                192
+            )
         )
 
+        // =====================================================
         // VOLTAR
+        // =====================================================
 
-        val voltar = Button(this)
+        val voltar =
+            Button(this)
 
-        voltar.text = "‹"
+        voltar.text =
+            "‹"
 
-        voltar.textSize = 28f
+        voltar.textSize =
+            28f
 
-        voltar.setTextColor(Color.WHITE)
+        voltar.setTextColor(
+            Color.WHITE
+        )
 
         voltar.setOnClickListener {
             finish()
@@ -141,16 +181,22 @@ class PdfViewerActivity : AppCompatActivity() {
             )
         )
 
+        // =====================================================
         // INFORMAÇÃO DA PÁGINA
+        // =====================================================
 
-        pageInfo = TextView(this)
+        pageInfo =
+            TextView(this)
 
-        // CORRIGIDO
-        pageInfo.setTextColor(Color.WHITE)
+        pageInfo.setTextColor(
+            Color.WHITE
+        )
 
-        pageInfo.textSize = 16f
+        pageInfo.textSize =
+            16f
 
-        pageInfo.gravity = Gravity.CENTER
+        pageInfo.gravity =
+            Gravity.CENTER
 
         barra.addView(
             pageInfo,
@@ -164,52 +210,62 @@ class PdfViewerActivity : AppCompatActivity() {
         raiz.addView(
             barra,
             LinearLayout.LayoutParams(
-                -1,
+                ViewGroup.LayoutParams.MATCH_PARENT,
                 65
             )
         )
 
-        // ==========================
-        // PDF
-        // ==========================
+        // =====================================================
+        // ÁREA DO PDF
+        // =====================================================
 
-        imageView = ImageView(this)
+        imageView =
+            ImageView(this)
 
         imageView.scaleType =
             ImageView.ScaleType.FIT_CENTER
 
         imageView.setBackgroundColor(
-            Color.rgb(50, 50, 50)
+            Color.rgb(
+                50,
+                50,
+                50
+            )
         )
 
-        val scroll = ScrollView(this)
+        val scroll =
+            ScrollView(this)
 
-        // CORRIGIDO:
-        // ScrollView.LayoutParams é válido,
-        // mas usamos FrameLayout.LayoutParams
-        // de forma explícita para evitar ambiguidade.
-        scroll.addView(
-            imageView,
-            android.widget.FrameLayout.LayoutParams(
-                -1,
-                -2
+        scroll.setBackgroundColor(
+            Color.rgb(
+                50,
+                50,
+                50
             )
+        )
+
+        // Não usamos ScrollView.LayoutParams.
+        // O ScrollView cria os parâmetros corretos.
+
+        scroll.addView(
+            imageView
         )
 
         raiz.addView(
             scroll,
             LinearLayout.LayoutParams(
-                -1,
+                ViewGroup.LayoutParams.MATCH_PARENT,
                 0,
                 1f
             )
         )
 
-        // ==========================
+        // =====================================================
         // CONTROLES
-        // ==========================
+        // =====================================================
 
-        val controles = LinearLayout(this)
+        val controles =
+            LinearLayout(this)
 
         controles.orientation =
             LinearLayout.HORIZONTAL
@@ -225,14 +281,22 @@ class PdfViewerActivity : AppCompatActivity() {
         )
 
         controles.setBackgroundColor(
-            Color.rgb(21, 101, 192)
+            Color.rgb(
+                21,
+                101,
+                192
+            )
         )
 
+        // =====================================================
         // ANTERIOR
+        // =====================================================
 
-        val anterior = Button(this)
+        val anterior =
+            Button(this)
 
-        anterior.text = "‹ Anterior"
+        anterior.text =
+            "‹ Anterior"
 
         anterior.setOnClickListener {
 
@@ -244,11 +308,15 @@ class PdfViewerActivity : AppCompatActivity() {
             }
         }
 
+        // =====================================================
         // PRÓXIMA
+        // =====================================================
 
-        val proxima = Button(this)
+        val proxima =
+            Button(this)
 
-        proxima.text = "Próxima ›"
+        proxima.text =
+            "Próxima ›"
 
         proxima.setOnClickListener {
 
@@ -266,3 +334,137 @@ class PdfViewerActivity : AppCompatActivity() {
         controles.addView(
             anterior,
             LinearLayout.LayoutParams(
+                0,
+                55,
+                1f
+            )
+        )
+
+        controles.addView(
+            proxima,
+            LinearLayout.LayoutParams(
+                0,
+                55,
+                1f
+            )
+        )
+
+        raiz.addView(
+            controles,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                70
+            )
+        )
+
+        setContentView(
+            raiz
+        )
+    }
+
+    // =========================================================
+    // MOSTRAR PÁGINA
+    // =========================================================
+
+    private fun mostrarPagina(
+        numero: Int
+    ) {
+
+        val pdf =
+            renderer ?: return
+
+        if (
+            numero < 0 ||
+            numero >= pdf.pageCount
+        ) {
+            return
+        }
+
+        try {
+
+            val pagina =
+                pdf.openPage(numero)
+
+            val largura =
+                pagina.width
+
+            val altura =
+                pagina.height
+
+            // Renderiza em resolução maior para
+            // deixar o PDF mais nítido.
+
+            val bitmap =
+                Bitmap.createBitmap(
+                    largura * 2,
+                    altura * 2,
+                    Bitmap.Config.ARGB_8888
+                )
+
+            bitmap.eraseColor(
+                Color.WHITE
+            )
+
+            pagina.render(
+                bitmap,
+                null,
+                null,
+                PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
+            )
+
+            pagina.close()
+
+            imageView.setImageBitmap(
+                bitmap
+            )
+
+            paginaAtual =
+                numero
+
+            pageInfo.text =
+                "Página ${numero + 1} de $totalPaginas"
+
+        } catch (e: Exception) {
+
+            Toast.makeText(
+                this,
+                "Erro ao renderizar página: ${e.message}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    // =========================================================
+    // LIMPEZA
+    // =========================================================
+
+    override fun onDestroy() {
+
+        imageViewIfInitialized()
+
+        try {
+            renderer?.close()
+        } catch (_: Exception) {
+        }
+
+        try {
+            descriptor?.close()
+        } catch (_: Exception) {
+        }
+
+        renderer = null
+        descriptor = null
+
+        super.onDestroy()
+    }
+
+    private fun imageViewIfInitialized() {
+
+        if (::imageView.isInitialized) {
+
+            imageView.setImageDrawable(
+                null
+            )
+        }
+    }
+}
