@@ -84,7 +84,9 @@ class ImageViewerActivity : AppCompatActivity() {
             Color.rgb(21, 101, 192)
         )
 
+        // =====================================================
         // BOTÃO VOLTAR
+        // =====================================================
 
         val voltar = Button(this)
 
@@ -108,7 +110,9 @@ class ImageViewerActivity : AppCompatActivity() {
             )
         )
 
+        // =====================================================
         // NOME DO ARQUIVO
+        // =====================================================
 
         val nome = TextView(this)
 
@@ -196,12 +200,11 @@ class ImageViewerActivity : AppCompatActivity() {
             bitmap
         )
 
+        // Não usamos ScrollView.LayoutParams aqui.
+        // O próprio ScrollView cria os parâmetros corretos.
+
         scroll.addView(
-            imagem,
-            ScrollView.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+            imagem
         )
 
         raiz.addView(
@@ -246,7 +249,13 @@ class ImageViewerActivity : AppCompatActivity() {
             )
         )
 
-        setContentView(raiz)
+        // =====================================================
+        // MOSTRAR INTERFACE
+        // =====================================================
+
+        setContentView(
+            raiz
+        )
     }
 
     // =========================================================
@@ -259,8 +268,8 @@ class ImageViewerActivity : AppCompatActivity() {
 
         return try {
 
-            // Primeiro descobrimos o tamanho
-            // sem carregar a imagem inteira na memória.
+            // Primeiro descobrimos as dimensões
+            // sem carregar a imagem inteira.
 
             val limites =
                 BitmapFactory.Options()
@@ -286,8 +295,8 @@ class ImageViewerActivity : AppCompatActivity() {
                 return null
             }
 
-            // Limite para evitar estouro de memória
-            // em celulares mais simples.
+            // Limite máximo da imagem carregada.
+            // Isso reduz o risco de OutOfMemoryError.
 
             val tamanhoMaximo = 4096
 
