@@ -506,6 +506,7 @@
 
         </LinearLayout>
 
+
         <TextView
             android:id="@+id/currentPath"
             android:layout_width="match_parent"
@@ -535,4 +536,12 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:numColumns="3"
-        
+            android:columnWidth="110dp"
+            android:horizontalSpacing="4dp"
+            android:verticalSpacing="4dp"
+            android:stretchMode="columnWidth"
+            android:visibility="gone"/>
+
+    </LinearLayout>
+
+</LinearLayout>
