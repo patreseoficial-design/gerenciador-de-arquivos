@@ -121,7 +121,7 @@
 
                 <ImageView
                     android:layout_width="95dp"
-                  android:layout_height="95dp"
+                    android:layout_height="95dp"
                     android:src="@drawable/armazenamento"
                     android:scaleType="fitXY"
                     android:contentDescription="Armazenamento principal"/>
@@ -189,10 +189,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
                         android:src="@drawable/downloads"
-                        android:scaleType="centerInside"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Downloads"/>
 
                     <TextView
@@ -219,10 +219,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
                         android:src="@drawable/armazenamento"
-                        android:scaleType="centerInside"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Análise do armazenamento"/>
 
                     <TextView
@@ -249,10 +249,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
                         android:src="@drawable/imagens"
-                        android:scaleType="centerInside"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Imagens"/>
 
                     <TextView
@@ -287,10 +287,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
                         android:src="@drawable/audios"
-                        android:scaleType="centerInside"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Áudio"/>
 
                     <TextView
@@ -317,10 +317,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
                         android:src="@drawable/videos"
-                        android:scaleType="centerInside"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Vídeos"/>
 
                     <TextView
@@ -347,10 +347,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
                         android:src="@drawable/documentos"
-                        android:scaleType="centerInside"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Documentos"/>
 
                     <TextView
@@ -385,10 +385,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
                         android:src="@drawable/aplicativos"
-                        android:scaleType="centerInside"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Aplicativos"/>
 
                     <TextView
@@ -415,10 +415,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
                         android:src="@drawable/lixeira"
-                        android:scaleType="centerInside"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Lixeira"/>
 
                     <TextView
@@ -445,10 +445,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="65dp"
-                        android:layout_height="65dp"
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
                         android:src="@drawable/cartao_memoria"
-                        android:scaleType="centerInside"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Cartão de memória"/>
 
                     <TextView
@@ -535,14 +535,4 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:numColumns="3"
-            android:columnWidth="110dp"
-            android:horizontalSpacing="4dp"
-            android:verticalSpacing="6dp"
-            android:stretchMode="columnWidth"
-            android:gravity="center"
-            android:background="#FFFFFF"
-            android:visibility="gone"/>
-
-    </LinearLayout>
-
-</LinearLayout>
+        
