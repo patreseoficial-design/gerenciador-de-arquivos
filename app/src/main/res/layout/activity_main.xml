@@ -26,18 +26,19 @@
             android:textColor="#FFFFFF"
             android:textSize="28sp"
             android:clickable="true"
-            android:focusable="true"/>
-
+            android:focusable="true"/>.           
+         
         <TextView
-            android:id="@+id/titleText"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:text="Gerenciador de Arquivos"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:textStyle="bold"/>
+    android:id="@+id/titleText"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:gravity="center_vertical"
+    android:translationY="3dp"
+    android:text="Gerenciador de Arquivos"
+    android:textColor="#FFFFFF"
+    android:textSize="20sp"
+    android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/menuButton"
