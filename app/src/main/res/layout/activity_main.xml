@@ -455,7 +455,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Cartão de memória"
+                        android:text="SD card"
                         android:textColor="#222222"
                         android:textSize="14sp"/>
 
