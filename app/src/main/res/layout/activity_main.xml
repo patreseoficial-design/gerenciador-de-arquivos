@@ -7,53 +7,56 @@
     android:orientation="vertical"
     android:background="#F7F7F7">
 
-    <!-- CABEÇALHO -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="96dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:background="#242424">
+<!-- CABEÇALHO -->
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="96dp"
+    android:background="#242424">
 
-        <TextView
-            android:id="@+id/menuLeft"
-            android:layout_width="48dp"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:translationY="5dp"
-            android:text="☰"
-            android:textColor="#FFFFFF"
-            android:textSize="28sp"
-            android:clickable="true"
-            android:focusable="true"/>
+    <!-- MENU ESQUERDO -->
+    <TextView
+        android:id="@+id/menuLeft"
+        android:layout_width="48dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:gravity="center"
+        android:translationY="5dp"
+        android:text="☰"
+        android:textColor="#FFFFFF"
+        android:textSize="28sp"
+        android:clickable="true"
+        android:focusable="true"/>
 
-        <TextView
-            android:id="@+id/titleText"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:translationY="8dp"
-            android:text="Gerenciador de Arquivos"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:textStyle="bold"/>
+    <!-- TÍTULO NO CENTRO -->
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:translationY="8dp"
+        android:text="Gerenciador de Arquivos"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:singleLine="true"
+        android:includeFontPadding="false"/>
 
-        <TextView
-            android:id="@+id/menuButton"
-            android:layout_width="48dp"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:translationY="5dp"
-            android:text="⋮"
-            android:textColor="#FFFFFF"
-            android:textSize="30sp"
-            android:clickable="true"
-            android:focusable="true"/>
+    <!-- MENU DIREITO -->
+    <TextView
+        android:id="@+id/menuButton"
+        android:layout_width="48dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:gravity="center"
+        android:translationY="5dp"
+        android:text="⋮"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        android:clickable="true"
+        android:focusable="true"/>
 
-    </LinearLayout>
+</FrameLayout>
 
 
     <!-- HOME -->
