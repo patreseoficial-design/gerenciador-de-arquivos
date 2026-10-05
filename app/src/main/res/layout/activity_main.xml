@@ -532,4 +532,34 @@
             android:gravity="center_vertical"
             android:ellipsize="middle"
             android:maxLines="1"
-  
+            android:textColor="#555555"
+            android:textSize="14sp"
+            android:background="#F5F5F5"/>
+
+
+        <!-- LISTA NORMAL -->
+        <ListView
+            android:id="@+id/fileList"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:dividerHeight="1dp"
+            android:background="#FFFFFF"/>
+
+
+        <!-- GRADE DE IMAGENS/VÍDEOS -->
+        <GridView
+            android:id="@+id/mediaGrid"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:numColumns="3"
+            android:columnWidth="110dp"
+            android:horizontalSpacing="4dp"
+            android:verticalSpacing="4dp"
+            android:stretchMode="columnWidth"
+            android:visibility="gone"/>
+
+    </LinearLayout>
+
+</LinearLayout>
