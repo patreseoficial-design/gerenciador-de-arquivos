@@ -202,48 +202,56 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(
             R.id.categoryImages
         ).setOnClickListener {
+
             abrirImagens()
         }
 
         findViewById<View>(
             R.id.categoryVideos
         ).setOnClickListener {
+
             abrirVideos()
         }
 
         findViewById<View>(
             R.id.categoryAudio
         ).setOnClickListener {
+
             abrirAudio()
         }
 
         findViewById<View>(
             R.id.categoryDocuments
         ).setOnClickListener {
+
             abrirDocumentos()
         }
 
         findViewById<View>(
             R.id.categoryApps
         ).setOnClickListener {
+
             abrirAplicativos()
         }
 
         findViewById<View>(
             R.id.categoryTrash
         ).setOnClickListener {
+
             abrirLixeira()
         }
 
         findViewById<View>(
             R.id.categoryAnalysis
         ).setOnClickListener {
+
             analisarArmazenamento()
         }
 
         findViewById<View>(
             R.id.backButton
         ).setOnClickListener {
+
             voltar()
         }
     }
@@ -535,6 +543,7 @@ class MainActivity : AppCompatActivity() {
                                 extensao
                             )
                         ) {
+
                             resultado.add(
                                 arquivo
                             )
@@ -697,6 +706,7 @@ class MainActivity : AppCompatActivity() {
                                 extensao
                             )
                         ) {
+
                             resultado.add(
                                 arquivo
                             )
@@ -911,6 +921,7 @@ class MainActivity : AppCompatActivity() {
                             ignoreCase = true
                         )
                     ) {
+
                         resultado.add(
                             arquivo
                         )
@@ -919,6 +930,7 @@ class MainActivity : AppCompatActivity() {
                     if (
                         arquivo.isDirectory
                     ) {
+
                         procurar(
                             arquivo
                         )
@@ -1313,7 +1325,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
             } catch (
-                e: Exception
+                _: Exception
             ) {
 
                 runOnUiThread {
@@ -1697,7 +1709,9 @@ class MainActivity : AppCompatActivity() {
         ): View {
 
             val linha =
-                LinearLayout(this@MainActivity)
+                LinearLayout(
+                    this@MainActivity
+                )
 
             linha.orientation =
                 LinearLayout.HORIZONTAL
@@ -1723,15 +1737,12 @@ class MainActivity : AppCompatActivity() {
                 )
             )
 
-            val iconeParams =
+            linha.addView(
+                icone,
                 LinearLayout.LayoutParams(
                     48,
                     48
                 )
-
-            linha.addView(
-                icone,
-                iconeParams
             )
 
             val textos =
@@ -1851,10 +1862,10 @@ class MainActivity : AppCompatActivity() {
                 )
 
             container.setPadding(
-                4,
-                4,
-                4,
-                4
+                2,
+                2,
+                2,
+                2
             )
 
             val imagem =
@@ -1866,11 +1877,18 @@ class MainActivity : AppCompatActivity() {
                 ImageView.ScaleType.CENTER_CROP
 
             imagem.setBackgroundColor(
-                Color.LTGRAY
+                Color.rgb(
+                    235,
+                    235,
+                    235
+                )
             )
 
+            val larguraTela =
+                resources.displayMetrics.widthPixels
+
             val tamanho =
-                150
+                larguraTela / 3
 
             container.addView(
                 imagem,
@@ -1883,17 +1901,26 @@ class MainActivity : AppCompatActivity() {
             val arquivo =
                 arquivos[position]
 
-            if (
-                TIPO_IMAGEM.contains(
-                    arquivo.extension.lowercase(
+            val extensao =
+                arquivo.extension
+                    .lowercase(
                         Locale.getDefault()
                     )
+
+            if (
+                TIPO_IMAGEM.contains(
+                    extensao
                 )
             ) {
 
+                val chaveCache =
+                    arquivo.absolutePath +
+                            "_" +
+                            arquivo.lastModified()
+
                 val cache =
                     thumbnailCache.get(
-                        arquivo.absolutePath
+                        chaveCache
                     )
 
                 if (cache != null) {
@@ -1912,19 +1939,21 @@ class MainActivity : AppCompatActivity() {
 
                         val bitmap =
                             carregarMiniatura(
-                                arquivo
+                                arquivo,
+                                tamanho
                             )
 
                         if (bitmap != null) {
 
                             thumbnailCache.put(
-                                arquivo.absolutePath,
+                                chaveCache,
                                 bitmap
                             )
 
                             runOnUiThread {
 
                                 if (
+                                    !isFinishing &&
                                     imagem.parent != null
                                 ) {
 
@@ -1951,19 +1980,55 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun carregarMiniatura(
-        arquivo: File
+        arquivo: File,
+        tamanho: Int
     ): Bitmap? {
 
         return try {
+
+            val informacoes =
+                BitmapFactory.Options()
+
+            informacoes.inJustDecodeBounds =
+                true
+
+            BitmapFactory.decodeFile(
+                arquivo.absolutePath,
+                informacoes
+            )
+
+            val larguraOriginal =
+                informacoes.outWidth
+
+            val alturaOriginal =
+                informacoes.outHeight
+
+            if (
+                larguraOriginal <= 0 ||
+                alturaOriginal <= 0
+            ) {
+                return null
+            }
+
+            var escala =
+                1
+
+            while (
+                larguraOriginal / escala > tamanho * 2 &&
+                alturaOriginal / escala > tamanho * 2
+            ) {
+
+                escala *= 2
+            }
 
             val options =
                 BitmapFactory.Options()
 
             options.inSampleSize =
-                4
+                escala
 
             options.inPreferredConfig =
-                Bitmap.Config.RGB_565
+                Bitmap.Config.ARGB_8888
 
             BitmapFactory.decodeFile(
                 arquivo.absolutePath,
@@ -1987,11 +2052,14 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
 
         try {
+
             thumbnailExecutor.shutdownNow()
+
             thumbnailExecutor.awaitTermination(
                 300,
                 TimeUnit.MILLISECONDS
             )
+
         } catch (
             _: Exception
         ) {
