@@ -3,13 +3,16 @@ package com.gerenciadordearquivos.app
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Matrix
+import android.graphics.PointF
 import android.os.Bundle
 import android.view.Gravity
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -17,7 +20,7 @@ import java.io.File
 
 class ImageViewerActivity : AppCompatActivity() {
 
-    private lateinit var imagem: ImageView
+    private lateinit var imagem: ZoomImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,6 +28,7 @@ class ImageViewerActivity : AppCompatActivity() {
         val caminho = intent.getStringExtra("arquivo")
 
         if (caminho.isNullOrEmpty()) {
+
             Toast.makeText(
                 this,
                 "Imagem inválida",
@@ -38,6 +42,7 @@ class ImageViewerActivity : AppCompatActivity() {
         val arquivo = File(caminho)
 
         if (!arquivo.exists() || !arquivo.isFile) {
+
             Toast.makeText(
                 this,
                 "Imagem não encontrada",
@@ -53,9 +58,14 @@ class ImageViewerActivity : AppCompatActivity() {
 
     private fun criarInterface(arquivo: File) {
 
+        // =====================================================
+        // RAIZ
+        // =====================================================
+
         val raiz = LinearLayout(this)
 
-        raiz.orientation = LinearLayout.VERTICAL
+        raiz.orientation =
+            LinearLayout.VERTICAL
 
         raiz.setBackgroundColor(
             Color.BLACK
@@ -98,6 +108,10 @@ class ImageViewerActivity : AppCompatActivity() {
             Color.WHITE
         )
 
+        voltar.setBackgroundColor(
+            Color.TRANSPARENT
+        )
+
         voltar.setOnClickListener {
             finish()
         }
@@ -116,18 +130,21 @@ class ImageViewerActivity : AppCompatActivity() {
 
         val nome = TextView(this)
 
-        nome.text = arquivo.name
+        nome.text =
+            arquivo.name
 
         nome.setTextColor(
             Color.WHITE
         )
 
-        nome.textSize = 15f
+        nome.textSize =
+            15f
 
         nome.gravity =
             Gravity.CENTER_VERTICAL
 
-        nome.maxLines = 1
+        nome.maxLines =
+            1
 
         nome.ellipsize =
             android.text.TextUtils.TruncateAt.END
@@ -139,7 +156,8 @@ class ImageViewerActivity : AppCompatActivity() {
                 1f
             )
 
-        nomeParams.leftMargin = 8
+        nomeParams.leftMargin =
+            8
 
         barra.addView(
             nome,
@@ -155,22 +173,10 @@ class ImageViewerActivity : AppCompatActivity() {
         )
 
         // =====================================================
-        // ÁREA DA IMAGEM
+        // IMAGEM COM ZOOM
         // =====================================================
 
-        val scroll = ScrollView(this)
-
-        scroll.setBackgroundColor(
-            Color.BLACK
-        )
-
-        imagem = ImageView(this)
-
-        imagem.scaleType =
-            ImageView.ScaleType.FIT_CENTER
-
-        imagem.adjustViewBounds =
-            true
+        imagem = ZoomImageView(this)
 
         imagem.setBackgroundColor(
             Color.BLACK
@@ -180,9 +186,8 @@ class ImageViewerActivity : AppCompatActivity() {
         // CARREGAR IMAGEM
         // =====================================================
 
-        val bitmap = carregarImagem(
-            arquivo
-        )
+        val bitmap =
+            carregarImagem(arquivo)
 
         if (bitmap == null) {
 
@@ -200,15 +205,12 @@ class ImageViewerActivity : AppCompatActivity() {
             bitmap
         )
 
-        // Não usamos ScrollView.LayoutParams aqui.
-        // O próprio ScrollView cria os parâmetros corretos.
-
-        scroll.addView(
-            imagem
-        )
+        // =====================================================
+        // ÁREA DA IMAGEM
+        // =====================================================
 
         raiz.addView(
-            scroll,
+            imagem,
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 0,
@@ -217,7 +219,7 @@ class ImageViewerActivity : AppCompatActivity() {
         )
 
         // =====================================================
-        // INFORMAÇÕES DA IMAGEM
+        // INFORMAÇÕES
         // =====================================================
 
         val informacoes = TextView(this)
@@ -226,7 +228,8 @@ class ImageViewerActivity : AppCompatActivity() {
             Color.WHITE
         )
 
-        informacoes.textSize = 12f
+        informacoes.textSize =
+            12f
 
         informacoes.gravity =
             Gravity.CENTER
@@ -239,7 +242,7 @@ class ImageViewerActivity : AppCompatActivity() {
         )
 
         informacoes.text =
-            "${bitmap.width} × ${bitmap.height}"
+            "${bitmap.width} × ${bitmap.height}   •   Use dois dedos para ampliar"
 
         raiz.addView(
             informacoes,
@@ -250,7 +253,7 @@ class ImageViewerActivity : AppCompatActivity() {
         )
 
         // =====================================================
-        // MOSTRAR INTERFACE
+        // MOSTRAR
         // =====================================================
 
         setContentView(
@@ -259,7 +262,7 @@ class ImageViewerActivity : AppCompatActivity() {
     }
 
     // =========================================================
-    // CARREGAMENTO SEGURO DA IMAGEM
+    // CARREGAMENTO SEGURO
     // =========================================================
 
     private fun carregarImagem(
@@ -268,8 +271,9 @@ class ImageViewerActivity : AppCompatActivity() {
 
         return try {
 
-            // Primeiro descobrimos as dimensões
-            // sem carregar a imagem inteira.
+            // -------------------------------------------------
+            // PRIMEIRO: descobrir dimensões
+            // -------------------------------------------------
 
             val limites =
                 BitmapFactory.Options()
@@ -295,19 +299,27 @@ class ImageViewerActivity : AppCompatActivity() {
                 return null
             }
 
-            // Limite máximo da imagem carregada.
-            // Isso reduz o risco de OutOfMemoryError.
+            // -------------------------------------------------
+            // TAMANHO MÁXIMO
+            // -------------------------------------------------
 
-            val tamanhoMaximo = 4096
+            val tamanhoMaximo =
+                4096
 
-            var sample = 1
+            var sample =
+                1
 
             while (
                 largura / sample > tamanhoMaximo ||
                 altura / sample > tamanhoMaximo
             ) {
+
                 sample *= 2
             }
+
+            // -------------------------------------------------
+            // CARREGAR BITMAP
+            // -------------------------------------------------
 
             val opcoes =
                 BitmapFactory.Options()
@@ -345,11 +357,520 @@ class ImageViewerActivity : AppCompatActivity() {
 
         if (::imagem.isInitialized) {
 
-            imagem.setImageDrawable(
+            imagem.setImageBitmap(
                 null
             )
         }
 
         super.onDestroy()
+    }
+}
+
+
+// =============================================================
+// VISUALIZADOR DE IMAGEM COM ZOOM
+// =============================================================
+
+class ZoomImageView(
+    context: android.content.Context
+) : ImageView(context) {
+
+    private val matriz =
+        Matrix()
+
+    private val matrizInicial =
+        Matrix()
+
+    private var escalaAtual =
+        1f
+
+    private var escalaMinima =
+        1f
+
+    private var escalaMaxima =
+        5f
+
+    private var inicializado =
+        false
+
+    private val pontoAnterior =
+        PointF()
+
+    private var arrastando =
+        false
+
+    private var ultimoNumeroDedos =
+        0
+
+    private val detectorZoom =
+        ScaleGestureDetector(
+            context,
+            object :
+                ScaleGestureDetector.SimpleOnScaleGestureListener() {
+
+                override fun onScaleBegin(
+                    detector: ScaleGestureDetector
+                ): Boolean {
+
+                    return true
+                }
+
+                override fun onScale(
+                    detector: ScaleGestureDetector
+                ): Boolean {
+
+                    var novaEscala =
+                        escalaAtual *
+                            detector.scaleFactor
+
+                    if (
+                        novaEscala <
+                        escalaMinima
+                    ) {
+                        novaEscala =
+                            escalaMinima
+                    }
+
+                    if (
+                        novaEscala >
+                        escalaMaxima
+                    ) {
+                        novaEscala =
+                            escalaMaxima
+                    }
+
+                    val fator =
+                        novaEscala /
+                            escalaAtual
+
+                    matriz.postScale(
+                        fator,
+                        fator,
+                        detector.focusX,
+                        detector.focusY
+                    )
+
+                    escalaAtual =
+                        novaEscala
+
+                    limitarMovimento()
+
+                    imageMatrix =
+                        matriz
+
+                    invalidate()
+
+                    return true
+                }
+            }
+        )
+
+    init {
+
+        scaleType =
+            ScaleType.MATRIX
+
+        setBackgroundColor(
+            Color.BLACK
+        )
+
+        isClickable =
+            true
+    }
+
+    // =========================================================
+    // AJUSTAR IMAGEM PARA CABER INTEIRA
+    // =========================================================
+
+    override fun onSizeChanged(
+        largura: Int,
+        altura: Int,
+        larguraAntiga: Int,
+        alturaAntiga: Int
+    ) {
+
+        super.onSizeChanged(
+            largura,
+            altura,
+            larguraAntiga,
+            alturaAntiga
+        )
+
+        ajustarImagemInteira()
+    }
+
+    override fun setImageBitmap(
+        bm: Bitmap?
+    ) {
+
+        super.setImageBitmap(
+            bm
+        )
+
+        inicializado =
+            false
+
+        post {
+
+            ajustarImagemInteira()
+        }
+    }
+
+    private fun ajustarImagemInteira() {
+
+        val bitmap =
+            drawable ?: return
+
+        val larguraView =
+            width.toFloat()
+
+        val alturaView =
+            height.toFloat()
+
+        if (
+            larguraView <= 0 ||
+            alturaView <= 0
+        ) {
+            return
+        }
+
+        val larguraImagem =
+            bitmap.intrinsicWidth.toFloat()
+
+        val alturaImagem =
+            bitmap.intrinsicHeight.toFloat()
+
+        if (
+            larguraImagem <= 0 ||
+            alturaImagem <= 0
+        ) {
+            return
+        }
+
+        // -----------------------------------------------------
+        // ESCALA PARA A IMAGEM INTEIRA CABER NA TELA
+        // -----------------------------------------------------
+
+        val escalaX =
+            larguraView /
+                larguraImagem
+
+        val escalaY =
+            alturaView /
+                alturaImagem
+
+        escalaMinima =
+            minOf(
+                escalaX,
+                escalaY
+            )
+
+        escalaAtual =
+            escalaMinima
+
+        escalaMaxima =
+            escalaMinima * 5f
+
+        // -----------------------------------------------------
+        // CENTRALIZAR
+        // -----------------------------------------------------
+
+        val larguraFinal =
+            larguraImagem *
+                escalaMinima
+
+        val alturaFinal =
+            alturaImagem *
+                escalaMinima
+
+        val deslocamentoX =
+            (larguraView -
+                larguraFinal) / 2f
+
+        val deslocamentoY =
+            (alturaView -
+                alturaFinal) / 2f
+
+        matriz.reset()
+
+        matriz.postScale(
+            escalaMinima,
+            escalaMinima
+        )
+
+        matriz.postTranslate(
+            deslocamentoX,
+            deslocamentoY
+        )
+
+        matrizInicial.set(
+            matriz
+        )
+
+        imageMatrix =
+            matriz
+
+        inicializado =
+            true
+
+        invalidate()
+    }
+
+    // =========================================================
+    // TOQUE / ZOOM / ARRASTAR
+    // =========================================================
+
+    override fun onTouchEvent(
+        evento: MotionEvent
+    ): Boolean {
+
+        detectorZoom.onTouchEvent(
+            evento
+        )
+
+        when (evento.actionMasked) {
+
+            MotionEvent.ACTION_DOWN -> {
+
+                pontoAnterior.set(
+                    evento.x,
+                    evento.y
+                )
+
+                arrastando =
+                    true
+
+                ultimoNumeroDedos =
+                    1
+
+                return true
+            }
+
+            MotionEvent.ACTION_POINTER_DOWN -> {
+
+                ultimoNumeroDedos =
+                    evento.pointerCount
+
+                arrastando =
+                    false
+
+                return true
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+
+                // ------------------------------------------------
+                // Só arrasta quando não está fazendo pinch zoom
+                // ------------------------------------------------
+
+                if (
+                    evento.pointerCount == 1 &&
+                    arrastando &&
+                    escalaAtual > escalaMinima
+                ) {
+
+                    val deslocamentoX =
+                        evento.x -
+                            pontoAnterior.x
+
+                    val deslocamentoY =
+                        evento.y -
+                            pontoAnterior.y
+
+                    matriz.postTranslate(
+                        deslocamentoX,
+                        deslocamentoY
+                    )
+
+                    limitarMovimento()
+
+                    imageMatrix =
+                        matriz
+
+                    pontoAnterior.set(
+                        evento.x,
+                        evento.y
+                    )
+
+                    invalidate()
+                }
+
+                return true
+            }
+
+            MotionEvent.ACTION_POINTER_UP -> {
+
+                arrastando =
+                    false
+
+                ultimoNumeroDedos =
+                    evento.pointerCount - 1
+
+                return true
+            }
+
+            MotionEvent.ACTION_UP -> {
+
+                arrastando =
+                    false
+
+                ultimoNumeroDedos =
+                    0
+
+                return true
+            }
+
+            MotionEvent.ACTION_CANCEL -> {
+
+                arrastando =
+                    false
+
+                ultimoNumeroDedos =
+                    0
+
+                return true
+            }
+        }
+
+        return true
+    }
+
+    // =========================================================
+    // LIMITAR IMAGEM PARA NÃO SUMIR DA TELA
+    // =========================================================
+
+    private fun limitarMovimento() {
+
+        val drawableAtual =
+            drawable ?: return
+
+        val valores =
+            FloatArray(9)
+
+        matriz.getValues(
+            valores
+        )
+
+        val escalaX =
+            valores[Matrix.MSCALE_X]
+
+        val escalaY =
+            valores[Matrix.MSCALE_Y]
+
+        var esquerda =
+            valores[Matrix.MTRANS_X]
+
+        var topo =
+            valores[Matrix.MTRANS_Y]
+
+        val largura =
+            drawableAtual.intrinsicWidth *
+                escalaX
+
+        val altura =
+            drawableAtual.intrinsicHeight *
+                escalaY
+
+        val larguraView =
+            width.toFloat()
+
+        val alturaView =
+            height.toFloat()
+
+        // -----------------------------------------------------
+        // HORIZONTAL
+        // -----------------------------------------------------
+
+        if (largura <= larguraView) {
+
+            esquerda =
+                (larguraView -
+                    largura) / 2f
+
+        } else {
+
+            val limiteDireito =
+                0f
+
+            val limiteEsquerdo =
+                larguraView -
+                    largura
+
+            if (
+                esquerda >
+                limiteDireito
+            ) {
+                esquerda =
+                    limiteDireito
+            }
+
+            if (
+                esquerda <
+                limiteEsquerdo
+            ) {
+                esquerda =
+                    limiteEsquerdo
+            }
+        }
+
+        // -----------------------------------------------------
+        // VERTICAL
+        // -----------------------------------------------------
+
+        if (altura <= alturaView) {
+
+            topo =
+                (alturaView -
+                    altura) / 2f
+
+        } else {
+
+            val limiteBaixo =
+                0f
+
+            val limiteTopo =
+                alturaView -
+                    altura
+
+            if (
+                topo >
+                limiteBaixo
+            ) {
+                topo =
+                    limiteBaixo
+            }
+
+            if (
+                topo <
+                limiteTopo
+            ) {
+                topo =
+                    limiteTopo
+            }
+        }
+
+        valores[Matrix.MTRANS_X] =
+            esquerda
+
+        valores[Matrix.MTRANS_Y] =
+            topo
+
+        matriz.setValues(
+            valores
+        )
+    }
+
+    // =========================================================
+    // DUPLO TOQUE PARA ZOOM RÁPIDO
+    // =========================================================
+
+    private var ultimoToque =
+        0L
+
+    override fun performClick(): Boolean {
+
+        super.performClick()
+
+        return true
     }
 }
