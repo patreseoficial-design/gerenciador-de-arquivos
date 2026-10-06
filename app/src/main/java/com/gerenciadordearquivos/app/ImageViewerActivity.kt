@@ -1,66 +1,82 @@
 package com.gerenciadordearquivos.app
 
+import android.app.Activity
 import android.app.AlertDialog
-import android.content.Context
-import android.graphics.*
+import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Environment
-import android.view.*
-import android.view.inputmethod.InputMethodManager
-import android.widget.*
+import android.view.GestureDetector
+import android.view.Gravity
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
+import android.view.View
+import android.view.Window
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ListView
+import android.widget.PopupWindow
+import android.widget.TextView
+import android.widget.Toast
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
 
 class ImageViewerActivity : Activity() {
 
     private lateinit var imageView: ZoomImageView
-    private lateinit var nomeArquivo: TextView
-
-    private var arquivo: File? = null
-
-    private val azul = Color.rgb(33, 150, 243)
-    private val azulEscuro = Color.rgb(25, 118, 210)
+    private lateinit var arquivoAtual: File
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        entrarTelaCheia()
+        configurarTelaCheia()
 
         val caminho = intent.getStringExtra("arquivo")
 
         if (caminho.isNullOrEmpty()) {
-            Toast.makeText(this, "Imagem não encontrada", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this@ImageViewerActivity,
+                "Imagem não encontrada",
+                Toast.LENGTH_LONG
+            ).show()
             finish()
             return
         }
 
-        arquivo = File(caminho)
+        arquivoAtual = File(caminho)
 
-        if (!arquivo!!.exists()) {
-            Toast.makeText(this, "Arquivo não encontrado", Toast.LENGTH_LONG).show()
+        if (!arquivoAtual.exists()) {
+            Toast.makeText(
+                this@ImageViewerActivity,
+                "Arquivo não encontrado",
+                Toast.LENGTH_LONG
+            ).show()
             finish()
             return
         }
 
         criarInterface()
-        carregarImagem()
     }
 
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
+    private fun configurarTelaCheia() {
+        requestWindowFeature(Window.FEATURE_NO_TITLE)
 
-        if (hasFocus) {
-            entrarTelaCheia()
-        }
-    }
+        window.setFlags(
+            Window.FEATURE_NO_TITLE,
+            Window.FEATURE_NO_TITLE
+        )
 
-    private fun entrarTelaCheia() {
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_FULLSCREEN or
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
@@ -72,174 +88,148 @@ class ImageViewerActivity : Activity() {
 
     private fun criarInterface() {
 
-        val raiz = LinearLayout(this)
+        val raiz = LinearLayout(this@ImageViewerActivity)
         raiz.orientation = LinearLayout.VERTICAL
         raiz.setBackgroundColor(Color.BLACK)
 
-        // =========================
-        // BARRA SUPERIOR
-        // =========================
+        val barraSuperior = LinearLayout(this@ImageViewerActivity)
+        barraSuperior.orientation = LinearLayout.HORIZONTAL
+        barraSuperior.gravity = Gravity.CENTER_VERTICAL
+        barraSuperior.setPadding(12, 8, 8, 8)
+        barraSuperior.setBackgroundColor(Color.argb(210, 25, 25, 25))
 
-        val barra = LinearLayout(this)
-        barra.orientation = LinearLayout.HORIZONTAL
-        barra.gravity = Gravity.CENTER_VERTICAL
-        barra.setPadding(8, 0, 8, 0)
-        barra.setBackgroundColor(azul)
+        val voltar = ImageButton(this@ImageViewerActivity)
+        voltar.setImageResource(android.R.drawable.ic_menu_revert)
+        voltar.setBackgroundColor(Color.TRANSPARENT)
+        voltar.setColorFilter(Color.WHITE)
 
-        val voltar = TextView(this)
-        voltar.text = "‹"
-        voltar.textSize = 42f
-        voltar.setTextColor(Color.WHITE)
-        voltar.gravity = Gravity.CENTER
+        val parametrosVoltar = LinearLayout.LayoutParams(
+            52,
+            52
+        )
+
+        barraSuperior.addView(
+            voltar,
+            parametrosVoltar
+        )
+
         voltar.setOnClickListener {
             finish()
         }
 
-        barra.addView(
-            voltar,
-            LinearLayout.LayoutParams(
-                52,
-                64
-            )
-        )
+        val titulo = TextView(this@ImageViewerActivity)
+        titulo.text = arquivoAtual.name
+        titulo.setTextColor(Color.WHITE)
+        titulo.textSize = 17f
+        titulo.maxLines = 1
+        titulo.ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
+        titulo.gravity = Gravity.CENTER_VERTICAL
 
-        nomeArquivo = TextView(this)
-        nomeArquivo.text = arquivo?.name ?: "Imagem"
-        nomeArquivo.textSize = 18f
-        nomeArquivo.setTextColor(Color.WHITE)
-        nomeArquivo.setTypeface(null, Typeface.BOLD)
-        nomeArquivo.gravity = Gravity.CENTER_VERTICAL
-        nomeArquivo.maxLines = 1
-        nomeArquivo.ellipsize = android.text.TextUtils.TruncateAt.MIDDLE
-
-        val paramsNome = LinearLayout.LayoutParams(
+        val parametrosTitulo = LinearLayout.LayoutParams(
             0,
-            64,
+            LinearLayout.LayoutParams.MATCH_PARENT,
             1f
         )
 
-        barra.addView(nomeArquivo, paramsNome)
+        parametrosTitulo.setMargins(10, 0, 10, 0)
 
-        val menu = TextView(this)
-        menu.text = "⋮"
-        menu.textSize = 32f
-        menu.setTextColor(Color.WHITE)
-        menu.gravity = Gravity.CENTER
+        barraSuperior.addView(
+            titulo,
+            parametrosTitulo
+        )
+
+        val menu = ImageButton(this@ImageViewerActivity)
+        menu.setImageResource(android.R.drawable.ic_menu_more)
+        menu.setBackgroundColor(Color.TRANSPARENT)
+        menu.setColorFilter(Color.WHITE)
+
+        val parametrosMenu = LinearLayout.LayoutParams(
+            52,
+            52
+        )
+
+        barraSuperior.addView(
+            menu,
+            parametrosMenu
+        )
+
         menu.setOnClickListener {
             mostrarMenu()
         }
 
-        barra.addView(
-            menu,
+        raiz.addView(
+            barraSuperior,
             LinearLayout.LayoutParams(
-                52,
-                64
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                68
             )
         )
 
-        raiz.addView(barra)
+        imageView = ZoomImageView(this@ImageViewerActivity)
 
-        // =========================
-        // VISUALIZADOR
-        // =========================
-
-        imageView = ZoomImageView(this)
-
-        val imagemParams = LinearLayout.LayoutParams(
+        val parametrosImagem = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             0,
             1f
         )
 
-        raiz.addView(imageView, imagemParams)
-
-        // =========================
-        // INFORMAÇÃO INFERIOR
-        // =========================
-
-        val info = TextView(this)
-        info.setTextColor(Color.WHITE)
-        info.textSize = 13f
-        info.gravity = Gravity.CENTER
-        info.setPadding(8, 8, 8, 8)
-        info.setBackgroundColor(Color.argb(190, 0, 0, 0))
-
         raiz.addView(
-            info,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                42
-            )
+            imageView,
+            parametrosImagem
         )
 
-        val arquivoAtual = arquivo
-
-        if (arquivoAtual != null && arquivoAtual.exists()) {
-
-            val bitmap = BitmapFactory.decodeFile(arquivoAtual.absolutePath)
-
-            if (bitmap != null) {
-                info.text =
-                    "${bitmap.width} × ${bitmap.height}    •    ${formatarTamanho(arquivoAtual.length())}"
-                bitmap.recycle()
-            } else {
-                info.text = formatarTamanho(arquivoAtual.length())
-            }
-        }
-
         setContentView(raiz)
+
+        carregarImagem()
     }
 
     private fun carregarImagem() {
 
-        val file = arquivo ?: return
-
         try {
 
-            val options = BitmapFactory.Options()
-            options.inJustDecodeBounds = true
+            val opcoes = BitmapFactory.Options()
+            opcoes.inJustDecodeBounds = true
 
             BitmapFactory.decodeFile(
-                file.absolutePath,
-                options
+                arquivoAtual.absolutePath,
+                opcoes
             )
 
-            val largura = options.outWidth
-            val altura = options.outHeight
-
-            if (largura <= 0 || altura <= 0) {
+            if (opcoes.outWidth <= 0 || opcoes.outHeight <= 0) {
                 Toast.makeText(
-                    this,
-                    "Não foi possível abrir a imagem",
+                    this@ImageViewerActivity,
+                    "Não foi possível ler a imagem",
                     Toast.LENGTH_LONG
                 ).show()
                 return
             }
 
-            val maxDimensao = 4096
+            val larguraMaxima = 4096
+            val alturaMaxima = 4096
 
-            var sample = 1
+            var amostra = 1
 
             while (
-                largura / sample > maxDimensao ||
-                altura / sample > maxDimensao
+                opcoes.outWidth / amostra > larguraMaxima ||
+                opcoes.outHeight / amostra > alturaMaxima
             ) {
-                sample *= 2
+                amostra *= 2
             }
 
-            val optionsFinal = BitmapFactory.Options()
-            optionsFinal.inSampleSize = sample
-            optionsFinal.inPreferredConfig = Bitmap.Config.ARGB_8888
+            val opcoesFinal = BitmapFactory.Options()
+            opcoesFinal.inSampleSize = amostra
+            opcoesFinal.inPreferredConfig =
+                android.graphics.Bitmap.Config.ARGB_8888
 
             val bitmap = BitmapFactory.decodeFile(
-                file.absolutePath,
-                optionsFinal
+                arquivoAtual.absolutePath,
+                opcoesFinal
             )
 
             if (bitmap == null) {
                 Toast.makeText(
-                    this,
-                    "Erro ao carregar imagem",
+                    this@ImageViewerActivity,
+                    "Não foi possível carregar a imagem",
                     Toast.LENGTH_LONG
                 ).show()
                 return
@@ -250,247 +240,385 @@ class ImageViewerActivity : Activity() {
         } catch (e: Exception) {
 
             Toast.makeText(
-                this,
-                "Erro ao abrir imagem: ${e.message}",
+                this@ImageViewerActivity,
+                "Erro ao carregar imagem: ${e.message}",
                 Toast.LENGTH_LONG
             ).show()
         }
     }
 
-    // ============================================================
-    // MENU
-    // ============================================================
-
     private fun mostrarMenu() {
 
-        val opcoes = arrayOf(
-            "✏️  Renomear",
-            "📁  Mover para...",
-            "📂  Criar pasta",
-            "ⓘ  Informações",
-            "🗑️  Mover para lixeira"
+        val popupLayout = LinearLayout(this@ImageViewerActivity)
+        popupLayout.orientation = LinearLayout.VERTICAL
+        popupLayout.setPadding(0, 8, 0, 8)
+        popupLayout.setBackgroundColor(Color.WHITE)
+
+        val largura = 240
+
+        val popup = PopupWindow(
+            popupLayout,
+            largura,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            true
         )
 
-        AlertDialog.Builder(this)
-            .setItems(opcoes) { _, qual ->
+        popup.setBackgroundDrawable(
+            ColorDrawable(Color.WHITE)
+        )
 
-                when (qual) {
+        popup.elevation = 12f
 
-                    0 -> renomearArquivo()
+        adicionarOpcaoMenu(
+            popupLayout,
+            "ℹ  Informações"
+        ) {
+            popup.dismiss()
+            mostrarInformacoes()
+        }
 
-                    1 -> mostrarNavegadorDePastas()
+        adicionarOpcaoMenu(
+            popupLayout,
+            "✎  Renomear"
+        ) {
+            popup.dismiss()
+            renomearArquivo()
+        }
 
-                    2 -> criarPasta(arquivo?.parentFile)
+        adicionarOpcaoMenu(
+            popupLayout,
+            "↗  Mover"
+        ) {
+            popup.dismiss()
+            abrirSeletorDePasta(
+                arquivoAtual.parentFile
+                    ?: Environment.getExternalStorageDirectory()
+            )
+        }
 
-                    3 -> mostrarInformacoes()
+        adicionarOpcaoMenu(
+            popupLayout,
+            "＋  Criar pasta"
+        ) {
+            popup.dismiss()
+            criarPasta(
+                arquivoAtual.parentFile
+                    ?: Environment.getExternalStorageDirectory()
+            )
+        }
 
-                    4 -> moverParaLixeira()
+        adicionarOpcaoMenu(
+            popupLayout,
+            "🗑  Mover para lixeira"
+        ) {
+            popup.dismiss()
+            moverParaLixeira()
+        }
+
+        popup.showAtLocation(
+            window.decorView,
+            Gravity.TOP or Gravity.END,
+            12,
+            72
+        )
+    }
+
+    private fun adicionarOpcaoMenu(
+        layout: LinearLayout,
+        texto: String,
+        acao: () -> Unit
+    ) {
+
+        val item = TextView(this@ImageViewerActivity)
+
+        item.text = texto
+        item.textSize = 16f
+        item.setTextColor(Color.DKGRAY)
+        item.gravity = Gravity.CENTER_VERTICAL
+        item.setPadding(20, 18, 20, 18)
+
+        layout.addView(
+            item,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                58
+            )
+        )
+
+        item.setOnClickListener {
+            acao()
+        }
+    }
+
+    private fun mostrarInformacoes() {
+
+        val opcoes = BitmapFactory.Options()
+        opcoes.inJustDecodeBounds = true
+
+        BitmapFactory.decodeFile(
+            arquivoAtual.absolutePath,
+            opcoes
+        )
+
+        val tamanho = formatarTamanho(
+            arquivoAtual.length()
+        )
+
+        val data = SimpleDateFormat(
+            "dd/MM/yyyy HH:mm:ss",
+            Locale.getDefault()
+        ).format(
+            Date(arquivoAtual.lastModified())
+        )
+
+        val formato = arquivoAtual.extension
+            .uppercase(Locale.getDefault())
+
+        val dimensoes =
+            if (opcoes.outWidth > 0 && opcoes.outHeight > 0) {
+                "${opcoes.outWidth} × ${opcoes.outHeight} px"
+            } else {
+                "Desconhecida"
+            }
+
+        val mensagem = """
+            Nome: ${arquivoAtual.name}
+            
+            Localização:
+            ${arquivoAtual.absolutePath}
+            
+            Tamanho: $tamanho
+            
+            Resolução: $dimensoes
+            
+            Formato: $formato
+            
+            Modificado em: $data
+        """.trimIndent()
+
+        AlertDialog.Builder(
+            this@ImageViewerActivity
+        )
+            .setTitle("Informações da imagem")
+            .setMessage(mensagem)
+            .setPositiveButton("OK", null)
+            .show()
+    }
+
+    private fun formatarTamanho(bytes: Long): String {
+
+        if (bytes < 1024) {
+            return "$bytes B"
+        }
+
+        if (bytes < 1024 * 1024) {
+            return String.format(
+                Locale.getDefault(),
+                "%.1f KB",
+                bytes / 1024.0
+            )
+        }
+
+        if (bytes < 1024 * 1024 * 1024) {
+            return String.format(
+                Locale.getDefault(),
+                "%.1f MB",
+                bytes / (1024.0 * 1024.0)
+            )
+        }
+
+        return String.format(
+            Locale.getDefault(),
+            "%.1f GB",
+            bytes / (1024.0 * 1024.0 * 1024.0)
+        )
+    }
+
+    private fun renomearArquivo() {
+
+        val campo = EditText(this@ImageViewerActivity)
+
+        campo.setText(
+            arquivoAtual.nameWithoutExtension
+        )
+
+        campo.selectAll()
+
+        AlertDialog.Builder(
+            this@ImageViewerActivity
+        )
+            .setTitle("Renomear imagem")
+            .setView(campo)
+            .setNegativeButton("Cancelar", null)
+            .setPositiveButton("Renomear") { _, _ ->
+
+                val novoNomeBase =
+                    campo.text.toString().trim()
+
+                if (novoNomeBase.isEmpty()) {
+                    Toast.makeText(
+                        this@ImageViewerActivity,
+                        "Digite um nome",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@setPositiveButton
+                }
+
+                val extensao =
+                    arquivoAtual.extension
+
+                val novoNome =
+                    if (extensao.isEmpty()) {
+                        novoNomeBase
+                    } else {
+                        "$novoNomeBase.$extensao"
+                    }
+
+                val novoArquivo = File(
+                    arquivoAtual.parentFile,
+                    novoNome
+                )
+
+                if (novoArquivo.exists()) {
+                    Toast.makeText(
+                        this@ImageViewerActivity,
+                        "Já existe um arquivo com esse nome",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@setPositiveButton
+                }
+
+                try {
+
+                    if (
+                        arquivoAtual.renameTo(
+                            novoArquivo
+                        )
+                    ) {
+
+                        arquivoAtual = novoArquivo
+
+                        Toast.makeText(
+                            this@ImageViewerActivity,
+                            "Imagem renomeada",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        recreate()
+
+                    } else {
+
+                        Toast.makeText(
+                            this@ImageViewerActivity,
+                            "Não foi possível renomear",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
+                } catch (e: Exception) {
+
+                    Toast.makeText(
+                        this@ImageViewerActivity,
+                        "Erro: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
             .show()
     }
 
-    // ============================================================
-    // RENOMEAR
-    // ============================================================
+    private fun abrirSeletorDePasta(
+        pastaInicial: File
+    ) {
 
-    private fun renomearArquivo() {
+        val raiz =
+            Environment.getExternalStorageDirectory()
 
-        val atual = arquivo ?: return
+        val pasta =
+            if (pastaInicial.exists()) {
+                pastaInicial
+            } else {
+                raiz
+            }
 
-        val entrada = EditText(this)
-        entrada.setSingleLine(true)
-        entrada.setText(atual.nameWithoutExtension)
-        entrada.setSelection(0, entrada.text.length)
+        mostrarNavegadorDePastas(
+            pasta,
+            raiz
+        )
+    }
 
-        val extensao = atual.extension
+    private fun mostrarNavegadorDePastas(
+        pastaAtual: File,
+        raiz: File
+    ) {
 
-        val layout = LinearLayout(this)
-        layout.orientation = LinearLayout.VERTICAL
-        layout.setPadding(40, 10, 40, 0)
-        layout.addView(entrada)
+        val dialog = AlertDialog.Builder(
+            this@ImageViewerActivity
+        ).create()
 
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Renomear arquivo")
-            .setView(layout)
-            .setNegativeButton("Cancelar", null)
-            .setPositiveButton("Renomear", null)
-            .create()
+        val layoutPrincipal =
+            LinearLayout(this@ImageViewerActivity)
 
-        dialog.setOnShowListener {
+        layoutPrincipal.orientation =
+            LinearLayout.VERTICAL
 
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setOnClickListener {
-
-                    var novoNome = entrada.text.toString().trim()
-
-                    if (novoNome.isEmpty()) {
-                        entrada.error = "Digite um nome"
-                        return@setOnClickListener
-                    }
-
-                    if (extensao.isNotEmpty()) {
-
-                        if (!novoNome.lowercase()
-                                .endsWith(".${extensao.lowercase()}")
-                        ) {
-                            novoNome += ".$extensao"
-                        }
-                    }
-
-                    val novoArquivo = File(
-                        atual.parentFile,
-                        novoNome
-                    )
-
-                    if (novoArquivo.exists()) {
-
-                        entrada.error = "Já existe um arquivo com esse nome"
-                        return@setOnClickListener
-                    }
-
-                    if (atual.renameTo(novoArquivo)) {
-
-                        arquivo = novoArquivo
-                        nomeArquivo.text = novoArquivo.name
-
-                        dialog.dismiss()
-
-                        Toast.makeText(
-                            this,
-                            "Arquivo renomeado",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                    } else {
-
-                        Toast.makeText(
-                            this,
-                            "Não foi possível renomear",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-        }
-
-        dialog.window?.setSoftInputMode(
-            WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
+        layoutPrincipal.setPadding(
+            10,
+            10,
+            10,
+            10
         )
 
-        dialog.show()
-    }
+        val cabecalho =
+            LinearLayout(this@ImageViewerActivity)
 
-    // ============================================================
-    // CRIAR PASTA
-    // ============================================================
+        cabecalho.orientation =
+            LinearLayout.HORIZONTAL
 
-    private fun criarPasta(pastaPai: File?) {
+        cabecalho.gravity =
+            Gravity.CENTER_VERTICAL
 
-        if (pastaPai == null) {
-            Toast.makeText(
-                this,
-                "Pasta inválida",
-                Toast.LENGTH_SHORT
-            ).show()
-            return
-        }
+        val titulo =
+            TextView(this@ImageViewerActivity)
 
-        val entrada = EditText(this)
-        entrada.hint = "Nome da pasta"
-        entrada.setSingleLine(true)
+        titulo.text =
+            "Mover para: ${pastaAtual.name.ifEmpty { "Armazenamento interno" }}"
 
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Criar pasta")
-            .setView(entrada)
-            .setNegativeButton("Cancelar", null)
-            .setPositiveButton("Criar", null)
-            .create()
+        titulo.textSize = 18f
+        titulo.setTextColor(Color.BLACK)
+        titulo.setPadding(8, 8, 8, 8)
 
-        dialog.setOnShowListener {
-
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setOnClickListener {
-
-                    val nome = entrada.text.toString().trim()
-
-                    if (nome.isEmpty()) {
-                        entrada.error = "Digite um nome"
-                        return@setOnClickListener
-                    }
-
-                    val novaPasta = File(
-                        pastaPai,
-                        nome
-                    )
-
-                    if (novaPasta.exists()) {
-
-                        entrada.error = "Essa pasta já existe"
-                        return@setOnClickListener
-                    }
-
-                    if (novaPasta.mkdirs()) {
-
-                        dialog.dismiss()
-
-                        Toast.makeText(
-                            this,
-                            "Pasta criada",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                    } else {
-
-                        Toast.makeText(
-                            this,
-                            "Não foi possível criar a pasta",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-        }
-
-        dialog.show()
-    }
-
-    // ============================================================
-    // NAVEGADOR DE PASTAS
-    // ============================================================
-
-    private fun mostrarNavegadorDePastas() {
-
-        val atual = arquivo ?: return
-
-        val raiz = Environment.getExternalStorageDirectory()
-
-        var pastaAtual = atual.parentFile ?: raiz
-
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Mover para...")
-            .create()
-
-        val layoutPrincipal = LinearLayout(this)
-        layoutPrincipal.orientation = LinearLayout.VERTICAL
-
-        // Caminho atual
-
-        val caminhoTexto = TextView(this)
-        caminhoTexto.textSize = 13f
-        caminhoTexto.setTextColor(Color.DKGRAY)
-        caminhoTexto.setPadding(24, 14, 24, 14)
-        caminhoTexto.setBackgroundColor(Color.rgb(245, 245, 245))
-
-        layoutPrincipal.addView(
-            caminhoTexto,
+        val parametrosTitulo =
             LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            )
+
+        cabecalho.addView(
+            titulo,
+            parametrosTitulo
+        )
+
+        val criar =
+            Button(this@ImageViewerActivity)
+
+        criar.text = "＋"
+
+        cabecalho.addView(
+            criar,
+            LinearLayout.LayoutParams(
+                55,
+                55
             )
         )
 
-        // Lista de pastas
+        layoutPrincipal.addView(
+            cabecalho
+        )
 
-        val lista = ListView(this)
+        val lista =
+            ListView(this@ImageViewerActivity)
 
         layoutPrincipal.addView(
             lista,
@@ -501,198 +629,87 @@ class ImageViewerActivity : Activity() {
             )
         )
 
-        // Botões
+        val botoes =
+            LinearLayout(this@ImageViewerActivity)
 
-        val botoes = LinearLayout(this)
-        botoes.orientation = LinearLayout.HORIZONTAL
-        botoes.gravity = Gravity.CENTER_VERTICAL
-        botoes.setPadding(10, 8, 10, 8)
+        botoes.orientation =
+            LinearLayout.HORIZONTAL
 
-        val criar = Button(this)
-        criar.text = "＋ Pasta"
-        criar.isAllCaps = false
+        botoes.gravity =
+            Gravity.CENTER
 
-        val mover = Button(this)
-        mover.text = "Mover para esta pasta"
-        mover.isAllCaps = false
+        val cancelar =
+            Button(this@ImageViewerActivity)
+
+        cancelar.text = "Cancelar"
+
+        val selecionar =
+            Button(this@ImageViewerActivity)
+
+        selecionar.text = "Mover para esta pasta"
 
         botoes.addView(
-            criar,
+            cancelar,
             LinearLayout.LayoutParams(
                 0,
-                52,
+                55,
                 1f
             )
         )
 
         botoes.addView(
-            mover,
+            selecionar,
             LinearLayout.LayoutParams(
                 0,
-                52,
+                55,
                 1f
             )
         )
 
-        layoutPrincipal.addView(botoes)
+        layoutPrincipal.addView(
+            botoes
+        )
 
+        dialog.setTitle("Escolher pasta")
         dialog.setView(layoutPrincipal)
 
-        fun atualizarLista() {
+        dialog.setOnShowListener {
 
-            caminhoTexto.text = pastaAtual.absolutePath
-
-            val itens = ArrayList<File>()
-
-            // Pasta pai
-
-            if (pastaAtual.absolutePath != raiz.absolutePath) {
-                itens.add(
-                    File("⬆️  ..")
-                )
-            }
-
-            val subpastas = pastaAtual
-                .listFiles()
-                ?.filter {
-                    it.isDirectory &&
-                    !it.name.startsWith(".")
-                }
-                ?.sortedBy {
-                    it.name.lowercase()
-                }
-                ?: emptyList()
-
-            itens.addAll(subpastas)
-
-            val nomes = itens.map { file ->
-
-                if (file.path == "⬆️  ..") {
-                    "⬆️  .."
-                } else {
-                    "📁  ${file.name}"
-                }
-
-            }
-
-            val adapter = ArrayAdapter(
-                this,
-                android.R.layout.simple_list_item_1,
-                nomes
-            )
-
-            lista.adapter = adapter
-
-            lista.setOnItemClickListener { _, _, position, _ ->
-
-                val selecionado = itens[position]
-
-                if (selecionado.path == "⬆️  ..") {
-
-                    pastaAtual = pastaAtual.parentFile ?: raiz
-
-                    atualizarLista()
-
-                } else {
-
-                    pastaAtual = selecionado
-
-                    atualizarLista()
-                }
-            }
-        }
-
-        criar.setOnClickListener {
-
-            val entrada = EditText(this)
-            entrada.hint = "Nome da pasta"
-
-            val criarDialog = AlertDialog.Builder(this)
-                .setTitle("Nova pasta")
-                .setView(entrada)
-                .setNegativeButton("Cancelar", null)
-                .setPositiveButton("Criar", null)
-                .create()
-
-            criarDialog.setOnShowListener {
-
-                criarDialog
-                    .getButton(AlertDialog.BUTTON_POSITIVE)
-                    .setOnClickListener {
-
-                        val nome = entrada.text.toString().trim()
-
-                        if (nome.isEmpty()) {
-                            entrada.error = "Digite um nome"
-                            return@setOnClickListener
-                        }
-
-                        val novaPasta = File(
-                            pastaAtual,
-                            nome
-                        )
-
-                        if (novaPasta.exists()) {
-
-                            entrada.error = "Essa pasta já existe"
-                            return@setOnClickListener
-                        }
-
-                        if (novaPasta.mkdirs()) {
-
-                            criarDialog.dismiss()
-
-                            atualizarLista()
-
-                            Toast.makeText(
-                                this,
-                                "Pasta criada",
-                                Toast.LENGTH_SHORT
-                            ).show()
-
-                        } else {
-
-                            Toast.makeText(
-                                this,
-                                "Não foi possível criar a pasta",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-            }
-
-            criarDialog.show()
-        }
-
-        mover.setOnClickListener {
-
-            if (pastaAtual.absolutePath ==
-                atual.parentFile?.absolutePath
-            ) {
-
-                Toast.makeText(
-                    this,
-                    "O arquivo já está nesta pasta",
-                    Toast.LENGTH_SHORT
-                ).show()
-
-                return@setOnClickListener
-            }
-
-            moverArquivoParaPasta(
-                atual,
+            atualizarListaPastas(
+                lista,
                 pastaAtual,
+                raiz,
+                titulo,
                 dialog
             )
-        }
 
-        atualizarLista()
+            criar.setOnClickListener {
 
-        dialog.setOnShowListener {
-            dialog.window?.setLayout(
-                (resources.displayMetrics.widthPixels * 0.94).toInt(),
-                (resources.displayMetrics.heightPixels * 0.85).toInt()
-            )
+                criarPasta(
+                    pastaAtual
+                ) {
+
+                    atualizarListaPastas(
+                        lista,
+                        pastaAtual,
+                        raiz,
+                        titulo,
+                        dialog
+                    )
+                }
+            }
+
+            cancelar.setOnClickListener {
+                dialog.dismiss()
+            }
+
+            selecionar.setOnClickListener {
+
+                moverArquivoPara(
+                    pastaAtual,
+                    dialog
+                )
+            }
         }
 
         dialog.show()
@@ -703,35 +720,253 @@ class ImageViewerActivity : Activity() {
         )
     }
 
-    // ============================================================
-    // MOVER ARQUIVO
-    // ============================================================
-
-    private fun moverArquivoParaPasta(
-        origem: File,
-        destinoPasta: File,
+    private fun atualizarListaPastas(
+        lista: ListView,
+        pastaAtual: File,
+        raiz: File,
+        titulo: TextView,
         dialog: AlertDialog
     ) {
 
-        val destino = File(
-            destinoPasta,
-            origem.name
+        titulo.text =
+            "Mover para: ${
+                if (pastaAtual.absolutePath ==
+                    raiz.absolutePath
+                ) {
+                    "Armazenamento interno"
+                } else {
+                    pastaAtual.name
+                }
+            }"
+
+        val itens =
+            ArrayList<File>()
+
+        if (
+            pastaAtual.absolutePath !=
+            raiz.absolutePath
+        ) {
+
+            val pai = pastaAtual.parentFile
+
+            if (
+                pai != null &&
+                pai.exists() &&
+                pai.absolutePath.startsWith(
+                    raiz.absolutePath
+                )
+            ) {
+
+                itens.add(
+                    File(
+                        pastaAtual,
+                        ".."
+                    )
+                )
+            }
+        }
+
+        val subpastas =
+            pastaAtual.listFiles()
+                ?.filter {
+                    it.isDirectory &&
+                    !it.isHidden
+                }
+                ?.sortedBy {
+                    it.name.lowercase(Locale.getDefault())
+                }
+                ?: emptyList()
+
+        itens.addAll(subpastas)
+
+        val nomes =
+            itens.map { arquivo ->
+
+                if (arquivo.name == "..") {
+                    "⬆  .."
+                } else {
+                    "📁  ${arquivo.name}"
+                }
+
+            }
+
+        val adapter =
+            ArrayAdapter(
+                this@ImageViewerActivity,
+                android.R.layout.simple_list_item_1,
+                nomes
+            )
+
+        lista.adapter = adapter
+
+        lista.setOnItemClickListener { _, _, posicao, _ ->
+
+            val selecionada =
+                itens[posicao]
+
+            if (selecionada.name == "..") {
+
+                val pai =
+                    pastaAtual.parentFile
+
+                if (pai != null) {
+
+                    atualizarListaPastas(
+                        lista,
+                        pai,
+                        raiz,
+                        titulo,
+                        dialog
+                    )
+                }
+
+            } else {
+
+                atualizarListaPastas(
+                    lista,
+                    selecionada,
+                    raiz,
+                    titulo,
+                    dialog
+                )
+            }
+        }
+    }
+
+    private fun criarPasta(
+        pastaPai: File,
+        depois: (() -> Unit)? = null
+    ) {
+
+        val campo =
+            EditText(this@ImageViewerActivity)
+
+        campo.hint = "Nome da pasta"
+
+        AlertDialog.Builder(
+            this@ImageViewerActivity
         )
+            .setTitle("Criar pasta")
+            .setView(campo)
+            .setNegativeButton(
+                "Cancelar",
+                null
+            )
+            .setPositiveButton(
+                "Criar"
+            ) { _, _ ->
 
-        if (destino.exists()) {
+                val nome =
+                    campo.text.toString().trim()
 
-            AlertDialog.Builder(this)
+                if (nome.isEmpty()) {
+
+                    Toast.makeText(
+                        this@ImageViewerActivity,
+                        "Digite um nome",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    return@setPositiveButton
+                }
+
+                val novaPasta =
+                    File(pastaPai, nome)
+
+                if (novaPasta.exists()) {
+
+                    Toast.makeText(
+                        this@ImageViewerActivity,
+                        "Essa pasta já existe",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    return@setPositiveButton
+                }
+
+                try {
+
+                    if (novaPasta.mkdirs()) {
+
+                        Toast.makeText(
+                            this@ImageViewerActivity,
+                            "Pasta criada",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        depois?.invoke()
+
+                    } else {
+
+                        Toast.makeText(
+                            this@ImageViewerActivity,
+                            "Não foi possível criar a pasta",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
+                } catch (e: Exception) {
+
+                    Toast.makeText(
+                        this@ImageViewerActivity,
+                        "Erro: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+            .show()
+    }
+
+    private fun moverArquivoPara(
+        destino: File,
+        dialog: AlertDialog
+    ) {
+
+        if (
+            destino.absolutePath ==
+            arquivoAtual.parentFile?.absolutePath
+        ) {
+
+            Toast.makeText(
+                this@ImageViewerActivity,
+                "A imagem já está nessa pasta",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        val arquivoDestino =
+            File(
+                destino,
+                arquivoAtual.name
+            )
+
+        if (arquivoDestino.exists()) {
+
+            AlertDialog.Builder(
+                this@ImageViewerActivity
+            )
                 .setTitle("Arquivo já existe")
                 .setMessage(
-                    "Já existe um arquivo chamado:\n\n${origem.name}\n\n" +
-                    "na pasta escolhida."
+                    "Já existe uma imagem com esse nome nessa pasta."
                 )
-                .setNegativeButton("Cancelar", null)
-                .setPositiveButton("Renomear") { _, _ ->
+                .setNegativeButton(
+                    "Cancelar",
+                    null
+                )
+                .setPositiveButton(
+                    "Renomear automaticamente"
+                ) { _, _ ->
 
-                    renomearAntesDeMover(
-                        origem,
-                        destinoPasta,
+                    val novoDestino =
+                        criarNomeUnico(
+                            destino,
+                            arquivoAtual.name
+                        )
+
+                    executarMovimentacao(
+                        novoDestino,
                         dialog
                     )
                 }
@@ -741,115 +976,83 @@ class ImageViewerActivity : Activity() {
         }
 
         executarMovimentacao(
-            origem,
-            destino,
+            arquivoDestino,
             dialog
         )
     }
 
-    private fun renomearAntesDeMover(
-        origem: File,
-        pastaDestino: File,
-        dialog: AlertDialog
-    ) {
+    private fun criarNomeUnico(
+        pasta: File,
+        nomeOriginal: String
+    ): File {
 
-        val entrada = EditText(this)
+        val base =
+            File(nomeOriginal).nameWithoutExtension
 
-        entrada.setSingleLine(true)
-        entrada.setText(origem.nameWithoutExtension)
-        entrada.setSelection(0, entrada.text.length)
+        val extensao =
+            File(nomeOriginal).extension
 
-        val extensao = origem.extension
+        var contador = 1
 
-        val renameDialog = AlertDialog.Builder(this)
-            .setTitle("Novo nome")
-            .setView(entrada)
-            .setNegativeButton("Cancelar", null)
-            .setPositiveButton("Mover", null)
-            .create()
+        while (true) {
 
-        renameDialog.setOnShowListener {
+            val nome =
 
-            renameDialog
-                .getButton(AlertDialog.BUTTON_POSITIVE)
-                .setOnClickListener {
-
-                    var nome = entrada.text.toString().trim()
-
-                    if (nome.isEmpty()) {
-                        entrada.error = "Digite um nome"
-                        return@setOnClickListener
-                    }
-
-                    if (
-                        extensao.isNotEmpty() &&
-                        !nome.lowercase()
-                            .endsWith(".${extensao.lowercase()}")
-                    ) {
-                        nome += ".$extensao"
-                    }
-
-                    val novoDestino = File(
-                        pastaDestino,
-                        nome
-                    )
-
-                    if (novoDestino.exists()) {
-
-                        entrada.error = "Esse nome já existe"
-                        return@setOnClickListener
-                    }
-
-                    executarMovimentacao(
-                        origem,
-                        novoDestino,
-                        dialog
-                    )
-
-                    renameDialog.dismiss()
+                if (extensao.isEmpty()) {
+                    "$base ($contador)"
+                } else {
+                    "$base ($contador).$extensao"
                 }
-        }
 
-        renameDialog.show()
+            val arquivo =
+                File(pasta, nome)
+
+            if (!arquivo.exists()) {
+                return arquivo
+            }
+
+            contador++
+        }
     }
 
     private fun executarMovimentacao(
-        origem: File,
         destino: File,
-        dialog: AlertDialog?
+        dialog: AlertDialog
     ) {
 
         try {
 
+            val origem =
+                arquivoAtual
+
             if (origem.renameTo(destino)) {
 
-                dialog?.dismiss()
+                arquivoAtual =
+                    destino
 
-                arquivo = destino
+                dialog.dismiss()
 
                 Toast.makeText(
-                    this,
-                    "Arquivo movido com sucesso",
+                    this@ImageViewerActivity,
+                    "Imagem movida com sucesso",
                     Toast.LENGTH_SHORT
                 ).show()
 
                 finish()
 
-                return
+            } else {
+
+                moverPorCopia(
+                    origem,
+                    destino,
+                    dialog
+                )
             }
-
-            // Se renameTo falhar, tenta copiar e apagar.
-
-            moverPorCopia(
-                origem,
-                destino,
-                dialog
-            )
 
         } catch (e: Exception) {
 
             Toast.makeText(
-                this,
+                this@ImageViewerActivity,
                 "Erro ao mover: ${e.message}",
                 Toast.LENGTH_LONG
             ).show()
@@ -864,534 +1067,546 @@ class ImageViewerActivity : Activity() {
 
         try {
 
-            FileInputStream(origem).use { input ->
+            FileInputStream(origem).use { entrada ->
 
-                FileOutputStream(destino).use { output ->
+                FileOutputStream(destino).use { saida ->
 
-                    val buffer = ByteArray(1024 * 1024)
+                    val buffer =
+                        ByteArray(64 * 1024)
 
-                    var lidos: Int
+                    while (true) {
 
-                    while (
-                        input.read(buffer).also {
-                            lidos = it
-                        } > 0
-                    ) {
+                        val lidos =
+                            entrada.read(buffer)
 
-                        output.write(
+                        if (lidos <= 0) {
+                            break
+                        }
+
+                        saida.write(
                             buffer,
                             0,
                             lidos
                         )
                     }
 
-                    output.flush()
+                    saida.flush()
                 }
             }
 
-            if (destino.exists() && destino.length() == origem.length()) {
+            if (!destino.exists()) {
 
-                if (origem.delete()) {
+                Toast.makeText(
+                    this@ImageViewerActivity,
+                    "Falha ao copiar arquivo",
+                    Toast.LENGTH_LONG
+                ).show()
 
-                    dialog?.dismiss()
+                return
+            }
 
-                    arquivo = destino
+            if (origem.delete()) {
 
-                    Toast.makeText(
-                        this,
-                        "Arquivo movido com sucesso",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                dialog?.dismiss()
 
-                    finish()
+                Toast.makeText(
+                    this@ImageViewerActivity,
+                    "Imagem movida com sucesso",
+                    Toast.LENGTH_SHORT
+                ).show()
 
-                } else {
-
-                    destino.delete()
-
-                    Toast.makeText(
-                        this,
-                        "Não foi possível remover o arquivo original",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                finish()
 
             } else {
 
                 destino.delete()
 
                 Toast.makeText(
-                    this,
-                    "Falha ao copiar o arquivo",
+                    this@ImageViewerActivity,
+                    "A imagem foi copiada, mas não foi possível remover a original",
                     Toast.LENGTH_LONG
                 ).show()
             }
 
         } catch (e: Exception) {
 
-            destino.delete()
+            try {
+                destino.delete()
+            } catch (_: Exception) {
+            }
 
             Toast.makeText(
-                this,
-                "Erro ao mover: ${e.message}",
+                this@ImageViewerActivity,
+                "Erro ao mover arquivo: ${e.message}",
                 Toast.LENGTH_LONG
             ).show()
         }
     }
 
-    // ============================================================
-    // LIXEIRA
-    // ============================================================
-
     private fun moverParaLixeira() {
 
-        val atual = arquivo ?: return
+        val raiz =
+            Environment.getExternalStorageDirectory()
 
-        val pastaLixeira = File(
-            Environment.getExternalStorageDirectory(),
-            ".GerenciadorArquivos/.Lixeira"
-        )
+        val pastaLixeira =
+            File(
+                raiz,
+                ".GerenciadorArquivos/.Lixeira"
+            )
 
         try {
 
             if (!pastaLixeira.exists()) {
-                pastaLixeira.mkdirs()
+
+                if (!pastaLixeira.mkdirs()) {
+
+                    Toast.makeText(
+                        this@ImageViewerActivity,
+                        "Não foi possível criar a lixeira",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    return
+                }
             }
 
-            var destino = File(
-                pastaLixeira,
-                atual.name
-            )
+            var destino =
+                File(
+                    pastaLixeira,
+                    arquivoAtual.name
+                )
 
             if (destino.exists()) {
 
-                val base = atual.nameWithoutExtension
-                val extensao = atual.extension
-
-                var contador = 1
-
-                do {
-
-                    val novoNome =
-                        if (extensao.isNotEmpty()) {
-                            "${base}_$contador.$extensao"
-                        } else {
-                            "${base}_$contador"
-                        }
-
-                    destino = File(
+                destino =
+                    criarNomeUnico(
                         pastaLixeira,
-                        novoNome
+                        arquivoAtual.name
                     )
-
-                    contador++
-
-                } while (destino.exists())
             }
 
-            executarMovimentacao(
-                atual,
-                destino,
-                null
+            AlertDialog.Builder(
+                this@ImageViewerActivity
             )
+                .setTitle("Mover para lixeira?")
+                .setMessage(
+                    "A imagem será movida para a lixeira do Gerenciador de Arquivos."
+                )
+                .setNegativeButton(
+                    "Cancelar",
+                    null
+                )
+                .setPositiveButton(
+                    "Mover"
+                ) { _, _ ->
+
+                    if (
+                        arquivoAtual.renameTo(
+                            destino
+                        )
+                    ) {
+
+                        Toast.makeText(
+                            this@ImageViewerActivity,
+                            "Imagem movida para a lixeira",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        finish()
+
+                    } else {
+
+                        moverPorCopia(
+                            arquivoAtual,
+                            destino,
+                            null
+                        )
+                    }
+                }
+                .show()
 
         } catch (e: Exception) {
 
             Toast.makeText(
-                this,
-                "Erro ao mover para lixeira: ${e.message}",
+                this@ImageViewerActivity,
+                "Erro: ${e.message}",
                 Toast.LENGTH_LONG
             ).show()
         }
     }
 
-    // ============================================================
-    // INFORMAÇÕES
-    // ============================================================
+    override fun onWindowFocusChanged(
+        hasFocus: Boolean
+    ) {
 
-    private fun mostrarInformacoes() {
+        super.onWindowFocusChanged(hasFocus)
 
-        val atual = arquivo ?: return
-
-        if (!atual.exists()) {
-
-            Toast.makeText(
-                this,
-                "Arquivo não encontrado",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            return
+        if (hasFocus) {
+            configurarTelaCheia()
         }
-
-        val bitmap = BitmapFactory.decodeFile(
-            atual.absolutePath
-        )
-
-        val tamanho = formatarTamanho(
-            atual.length()
-        )
-
-        val data = DateFormat
-            .getDateTimeInstance(
-                DateFormat.SHORT,
-                DateFormat.SHORT
-            )
-            .format(Date(atual.lastModified()))
-
-        val resolucao =
-            if (bitmap != null) {
-                "${bitmap.width} × ${bitmap.height} pixels"
-            } else {
-                "Não disponível"
-            }
-
-        bitmap?.recycle()
-
-        val mensagem = """
-            Nome:
-            ${atual.name}
-
-            Localização:
-            ${atual.absolutePath}
-
-            Tamanho:
-            $tamanho
-
-            Resolução:
-            $resolucao
-
-            Formato:
-            ${if (atual.extension.isEmpty()) "Desconhecido" else atual.extension.uppercase()}
-
-            Modificado em:
-            $data
-        """.trimIndent()
-
-        AlertDialog.Builder(this)
-            .setTitle("Informações")
-            .setMessage(mensagem)
-            .setPositiveButton("OK", null)
-            .show()
-    }
-
-    // ============================================================
-    // TAMANHO
-    // ============================================================
-
-    private fun formatarTamanho(bytes: Long): String {
-
-        if (bytes < 1024) {
-            return "$bytes B"
-        }
-
-        if (bytes < 1024 * 1024) {
-            return String.format(
-                "%.1f KB",
-                bytes / 1024.0
-            )
-        }
-
-        if (bytes < 1024L * 1024L * 1024L) {
-            return String.format(
-                "%.1f MB",
-                bytes / (1024.0 * 1024.0)
-            )
-        }
-
-        return String.format(
-            "%.2f GB",
-            bytes / (1024.0 * 1024.0 * 1024.0)
-        )
     }
 }
 
 
-// ================================================================
-// VISUALIZADOR COM ZOOM
-// ================================================================
+/**
+ * ImageView personalizado com:
+ *
+ * - Zoom por dois dedos
+ * - Arrastar imagem ampliada
+ * - Ajuste automático para caber na tela
+ * - Imagem sem CENTER_CROP
+ */
+class ZoomImageView(
+    context: android.content.Context
+) : androidx.appcompat.widget.AppCompatImageView(context) {
 
-class ZoomImageView(context: Context) : View(context) {
-
-    private var bitmap: Bitmap? = null
-
-    private val matrixImagem = Matrix()
-
-    private val paint = Paint(
-        Paint.ANTI_ALIAS_FLAG or
-        Paint.FILTER_BITMAP_FLAG
-    )
-
-    private val detector =
-        android.view.ScaleGestureDetector(
+    private val escalaDetector =
+        ScaleGestureDetector(
             context,
-            object : android.view.ScaleGestureDetector
-                .SimpleOnScaleGestureListener() {
-
-                override fun onScale(
-                    detector: android.view.ScaleGestureDetector
-                ): Boolean {
-
-                    val fator = detector.scaleFactor
-
-                    val novoScale =
-                        scale * fator
-
-                    val limitado = novoScale.coerceIn(
-                        minScale,
-                        maxScale
-                    )
-
-                    val fatorReal =
-                        limitado / scale
-
-                    scale = limitado
-
-                    matrixImagem.postScale(
-                        fatorReal,
-                        fatorReal,
-                        detector.focusX,
-                        detector.focusY
-                    )
-
-                    corrigirPosicao()
-
-                    invalidate()
-
-                    return true
-                }
-            }
+            EscalaListener()
         )
 
-    private var escalaInicial = 1f
+    private val gestoDetector =
+        GestureDetector(
+            context,
+            GestoListener()
+        )
 
-    private var scale = 1f
+    private var escala = 1f
 
-    private var minScale = 1f
+    private var escalaMinima = 1f
+    private var escalaMaxima = 5f
 
-    private var maxScale = 5f
-
-    private var posX = 0f
-
-    private var posY = 0f
+    private var deslocamentoX = 0f
+    private var deslocamentoY = 0f
 
     private var ultimoX = 0f
-
     private var ultimoY = 0f
 
     private var arrastando = false
 
-    fun setImageBitmap(novaImagem: Bitmap) {
+    private var larguraImagem = 0
+    private var alturaImagem = 0
 
-        bitmap = novaImagem
+    init {
 
-        post {
-            ajustarImagemInicial()
-        }
+        scaleType =
+            ImageView.ScaleType.MATRIX
 
-        invalidate()
-    }
+        setBackgroundColor(Color.BLACK)
 
-    override fun onDraw(canvas: Canvas) {
+        isClickable = true
 
-        super.onDraw(canvas)
+        setOnTouchListener { _, evento ->
 
-        canvas.drawColor(Color.BLACK)
+            escalaDetector.onTouchEvent(evento)
+            gestoDetector.onTouchEvent(evento)
 
-        val imagem = bitmap ?: return
+            when (evento.actionMasked) {
 
-        val larguraView = width.toFloat()
-        val alturaView = height.toFloat()
+                MotionEvent.ACTION_DOWN -> {
 
-        if (larguraView <= 0 || alturaView <= 0) {
-            return
-        }
+                    ultimoX =
+                        evento.x
 
-        val larguraImagem = imagem.width.toFloat()
-        val alturaImagem = imagem.height.toFloat()
+                    ultimoY =
+                        evento.y
 
-        val escalaX =
-            larguraView / larguraImagem
+                    arrastando = true
 
-        val escalaY =
-            alturaView / alturaImagem
-
-        val escala =
-            min(escalaX, escalaY)
-
-        val larguraFinal =
-            larguraImagem * escala
-
-        val alturaFinal =
-            alturaImagem * escala
-
-        val esquerda =
-            (larguraView - larguraFinal) / 2f
-
-        val topo =
-            (alturaView - alturaFinal) / 2f
-
-        canvas.save()
-
-        canvas.translate(
-            esquerda + posX,
-            topo + posY
-        )
-
-        canvas.scale(
-            escala * scale,
-            escala * scale
-        )
-
-        canvas.drawBitmap(
-            imagem,
-            0f,
-            0f,
-            paint
-        )
-
-        canvas.restore()
-    }
-
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-
-        detector.onTouchEvent(event)
-
-        when (event.actionMasked) {
-
-            MotionEvent.ACTION_DOWN -> {
-
-                ultimoX = event.x
-                ultimoY = event.y
-
-                arrastando = true
-
-                return true
-            }
-
-            MotionEvent.ACTION_MOVE -> {
-
-                if (
-                    event.pointerCount == 1 &&
-                    scale > minScale
-                ) {
-
-                    val dx =
-                        event.x - ultimoX
-
-                    val dy =
-                        event.y - ultimoY
-
-                    posX += dx
-                    posY += dy
-
-                    corrigirPosicao()
-
-                    ultimoX = event.x
-                    ultimoY = event.y
-
-                    invalidate()
+                    true
                 }
 
-                return true
-            }
+                MotionEvent.ACTION_MOVE -> {
 
-            MotionEvent.ACTION_UP,
-            MotionEvent.ACTION_CANCEL -> {
+                    if (
+                        arrastando &&
+                        evento.pointerCount == 1
+                    ) {
 
-                arrastando = false
+                        val deltaX =
+                            evento.x - ultimoX
 
-                return true
+                        val deltaY =
+                            evento.y - ultimoY
+
+                        deslocamentoX +=
+                            deltaX
+
+                        deslocamentoY +=
+                            deltaY
+
+                        limitarDeslocamento()
+
+                        aplicarTransformacao()
+
+                        ultimoX =
+                            evento.x
+
+                        ultimoY =
+                            evento.y
+                    }
+
+                    true
+                }
+
+                MotionEvent.ACTION_UP,
+                MotionEvent.ACTION_CANCEL -> {
+
+                    arrastando = false
+
+                    true
+                }
+
+                else -> true
             }
         }
-
-        return true
     }
 
-    private fun ajustarImagemInicial() {
+    override fun setImageBitmap(
+        bitmap: android.graphics.Bitmap?
+    ) {
 
-        val imagem = bitmap ?: return
+        super.setImageBitmap(bitmap)
 
-        if (width <= 0 || height <= 0) {
+        if (bitmap != null) {
+
+            larguraImagem =
+                bitmap.width
+
+            alturaImagem =
+                bitmap.height
+
+            post {
+                calcularEscalaInicial()
+            }
+        }
+    }
+
+    private fun calcularEscalaInicial() {
+
+        if (
+            larguraImagem <= 0 ||
+            alturaImagem <= 0 ||
+            width <= 0 ||
+            height <= 0
+        ) {
             return
         }
 
-        val escalaX =
+        val escalaLargura =
             width.toFloat() /
-                    imagem.width.toFloat()
+                larguraImagem.toFloat()
 
-        val escalaY =
+        val escalaAltura =
             height.toFloat() /
-                    imagem.height.toFloat()
+                alturaImagem.toFloat()
 
-        escalaInicial =
-            min(escalaX, escalaY)
+        escalaMinima =
+            min(
+                escalaLargura,
+                escalaAltura
+            )
 
-        minScale = 1f
-        maxScale = 5f
+        if (escalaMinima <= 0f) {
+            escalaMinima = 1f
+        }
 
-        scale = 1f
+        escalaMaxima =
+            max(
+                escalaMinima * 5f,
+                escalaMinima + 1f
+            )
 
-        posX = 0f
-        posY = 0f
+        escala =
+            escalaMinima
 
-        matrixImagem.reset()
+        deslocamentoX = 0f
+        deslocamentoY = 0f
 
-        invalidate()
+        aplicarTransformacao()
     }
 
-    private fun corrigirPosicao() {
+    private fun aplicarTransformacao() {
 
-        val imagem = bitmap ?: return
+        val bitmap =
+            drawable ?: return
 
-        if (width <= 0 || height <= 0) {
+        val larguraDesenhada =
+            larguraImagem * escala
+
+        val alturaDesenhada =
+            alturaImagem * escala
+
+        val centroX =
+            width / 2f
+
+        val centroY =
+            height / 2f
+
+        val esquerda =
+            centroX -
+                larguraDesenhada / 2f +
+                deslocamentoX
+
+        val topo =
+            centroY -
+                alturaDesenhada / 2f +
+                deslocamentoY
+
+        val matriz =
+            android.graphics.Matrix()
+
+        matriz.setScale(
+            escala,
+            escala
+        )
+
+        matriz.postTranslate(
+            esquerda,
+            topo
+        )
+
+        imageMatrix =
+            matriz
+    }
+
+    private fun limitarDeslocamento() {
+
+        if (escala <= escalaMinima + 0.001f) {
+
+            deslocamentoX = 0f
+            deslocamentoY = 0f
+
             return
         }
 
-        val escalaX =
-            width.toFloat() /
-                    imagem.width.toFloat()
+        val larguraDesenhada =
+            larguraImagem * escala
 
-        val escalaY =
-            height.toFloat() /
-                    imagem.height.toFloat()
-
-        val base =
-            min(escalaX, escalaY)
-
-        val largura =
-            imagem.width * base * scale
-
-        val altura =
-            imagem.height * base * scale
+        val alturaDesenhada =
+            alturaImagem * escala
 
         val limiteX =
             max(
                 0f,
-                (largura - width) / 2f
+                (larguraDesenhada - width) / 2f
             )
 
         val limiteY =
             max(
                 0f,
-                (altura - height) / 2f
+                (alturaDesenhada - height) / 2f
             )
 
-        posX =
-            posX.coerceIn(
+        deslocamentoX =
+            deslocamentoX.coerceIn(
                 -limiteX,
                 limiteX
             )
 
-        posY =
-            posY.coerceIn(
+        deslocamentoY =
+            deslocamentoY.coerceIn(
                 -limiteY,
                 limiteY
             )
+    }
 
-        if (scale <= minScale) {
-            posX = 0f
-            posY = 0f
+    private inner class EscalaListener :
+        ScaleGestureDetector.SimpleOnScaleGestureListener() {
+
+        override fun onScale(
+            detector: ScaleGestureDetector
+        ): Boolean {
+
+            val novaEscala =
+                escala *
+                    detector.scaleFactor
+
+            escala =
+                novaEscala.coerceIn(
+                    escalaMinima,
+                    escalaMaxima
+                )
+
+            if (
+                escala <=
+                escalaMinima + 0.001f
+            ) {
+
+                deslocamentoX = 0f
+                deslocamentoY = 0f
+            }
+
+            limitarDeslocamento()
+
+            aplicarTransformacao()
+
+            return true
+        }
+    }
+
+    private inner class GestoListener :
+        GestureDetector.SimpleOnGestureListener() {
+
+        override fun onDoubleTap(
+            e: MotionEvent
+        ): Boolean {
+
+            if (
+                escala >
+                escalaMinima + 0.01f
+            ) {
+
+                escala =
+                    escalaMinima
+
+                deslocamentoX = 0f
+                deslocamentoY = 0f
+
+            } else {
+
+                escala =
+                    min(
+                        escalaMinima * 2.5f,
+                        escalaMaxima
+                    )
+            }
+
+            limitarDeslocamento()
+            aplicarTransformacao()
+
+            return true
+        }
+
+        override fun onDown(
+            e: MotionEvent
+        ): Boolean {
+            return true
+        }
+    }
+
+    override fun onSizeChanged(
+        largura: Int,
+        altura: Int,
+        larguraAntiga: Int,
+        alturaAntiga: Int
+    ) {
+
+        super.onSizeChanged(
+            largura,
+            altura,
+            larguraAntiga,
+            alturaAntiga
+        )
+
+        post {
+            if (
+                larguraImagem > 0 &&
+                alturaImagem > 0
+            ) {
+                calcularEscalaInicial()
+            }
         }
     }
 }
