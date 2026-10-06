@@ -39,6 +39,8 @@ class ImageViewerActivity : Activity() {
     private lateinit var imageView: ZoomImageView
     private lateinit var arquivoAtual: File
 
+    private var menuButton: ImageButton? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -88,84 +90,77 @@ class ImageViewerActivity : Activity() {
 
     private fun criarInterface() {
 
-        val raiz = LinearLayout(this)
-        raiz.orientation = LinearLayout.VERTICAL
+        /*
+         * RAIZ
+         *
+         * A imagem ocupa absolutamente toda a tela.
+         */
+        val raiz = FrameLayoutCompat(this)
+
         raiz.setBackgroundColor(Color.BLACK)
 
-        val barra = LinearLayout(this)
-        barra.orientation = LinearLayout.HORIZONTAL
-        barra.gravity = Gravity.CENTER_VERTICAL
-        barra.setPadding(8, 4, 8, 4)
-        barra.setBackgroundColor(Color.rgb(28, 28, 28))
-
-        val voltar = ImageButton(this)
-        voltar.setImageResource(android.R.drawable.ic_menu_revert)
-        voltar.setColorFilter(Color.WHITE)
-        voltar.setBackgroundColor(Color.TRANSPARENT)
-
-        barra.addView(
-            voltar,
-            LinearLayout.LayoutParams(52, 52)
-        )
-
-        voltar.setOnClickListener {
-            finish()
-        }
-
-        val titulo = TextView(this)
-        titulo.text = arquivoAtual.name
-        titulo.textSize = 17f
-        titulo.setTextColor(Color.WHITE)
-        titulo.gravity = Gravity.CENTER_VERTICAL
-        titulo.maxLines = 1
-        titulo.ellipsize =
-            android.text.TextUtils.TruncateAt.MIDDLE
-
-        val tituloParams = LinearLayout.LayoutParams(
-            0,
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            1f
-        )
-
-        tituloParams.setMargins(8, 0, 8, 0)
-
-        barra.addView(
-            titulo,
-            tituloParams
-        )
-
-        val menu = ImageButton(this)
-        menu.setImageResource(android.R.drawable.ic_menu_more)
-        menu.setColorFilter(Color.WHITE)
-        menu.setBackgroundColor(Color.TRANSPARENT)
-
-        barra.addView(
-            menu,
-            LinearLayout.LayoutParams(52, 52)
-        )
-
-        menu.setOnClickListener {
-            mostrarMenu()
-        }
-
-        raiz.addView(
-            barra,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                60
-            )
-        )
-
+        /*
+         * VISUALIZADOR
+         */
         imageView = ZoomImageView(this)
 
         raiz.addView(
             imageView,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                0,
-                1f
+            FrameLayoutCompat.LayoutParams(
+                FrameLayoutCompat.MATCH_PARENT,
+                FrameLayoutCompat.MATCH_PARENT
             )
         )
+
+        /*
+         * BOTÃO DOS 3 PONTINHOS
+         *
+         * Fica por cima da imagem.
+         */
+        val menu = ImageButton(this)
+
+        menuButton = menu
+
+        menu.setImageResource(
+            android.R.drawable.ic_menu_more
+        )
+
+        menu.setColorFilter(Color.WHITE)
+
+        menu.setBackgroundColor(Color.TRANSPARENT)
+
+        menu.contentDescription = "Mais opções"
+
+        /*
+         * Área maior para facilitar o toque.
+         */
+        val menuParams =
+            FrameLayoutCompat.LayoutParams(
+                56,
+                56
+            )
+
+        menuParams.gravity =
+            Gravity.TOP or Gravity.END
+
+        /*
+         * Não fica colado na borda.
+         */
+        menuParams.setMargins(
+            0,
+            12,
+            10,
+            0
+        )
+
+        raiz.addView(
+            menu,
+            menuParams
+        )
+
+        menu.setOnClickListener {
+            mostrarMenu(menu)
+        }
 
         setContentView(raiz)
 
@@ -178,7 +173,9 @@ class ImageViewerActivity : Activity() {
 
             try {
 
-                val bounds = BitmapFactory.Options()
+                val bounds =
+                    BitmapFactory.Options()
+
                 bounds.inJustDecodeBounds = true
 
                 BitmapFactory.decodeFile(
@@ -192,6 +189,7 @@ class ImageViewerActivity : Activity() {
                 ) {
 
                     runOnUiThread {
+
                         Toast.makeText(
                             this,
                             "Formato de imagem inválido",
@@ -210,11 +208,15 @@ class ImageViewerActivity : Activity() {
                     bounds.outWidth / sample > limite ||
                     bounds.outHeight / sample > limite
                 ) {
+
                     sample *= 2
                 }
 
-                val options = BitmapFactory.Options()
+                val options =
+                    BitmapFactory.Options()
+
                 options.inSampleSize = sample
+
                 options.inPreferredConfig =
                     Bitmap.Config.ARGB_8888
 
@@ -227,6 +229,7 @@ class ImageViewerActivity : Activity() {
                 if (bitmap == null) {
 
                     runOnUiThread {
+
                         Toast.makeText(
                             this,
                             "Não foi possível carregar a imagem",
@@ -239,14 +242,21 @@ class ImageViewerActivity : Activity() {
 
                 runOnUiThread {
 
-                    if (!isFinishing && !isDestroyed) {
-                        imageView.setImageBitmap(bitmap)
+                    if (
+                        !isFinishing &&
+                        !isDestroyed
+                    ) {
+
+                        imageView.setImageBitmap(
+                            bitmap
+                        )
                     }
                 }
 
             } catch (e: OutOfMemoryError) {
 
                 runOnUiThread {
+
                     Toast.makeText(
                         this,
                         "Imagem muito grande para a memória do aparelho",
@@ -257,6 +267,7 @@ class ImageViewerActivity : Activity() {
             } catch (e: Exception) {
 
                 runOnUiThread {
+
                     Toast.makeText(
                         this,
                         "Erro ao abrir imagem",
@@ -268,46 +279,86 @@ class ImageViewerActivity : Activity() {
         }.start()
     }
 
-    private fun mostrarMenu() {
+    /*
+     * =========================================================
+     * MENU DOS 3 PONTINHOS
+     * =========================================================
+     */
 
-        val layout = LinearLayout(this)
-        layout.orientation = LinearLayout.VERTICAL
-        layout.setPadding(0, 6, 0, 6)
-        layout.setBackgroundColor(Color.WHITE)
+    private fun mostrarMenu(
+        ancora: View
+    ) {
 
-        val popup = PopupWindow(
-            layout,
-            250,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            true
+        val layout =
+            LinearLayout(this)
+
+        layout.orientation =
+            LinearLayout.VERTICAL
+
+        layout.setPadding(
+            0,
+            8,
+            0,
+            8
         )
+
+        layout.setBackgroundColor(
+            Color.WHITE
+        )
+
+        val popup =
+            PopupWindow(
+                layout,
+                dp(245),
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                true
+            )
 
         popup.setBackgroundDrawable(
             ColorDrawable(Color.WHITE)
         )
 
-        popup.elevation = 12f
+        popup.isOutsideTouchable = true
 
+        popup.elevation = 16f
+
+        /*
+         * Informações
+         */
         adicionarOpcao(
             layout,
-            "ℹ  Informações"
+            "ℹ",
+            "Informações"
         ) {
+
             popup.dismiss()
+
             mostrarInformacoes()
         }
 
+        /*
+         * Renomear
+         */
         adicionarOpcao(
             layout,
-            "✎  Renomear"
+            "✎",
+            "Renomear"
         ) {
+
             popup.dismiss()
+
             renomearArquivo()
         }
 
+        /*
+         * Mover
+         */
         adicionarOpcao(
             layout,
-            "↗  Mover"
+            "➜",
+            "Mover para"
         ) {
+
             popup.dismiss()
 
             abrirSeletorDePasta(
@@ -316,10 +367,15 @@ class ImageViewerActivity : Activity() {
             )
         }
 
+        /*
+         * Criar pasta
+         */
         adicionarOpcao(
             layout,
-            "＋  Criar pasta"
+            "＋",
+            "Criar pasta"
         ) {
+
             popup.dismiss()
 
             criarPasta(
@@ -328,52 +384,176 @@ class ImageViewerActivity : Activity() {
             )
         }
 
+        /*
+         * Lixeira
+         */
         adicionarOpcao(
             layout,
-            "🗑  Mover para lixeira"
+            "🗑",
+            "Mover para lixeira"
         ) {
+
             popup.dismiss()
+
             moverParaLixeira()
         }
 
-        popup.showAtLocation(
-            window.decorView,
-            Gravity.TOP or Gravity.END,
-            8,
-            64
-        )
+        /*
+         * Calcula posição usando o próprio botão.
+         *
+         * Assim o menu não fica preso em 64dp.
+         */
+        ancora.post {
+
+            val location =
+                IntArray(2)
+
+            ancora.getLocationOnScreen(
+                location
+            )
+
+            val x =
+                location[0] +
+                    ancora.width -
+                    dp(245)
+
+            val y =
+                location[1] +
+                    ancora.height +
+                    dp(4)
+
+            popup.showAtLocation(
+                window.decorView,
+                Gravity.TOP or Gravity.START,
+                max(
+                    dp(6),
+                    x
+                ),
+                y
+            )
+        }
     }
 
     private fun adicionarOpcao(
         layout: LinearLayout,
+        icone: String,
         texto: String,
         acao: () -> Unit
     ) {
 
-        val item = TextView(this)
+        val linha =
+            LinearLayout(this)
 
-        item.text = texto
-        item.textSize = 16f
-        item.setTextColor(Color.DKGRAY)
-        item.gravity = Gravity.CENTER_VERTICAL
-        item.setPadding(20, 16, 20, 16)
+        linha.orientation =
+            LinearLayout.HORIZONTAL
 
-        layout.addView(
-            item,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                56
+        linha.gravity =
+            Gravity.CENTER_VERTICAL
+
+        linha.setPadding(
+            dp(18),
+            0,
+            dp(18),
+            0
+        )
+
+        val iconeView =
+            TextView(this)
+
+        iconeView.text =
+            icone
+
+        iconeView.textSize =
+            20f
+
+        iconeView.gravity =
+            Gravity.CENTER
+
+        iconeView.setTextColor(
+            Color.rgb(
+                55,
+                55,
+                55
             )
         )
 
-        item.setOnClickListener {
+        linha.addView(
+            iconeView,
+            LinearLayout.LayoutParams(
+                dp(32),
+                dp(56)
+            )
+        )
+
+        val textoView =
+            TextView(this)
+
+        textoView.text =
+            texto
+
+        textoView.textSize =
+            16f
+
+        textoView.setTextColor(
+            Color.rgb(
+                35,
+                35,
+                35
+            )
+        )
+
+        textoView.gravity =
+            Gravity.CENTER_VERTICAL
+
+        val textoParams =
+            LinearLayout.LayoutParams(
+                0,
+                dp(56),
+                1f
+            )
+
+        textoParams.setMargins(
+            dp(8),
+            0,
+            0,
+            0
+        )
+
+        linha.addView(
+            textoView,
+            textoParams
+        )
+
+        linha.isClickable = true
+
+        linha.setOnClickListener {
             acao()
         }
+
+        layout.addView(
+            linha
+        )
     }
+
+    private fun dp(valor: Int): Int {
+
+        return (
+            valor *
+                resources.displayMetrics.density
+            ).toInt()
+    }
+
+    /*
+     * =========================================================
+     * INFORMAÇÕES
+     * =========================================================
+     */
 
     private fun mostrarInformacoes() {
 
-        val bounds = BitmapFactory.Options()
+        val bounds =
+            BitmapFactory.Options()
+
         bounds.inJustDecodeBounds = true
 
         BitmapFactory.decodeFile(
@@ -382,31 +562,41 @@ class ImageViewerActivity : Activity() {
         )
 
         val tamanho =
-            formatarTamanho(arquivoAtual.length())
+            formatarTamanho(
+                arquivoAtual.length()
+            )
 
         val data =
             SimpleDateFormat(
                 "dd/MM/yyyy HH:mm:ss",
                 Locale.getDefault()
             ).format(
-                Date(arquivoAtual.lastModified())
+                Date(
+                    arquivoAtual.lastModified()
+                )
             )
 
         val formato =
             arquivoAtual.extension
-                .uppercase(Locale.getDefault())
+                .uppercase(
+                    Locale.getDefault()
+                )
 
         val resolucao =
             if (
                 bounds.outWidth > 0 &&
                 bounds.outHeight > 0
             ) {
+
                 "${bounds.outWidth} × ${bounds.outHeight} px"
+
             } else {
+
                 "Desconhecida"
             }
 
-        val mensagem = """
+        val mensagem =
+            """
             Nome: ${arquivoAtual.name}
 
             Localização:
@@ -419,22 +609,35 @@ class ImageViewerActivity : Activity() {
             Formato: $formato
 
             Modificado em: $data
-        """.trimIndent()
+            """.trimIndent()
 
         AlertDialog.Builder(this)
-            .setTitle("Informações da imagem")
-            .setMessage(mensagem)
-            .setPositiveButton("OK", null)
+            .setTitle(
+                "Informações da imagem"
+            )
+            .setMessage(
+                mensagem
+            )
+            .setPositiveButton(
+                "OK",
+                null
+            )
             .show()
     }
 
-    private fun formatarTamanho(bytes: Long): String {
+    private fun formatarTamanho(
+        bytes: Long
+    ): String {
 
         if (bytes < 1024) {
             return "$bytes B"
         }
 
-        if (bytes < 1024L * 1024L) {
+        if (
+            bytes <
+            1024L * 1024L
+        ) {
+
             return String.format(
                 Locale.getDefault(),
                 "%.1f KB",
@@ -442,7 +645,11 @@ class ImageViewerActivity : Activity() {
             )
         }
 
-        if (bytes < 1024L * 1024L * 1024L) {
+        if (
+            bytes <
+            1024L * 1024L * 1024L
+        ) {
+
             return String.format(
                 Locale.getDefault(),
                 "%.1f MB",
@@ -455,13 +662,24 @@ class ImageViewerActivity : Activity() {
             Locale.getDefault(),
             "%.1f GB",
             bytes /
-                (1024.0 * 1024.0 * 1024.0)
+                (
+                    1024.0 *
+                    1024.0 *
+                    1024.0
+                )
         )
     }
 
+    /*
+     * =========================================================
+     * RENOMEAR
+     * =========================================================
+     */
+
     private fun renomearArquivo() {
 
-        val campo = EditText(this)
+        val campo =
+            EditText(this)
 
         campo.setText(
             arquivoAtual.nameWithoutExtension
@@ -470,7 +688,9 @@ class ImageViewerActivity : Activity() {
         campo.selectAll()
 
         AlertDialog.Builder(this)
-            .setTitle("Renomear imagem")
+            .setTitle(
+                "Renomear imagem"
+            )
             .setView(campo)
             .setNegativeButton(
                 "Cancelar",
@@ -481,9 +701,13 @@ class ImageViewerActivity : Activity() {
             ) { _, _ ->
 
                 val nomeBase =
-                    campo.text.toString().trim()
+                    campo.text
+                        .toString()
+                        .trim()
 
-                if (nomeBase.isEmpty()) {
+                if (
+                    nomeBase.isEmpty()
+                ) {
 
                     Toast.makeText(
                         this,
@@ -498,9 +722,14 @@ class ImageViewerActivity : Activity() {
                     arquivoAtual.extension
 
                 val novoNome =
-                    if (extensao.isEmpty()) {
+                    if (
+                        extensao.isEmpty()
+                    ) {
+
                         nomeBase
+
                     } else {
+
                         "$nomeBase.$extensao"
                     }
 
@@ -510,7 +739,9 @@ class ImageViewerActivity : Activity() {
                         novoNome
                     )
 
-                if (novoArquivo.exists()) {
+                if (
+                    novoArquivo.exists()
+                ) {
 
                     Toast.makeText(
                         this,
@@ -561,6 +792,12 @@ class ImageViewerActivity : Activity() {
             .show()
     }
 
+    /*
+     * =========================================================
+     * SELETOR DE PASTAS
+     * =========================================================
+     */
+
     private fun abrirSeletorDePasta(
         pastaInicial: File
     ) {
@@ -569,9 +806,14 @@ class ImageViewerActivity : Activity() {
             Environment.getExternalStorageDirectory()
 
         val pasta =
-            if (pastaInicial.exists()) {
+            if (
+                pastaInicial.exists()
+            ) {
+
                 pastaInicial
+
             } else {
+
                 raiz
             }
 
@@ -587,29 +829,45 @@ class ImageViewerActivity : Activity() {
     ) {
 
         val dialog =
-            AlertDialog.Builder(this).create()
+            AlertDialog.Builder(this)
+                .create()
 
-        val principal = LinearLayout(this)
+        val principal =
+            LinearLayout(this)
+
         principal.orientation =
             LinearLayout.VERTICAL
 
         principal.setPadding(
-            10,
-            10,
-            10,
-            10
+            dp(10),
+            dp(10),
+            dp(10),
+            dp(10)
         )
 
-        val titulo = TextView(this)
-        titulo.textSize = 18f
-        titulo.setTextColor(Color.BLACK)
-        titulo.setPadding(8, 8, 8, 8)
+        val titulo =
+            TextView(this)
+
+        titulo.textSize =
+            18f
+
+        titulo.setTextColor(
+            Color.BLACK
+        )
+
+        titulo.setPadding(
+            dp(8),
+            dp(8),
+            dp(8),
+            dp(8)
+        )
 
         principal.addView(
             titulo
         )
 
-        val lista = ListView(this)
+        val lista =
+            ListView(this)
 
         principal.addView(
             lista,
@@ -620,24 +878,35 @@ class ImageViewerActivity : Activity() {
             )
         )
 
-        val botoes = LinearLayout(this)
+        val botoes =
+            LinearLayout(this)
+
         botoes.orientation =
             LinearLayout.HORIZONTAL
 
-        val criar = Button(this)
-        criar.text = "＋ Pasta"
+        val criar =
+            Button(this)
 
-        val cancelar = Button(this)
-        cancelar.text = "Cancelar"
+        criar.text =
+            "＋ Pasta"
 
-        val mover = Button(this)
-        mover.text = "Mover aqui"
+        val cancelar =
+            Button(this)
+
+        cancelar.text =
+            "Cancelar"
+
+        val mover =
+            Button(this)
+
+        mover.text =
+            "Mover aqui"
 
         botoes.addView(
             criar,
             LinearLayout.LayoutParams(
                 0,
-                55,
+                dp(55),
                 1f
             )
         )
@@ -646,7 +915,7 @@ class ImageViewerActivity : Activity() {
             cancelar,
             LinearLayout.LayoutParams(
                 0,
-                55,
+                dp(55),
                 1f
             )
         )
@@ -655,15 +924,22 @@ class ImageViewerActivity : Activity() {
             mover,
             LinearLayout.LayoutParams(
                 0,
-                55,
+                dp(55),
                 1f
             )
         )
 
-        principal.addView(botoes)
+        principal.addView(
+            botoes
+        )
 
-        dialog.setTitle("Escolher pasta")
-        dialog.setView(principal)
+        dialog.setTitle(
+            "Escolher pasta"
+        )
+
+        dialog.setView(
+            principal
+        )
 
         dialog.setOnShowListener {
 
@@ -707,8 +983,14 @@ class ImageViewerActivity : Activity() {
         dialog.show()
 
         dialog.window?.setLayout(
-            (resources.displayMetrics.widthPixels * 0.94).toInt(),
-            (resources.displayMetrics.heightPixels * 0.80).toInt()
+            (
+                resources.displayMetrics.widthPixels *
+                    0.94
+                ).toInt(),
+            (
+                resources.displayMetrics.heightPixels *
+                    0.80
+                ).toInt()
         )
     }
 
@@ -725,8 +1007,11 @@ class ImageViewerActivity : Activity() {
                 pasta.absolutePath ==
                 raiz.absolutePath
             ) {
+
                 "Armazenamento interno"
+
             } else {
+
                 "📁 ${pasta.name}"
             }
 
@@ -738,15 +1023,12 @@ class ImageViewerActivity : Activity() {
             raiz.absolutePath
         ) {
 
-            pasta.parentFile?.let { pai ->
-
-                arquivos.add(
-                    File(
-                        pasta,
-                        ".."
-                    )
+            arquivos.add(
+                File(
+                    pasta,
+                    ".."
                 )
-            }
+            )
         }
 
         val subpastas =
@@ -762,14 +1044,21 @@ class ImageViewerActivity : Activity() {
                 }
                 ?: emptyList()
 
-        arquivos.addAll(subpastas)
+        arquivos.addAll(
+            subpastas
+        )
 
         val nomes =
             arquivos.map {
 
-                if (it.name == "..") {
+                if (
+                    it.name == ".."
+                ) {
+
                     "⬆  .."
+
                 } else {
+
                     "📁  ${it.name}"
                 }
             }
@@ -790,9 +1079,12 @@ class ImageViewerActivity : Activity() {
             val selecionada =
                 arquivos[posicao]
 
-            if (selecionada.name == "..") {
+            if (
+                selecionada.name == ".."
+            ) {
 
-                pasta.parentFile?.let { pai ->
+                pasta.parentFile?.let {
+                    pai ->
 
                     atualizarPastas(
                         lista,
@@ -816,16 +1108,27 @@ class ImageViewerActivity : Activity() {
         }
     }
 
+    /*
+     * =========================================================
+     * CRIAR PASTA
+     * =========================================================
+     */
+
     private fun criarPasta(
         pastaPai: File,
         depois: (() -> Unit)? = null
     ) {
 
-        val campo = EditText(this)
-        campo.hint = "Nome da pasta"
+        val campo =
+            EditText(this)
+
+        campo.hint =
+            "Nome da pasta"
 
         AlertDialog.Builder(this)
-            .setTitle("Criar pasta")
+            .setTitle(
+                "Criar pasta"
+            )
             .setView(campo)
             .setNegativeButton(
                 "Cancelar",
@@ -836,9 +1139,13 @@ class ImageViewerActivity : Activity() {
             ) { _, _ ->
 
                 val nome =
-                    campo.text.toString().trim()
+                    campo.text
+                        .toString()
+                        .trim()
 
-                if (nome.isEmpty()) {
+                if (
+                    nome.isEmpty()
+                ) {
 
                     Toast.makeText(
                         this,
@@ -855,7 +1162,9 @@ class ImageViewerActivity : Activity() {
                         nome
                     )
 
-                if (pasta.exists()) {
+                if (
+                    pasta.exists()
+                ) {
 
                     Toast.makeText(
                         this,
@@ -868,7 +1177,9 @@ class ImageViewerActivity : Activity() {
 
                 try {
 
-                    if (pasta.mkdirs()) {
+                    if (
+                        pasta.mkdirs()
+                    ) {
 
                         Toast.makeText(
                             this,
@@ -899,6 +1210,12 @@ class ImageViewerActivity : Activity() {
             .show()
     }
 
+    /*
+     * =========================================================
+     * MOVER
+     * =========================================================
+     */
+
     private fun moverArquivo(
         destino: File,
         dialog: AlertDialog
@@ -906,7 +1223,8 @@ class ImageViewerActivity : Activity() {
 
         if (
             destino.absolutePath ==
-            arquivoAtual.parentFile?.absolutePath
+            arquivoAtual.parentFile
+                ?.absolutePath
         ) {
 
             Toast.makeText(
@@ -924,7 +1242,9 @@ class ImageViewerActivity : Activity() {
                 arquivoAtual.name
             )
 
-        if (arquivoDestino.exists()) {
+        if (
+            arquivoDestino.exists()
+        ) {
 
             arquivoDestino =
                 criarNomeUnico(
@@ -945,28 +1265,41 @@ class ImageViewerActivity : Activity() {
     ): File {
 
         val base =
-            File(nomeOriginal)
-                .nameWithoutExtension
+            File(
+                nomeOriginal
+            ).nameWithoutExtension
 
         val extensao =
-            File(nomeOriginal)
-                .extension
+            File(
+                nomeOriginal
+            ).extension
 
         var numero = 1
 
         while (true) {
 
             val nome =
-                if (extensao.isEmpty()) {
+                if (
+                    extensao.isEmpty()
+                ) {
+
                     "$base ($numero)"
+
                 } else {
+
                     "$base ($numero).$extensao"
                 }
 
             val arquivo =
-                File(pasta, nome)
+                File(
+                    pasta,
+                    nome
+                )
 
-            if (!arquivo.exists()) {
+            if (
+                !arquivo.exists()
+            ) {
+
                 return arquivo
             }
 
@@ -1027,19 +1360,29 @@ class ImageViewerActivity : Activity() {
 
         try {
 
-            FileInputStream(origem).use { entrada ->
+            FileInputStream(
+                origem
+            ).use { entrada ->
 
-                FileOutputStream(destino).use { saida ->
+                FileOutputStream(
+                    destino
+                ).use { saida ->
 
                     val buffer =
-                        ByteArray(64 * 1024)
+                        ByteArray(
+                            64 * 1024
+                        )
 
                     while (true) {
 
                         val lidos =
-                            entrada.read(buffer)
+                            entrada.read(
+                                buffer
+                            )
 
-                        if (lidos <= 0) {
+                        if (
+                            lidos <= 0
+                        ) {
                             break
                         }
 
@@ -1054,10 +1397,13 @@ class ImageViewerActivity : Activity() {
 
             if (
                 destino.exists() &&
-                destino.length() == origem.length()
+                destino.length() ==
+                origem.length()
             ) {
 
-                if (origem.delete()) {
+                if (
+                    origem.delete()
+                ) {
 
                     dialog?.dismiss()
 
@@ -1104,6 +1450,12 @@ class ImageViewerActivity : Activity() {
         }
     }
 
+    /*
+     * =========================================================
+     * LIXEIRA
+     * =========================================================
+     */
+
     private fun moverParaLixeira() {
 
         val raiz =
@@ -1117,9 +1469,13 @@ class ImageViewerActivity : Activity() {
 
         try {
 
-            if (!lixeira.exists()) {
+            if (
+                !lixeira.exists()
+            ) {
 
-                if (!lixeira.mkdirs()) {
+                if (
+                    !lixeira.mkdirs()
+                ) {
 
                     Toast.makeText(
                         this,
@@ -1138,7 +1494,9 @@ class ImageViewerActivity : Activity() {
                 )
 
             AlertDialog.Builder(this)
-                .setTitle("Mover para lixeira?")
+                .setTitle(
+                    "Mover para lixeira?"
+                )
                 .setMessage(
                     "A imagem será movida para a lixeira."
                 )
@@ -1189,7 +1547,9 @@ class ImageViewerActivity : Activity() {
         hasFocus: Boolean
     ) {
 
-        super.onWindowFocusChanged(hasFocus)
+        super.onWindowFocusChanged(
+            hasFocus
+        )
 
         if (hasFocus) {
             configurarTelaCheia()
@@ -1198,9 +1558,40 @@ class ImageViewerActivity : Activity() {
 }
 
 
-/**
- * ImageView nativo com zoom de dois dedos.
+/*
+ * =============================================================
+ * FRAME LAYOUT SIMPLES
+ * =============================================================
+ *
+ * Usamos um FrameLayout próprio para manter o arquivo
+ * independente de XML.
  */
+
+class FrameLayoutCompat(
+    context: Context
+) : android.widget.FrameLayout(context) {
+
+    companion object {
+        const val MATCH_PARENT =
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+    }
+
+    class LayoutParams(
+        width: Int,
+        height: Int
+    ) : android.widget.FrameLayout.LayoutParams(
+        width,
+        height
+    )
+}
+
+
+/*
+ * =============================================================
+ * IMAGE VIEW COM ZOOM
+ * =============================================================
+ */
+
 class ZoomImageView(
     context: Context
 ) : ImageView(context) {
@@ -1228,7 +1619,9 @@ class ZoomImageView(
 
     init {
 
-        setBackgroundColor(Color.BLACK)
+        setBackgroundColor(
+            Color.BLACK
+        )
 
         scaleType =
             ImageView.ScaleType.MATRIX
@@ -1237,9 +1630,13 @@ class ZoomImageView(
 
         setOnTouchListener { _, evento ->
 
-            escalaDetector.onTouchEvent(evento)
+            escalaDetector.onTouchEvent(
+                evento
+            )
 
-            when (evento.actionMasked) {
+            when (
+                evento.actionMasked
+            ) {
 
                 MotionEvent.ACTION_DOWN -> {
 
@@ -1263,10 +1660,12 @@ class ZoomImageView(
                     ) {
 
                         deslocamentoX +=
-                            evento.x - ultimoX
+                            evento.x -
+                            ultimoX
 
                         deslocamentoY +=
-                            evento.y - ultimoY
+                            evento.y -
+                            ultimoY
 
                         limitarDeslocamento()
                         aplicarTransformacao()
@@ -1298,9 +1697,13 @@ class ZoomImageView(
         bitmap: Bitmap?
     ) {
 
-        super.setImageBitmap(bitmap)
+        super.setImageBitmap(
+            bitmap
+        )
 
-        if (bitmap != null) {
+        if (
+            bitmap != null
+        ) {
 
             larguraImagem =
                 bitmap.width
@@ -1339,7 +1742,9 @@ class ZoomImageView(
                 escalaAltura
             )
 
-        if (escalaMinima <= 0f) {
+        if (
+            escalaMinima <= 0f
+        ) {
             escalaMinima = 1f
         }
 
@@ -1360,15 +1765,19 @@ class ZoomImageView(
 
     private fun aplicarTransformacao() {
 
-        if (drawable == null) {
+        if (
+            drawable == null
+        ) {
             return
         }
 
         val largura =
-            larguraImagem * escala
+            larguraImagem *
+                escala
 
         val altura =
-            alturaImagem * escala
+            alturaImagem *
+                escala
 
         val esquerda =
             width / 2f -
@@ -1380,7 +1789,8 @@ class ZoomImageView(
                 altura / 2f +
                 deslocamentoY
 
-        val matriz = Matrix()
+        val matriz =
+            Matrix()
 
         matriz.setScale(
             escala,
@@ -1410,10 +1820,12 @@ class ZoomImageView(
         }
 
         val largura =
-            larguraImagem * escala
+            larguraImagem *
+                escala
 
         val altura =
-            alturaImagem * escala
+            alturaImagem *
+                escala
 
         val limiteX =
             max(
@@ -1487,10 +1899,12 @@ class ZoomImageView(
         )
 
         post {
+
             if (
                 larguraImagem > 0 &&
                 alturaImagem > 0
             ) {
+
                 calcularEscalaInicial()
             }
         }
