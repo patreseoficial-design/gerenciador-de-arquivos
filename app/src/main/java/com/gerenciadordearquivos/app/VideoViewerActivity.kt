@@ -81,13 +81,11 @@ class VideoViewerActivity : Activity() {
     private var dialogoErroAberto = false
 
     /*
-     * NOVO:
+     * Evita múltiplas tentativas automáticas de abrir
+     * aplicativos externos para o mesmo vídeo.
      *
-     * Evita que uma falha do ExoPlayer fique disparando
-     * várias tentativas de abrir aplicativos externos.
-     *
-     * Quando o usuário troca de vídeo ou tenta novamente,
-     * esse valor volta para false.
+     * Quando o usuário troca de vídeo ou toca em
+     * "Tentar novamente", volta para false.
      */
     private var fallbackExternoTentado = false
 
@@ -991,11 +989,6 @@ class VideoViewerActivity : Activity() {
 
         try {
 
-            /*
-             * NOVO:
-             * uma nova tentativa pode usar novamente
-             * o fallback externo.
-             */
             fallbackExternoTentado =
                 false
 
@@ -2037,15 +2030,6 @@ class VideoViewerActivity : Activity() {
                         error: PlaybackException
                     ) {
 
-                        /*
-                         * CORREÇÃO PRINCIPAL:
-                         *
-                         * Antes:
-                         * onPlayerError -> diagnóstico imediatamente.
-                         *
-                         * Agora:
-                         * onPlayerError -> tenta outro player instalado.
-                         */
                         playerPreparado =
                             false
 
@@ -2063,11 +2047,9 @@ class VideoViewerActivity : Activity() {
                 ArrayList<MediaItem>()
 
             /*
-             * Reprodução INTERNA.
-             *
-             * Para MIME genérico "video/*", não forçamos
-             * o MIME no MediaItem. Assim o ExoPlayer pode
-             * identificar o contêiner pela extensão/arquivo.
+             * Para MIME genérico video/* não forçamos o MIME.
+             * Assim o ExoPlayer tenta identificar corretamente
+             * o formato através do arquivo.
              */
             arquivos.forEach { caminho ->
 
@@ -2204,12 +2186,6 @@ class VideoViewerActivity : Activity() {
             e: Throwable
         ) {
 
-            /*
-             * CORREÇÃO:
-             * erro na inicialização do player também passa
-             * pelo fallback externo em vez de mostrar
-             * imediatamente "diagnóstico salvo".
-             */
             tratarFalhaInicializacaoPlayer(
                 e
             )
@@ -2217,7 +2193,7 @@ class VideoViewerActivity : Activity() {
     }
 
     // =========================================================
-    // NOVO: TRATAMENTO DA FALHA DO EXOPLAYER
+    // FALHA DO EXOPLAYER
     // =========================================================
 
     private fun tratarFalhaReproducaoInterna(
@@ -2230,10 +2206,6 @@ class VideoViewerActivity : Activity() {
                 fallbackExternoTentado
             ) {
 
-                /*
-                 * Já tentamos o player externo para este vídeo.
-                 * Agora mostramos o diagnóstico real.
-                 */
                 mostrarErroMedia3(
                     error
                 )
@@ -2244,9 +2216,6 @@ class VideoViewerActivity : Activity() {
             fallbackExternoTentado =
                 true
 
-            /*
-             * Guarda a posição antes de liberar.
-             */
             try {
 
                 player?.let {
@@ -2259,9 +2228,20 @@ class VideoViewerActivity : Activity() {
 
             liberarPlayer()
 
-            raiz.post {
+            if (
+                ::raiz.isInitialized
+            ) {
 
-                abrirVideoExternamenteAutomatico(
+                raiz.post {
+
+                    abrirVideoExternamenteAutomatico(
+                        error
+                    )
+                }
+
+            } else {
+
+                mostrarErroMedia3(
                     error
                 )
             }
@@ -2278,7 +2258,7 @@ class VideoViewerActivity : Activity() {
     }
 
     // =========================================================
-    // NOVO: FALHA NA INICIALIZAÇÃO DO PLAYER
+    // FALHA NA INICIALIZAÇÃO
     // =========================================================
 
     private fun tratarFalhaInicializacaoPlayer(
@@ -2341,7 +2321,7 @@ class VideoViewerActivity : Activity() {
     }
 
     // =========================================================
-    // NOVO: ABRIR VÍDEO EXTERNAMENTE AUTOMATICAMENTE
+    // ABRIR EXTERNAMENTE
     // =========================================================
 
     private fun abrirVideoExternamenteAutomatico(
@@ -2371,13 +2351,14 @@ class VideoViewerActivity : Activity() {
             }
 
             if (
-                !arquivoAtual.exists()
+                !arquivoAtual.exists() ||
+                !arquivoAtual.isFile
             ) {
 
                 mostrarErroDiagnostico(
                     "FALLBACK EXTERNO",
                     IllegalStateException(
-                        "O arquivo não existe:\n${arquivoAtual.absolutePath}"
+                        "O arquivo não existe ou não é um arquivo válido:\n${arquivoAtual.absolutePath}"
                     )
                 )
 
@@ -2396,103 +2377,99 @@ class VideoViewerActivity : Activity() {
                     arquivoAtual
                 )
 
-            val intent =
-                Intent(
-                    Intent.ACTION_VIEW
-                ).apply {
-
-                    setDataAndType(
-                        uri,
-                        mime
-                    )
-
-                    addFlags(
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    )
-
-                    addFlags(
-                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    )
-
-                    addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK
-                    )
-
-                    /*
-                     * Importante para alguns aplicativos
-                     * de vídeo no Android mais recente.
-                     */
-                    clipData =
-                        ClipData.newRawUri(
-                            "Vídeo",
-                            uri
-                        )
-                }
-
             /*
-             * Verificamos primeiro se existe algum aplicativo
-             * capaz de receber o Intent.
+             * Primeiro tenta o MIME específico.
              */
-            val resolved =
-                packageManager
-                    .queryIntentActivities(
-                        intent,
-                        0
-                    )
-
-            if (
-                resolved.isNullOrEmpty()
-            ) {
-
-                mostrarFalhaSemPlayerExterno(
-                    erroInterno
+            val intent =
+                criarIntentVideoExterno(
+                    uri,
+                    mime
                 )
 
-                return
-            }
+            val resolved =
+                packageManager.queryIntentActivities(
+                    intent,
+                    0
+                )
 
-            /*
-             * Concede explicitamente a permissão para os
-             * aplicativos que o Android encontrou.
-             */
-            resolved.forEach { info ->
+            if (
+                resolved.isNotEmpty()
+            ) {
+
+                concederPermissaoUri(
+                    resolved,
+                    uri
+                )
 
                 try {
 
-                    grantUriPermission(
-                        info.activityInfo.packageName,
-                        uri,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    startActivity(
+                        intent
                     )
 
-                } catch (_: Exception) {
+                    return
+
+                } catch (
+                    _: ActivityNotFoundException
+                ) {
+                } catch (
+                    _: Exception
+                ) {
                 }
             }
 
-            try {
-
-                startActivity(
-                    intent
-                )
-
-            } catch (
-                e: ActivityNotFoundException
+            /*
+             * Alguns players não registram corretamente
+             * MIME como video/x-matroska, video/x-msvideo etc.
+             *
+             * Segunda tentativa usando video/*.
+             */
+            if (
+                mime != "video/*"
             ) {
 
-                mostrarFalhaSemPlayerExterno(
-                    erroInterno,
-                    e
-                )
+                val intentGenerico =
+                    criarIntentVideoExterno(
+                        uri,
+                        "video/*"
+                    )
 
-            } catch (
-                e: Exception
-            ) {
+                val resolvedGenerico =
+                    packageManager.queryIntentActivities(
+                        intentGenerico,
+                        0
+                    )
 
-                mostrarFalhaSemPlayerExterno(
-                    erroInterno,
-                    e
-                )
+                if (
+                    resolvedGenerico.isNotEmpty()
+                ) {
+
+                    concederPermissaoUri(
+                        resolvedGenerico,
+                        uri
+                    )
+
+                    try {
+
+                        startActivity(
+                            intentGenerico
+                        )
+
+                        return
+
+                    } catch (
+                        _: ActivityNotFoundException
+                    ) {
+                    } catch (
+                        _: Exception
+                    ) {
+                    }
+                }
             }
+
+            mostrarFalhaSemPlayerExterno(
+                erroInterno
+            )
 
         } catch (
             e: Exception
@@ -2505,8 +2482,58 @@ class VideoViewerActivity : Activity() {
         }
     }
 
+    private fun criarIntentVideoExterno(
+        uri: Uri,
+        mime: String
+    ): Intent {
+
+        return Intent(
+            Intent.ACTION_VIEW
+        ).apply {
+
+            setDataAndType(
+                uri,
+                mime
+            )
+
+            addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+
+            addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK
+            )
+
+            clipData =
+                ClipData.newRawUri(
+                    "Vídeo",
+                    uri
+                )
+        }
+    }
+
+    private fun concederPermissaoUri(
+        resolved: List<android.content.pm.ResolveInfo>,
+        uri: Uri
+    ) {
+
+        resolved.forEach { info ->
+
+            try {
+
+                grantUriPermission(
+                    info.activityInfo.packageName,
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+
+            } catch (_: Exception) {
+            }
+        }
+    }
+
     // =========================================================
-    // NOVO: NENHUM PLAYER EXTERNO
+    // NENHUM PLAYER EXTERNO
     // =========================================================
 
     private fun mostrarFalhaSemPlayerExterno(
@@ -2930,9 +2957,6 @@ class VideoViewerActivity : Activity() {
                 return
             }
 
-            /*
-             * Novo vídeo = nova tentativa.
-             */
             fallbackExternoTentado =
                 false
 
@@ -3247,36 +3271,80 @@ class VideoViewerActivity : Activity() {
                     arquivoAtual
                 )
 
+            val mime =
+                obterMimeType(
+                    arquivoAtual
+                )
+
             val intent =
-                Intent(
-                    Intent.ACTION_VIEW
-                ).apply {
+                criarIntentVideoExterno(
+                    uri,
+                    mime
+                )
 
-                    setDataAndType(
+            val resolved =
+                packageManager.queryIntentActivities(
+                    intent,
+                    0
+                )
+
+            if (
+                resolved.isNotEmpty()
+            ) {
+
+                concederPermissaoUri(
+                    resolved,
+                    uri
+                )
+
+                startActivity(
+                    intent
+                )
+
+                return
+            }
+
+            /*
+             * Segunda tentativa com video/*.
+             */
+            if (
+                mime != "video/*"
+            ) {
+
+                val intentGenerico =
+                    criarIntentVideoExterno(
                         uri,
-                        obterMimeType(
-                            arquivoAtual
-                        )
+                        "video/*"
                     )
 
-                    addFlags(
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                val resolvedGenerico =
+                    packageManager.queryIntentActivities(
+                        intentGenerico,
+                        0
                     )
 
-                    addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK
+                if (
+                    resolvedGenerico.isNotEmpty()
+                ) {
+
+                    concederPermissaoUri(
+                        resolvedGenerico,
+                        uri
                     )
 
-                    clipData =
-                        ClipData.newRawUri(
-                            "Vídeo",
-                            uri
-                        )
+                    startActivity(
+                        intentGenerico
+                    )
+
+                    return
                 }
+            }
 
-            startActivity(
-                intent
-            )
+            Toast.makeText(
+                this,
+                "Nenhum aplicativo pode abrir este vídeo",
+                Toast.LENGTH_LONG
+            ).show()
 
         } catch (
             _: ActivityNotFoundException
