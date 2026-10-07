@@ -27,4 +27,8 @@ android {
 
 dependencies {
     implementation("androidx.appcompat:appcompat:1.7.1")
+
+    // Media3 / ExoPlayer para reprodução interna de vídeos
+    implementation("androidx.media3:media3-exoplayer:1.11.1")
+    implementation("androidx.media3:media3-ui:1.11.1")
 }
