@@ -1,4 +1,4 @@
-package com.gerenciadordearquivos.app
+ package com.gerenciadordearquivos.app
 
 import android.app.Activity
 import android.app.AlertDialog
@@ -50,7 +50,18 @@ class VideoViewerActivity : Activity() {
     private lateinit var barraSuperior: LinearLayout
     private lateinit var barraInferior: LinearLayout
 
+    /*
+     * Lista original recebida do MainActivity.
+     */
     private val arquivos = ArrayList<String>()
+
+    /*
+     * Lista realmente carregada pelo ExoPlayer.
+     *
+     * Ela é separada da lista "arquivos" porque algum arquivo
+     * pode não existir mais ou não estar acessível.
+     */
+    private val arquivosDoPlayer = ArrayList<String>()
 
     private var posicaoAtual = 0
 
@@ -73,10 +84,6 @@ class VideoViewerActivity : Activity() {
             Environment.getExternalStorageDirectory(),
             ".GerenciadorArquivos/.Lixeira"
         )
-
-    // =========================================================
-    // CICLO DE VIDA
-    // =========================================================
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -115,11 +122,7 @@ class VideoViewerActivity : Activity() {
         }
 
         player?.let {
-
-            if (
-                playerPreparado &&
-                reproduzirAoRetornar
-            ) {
+            if (playerPreparado && reproduzirAoRetornar) {
                 try {
                     it.play()
                 } catch (_: Exception) {
@@ -129,9 +132,7 @@ class VideoViewerActivity : Activity() {
     }
 
     override fun onPause() {
-
         player?.let {
-
             try {
                 ultimaPosicao = it.currentPosition
             } catch (_: Exception) {
@@ -153,19 +154,25 @@ class VideoViewerActivity : Activity() {
     override fun onSaveInstanceState(
         outState: Bundle
     ) {
-
         player?.let {
-
             try {
                 outState.putLong(
                     "posicao_video",
                     it.currentPosition
                 )
 
-                outState.putInt(
-                    "indice_video",
+                val indicePlayer =
                     it.currentMediaItemIndex
-                )
+
+                if (
+                    indicePlayer >= 0 &&
+                    indicePlayer < arquivosDoPlayer.size
+                ) {
+                    outState.putString(
+                        "caminho_video",
+                        arquivosDoPlayer[indicePlayer]
+                    )
+                }
 
                 outState.putBoolean(
                     "reproduzindo",
@@ -179,7 +186,6 @@ class VideoViewerActivity : Activity() {
     }
 
     override fun onDestroy() {
-
         popupAtual?.dismiss()
         popupAtual = null
 
@@ -217,30 +223,26 @@ class VideoViewerActivity : Activity() {
         }
     }
 
-    // =========================================================
-    // ESTADO
-    // =========================================================
-
     private fun restaurarEstado(
         savedInstanceState: Bundle?
     ) {
-
         if (savedInstanceState == null) {
             return
         }
 
-        val indice =
-            savedInstanceState.getInt(
-                "indice_video",
-                posicaoAtual
+        val caminhoSalvo =
+            savedInstanceState.getString(
+                "caminho_video"
             )
 
-        if (
-            indice >= 0 &&
-            indice < arquivos.size
-        ) {
-            posicaoAtual = indice
-            atualizarArquivoAtual()
+        if (!caminhoSalvo.isNullOrBlank()) {
+            val indice =
+                arquivos.indexOf(caminhoSalvo)
+
+            if (indice >= 0) {
+                posicaoAtual = indice
+                atualizarArquivoAtual()
+            }
         }
 
         ultimaPosicao =
@@ -256,12 +258,7 @@ class VideoViewerActivity : Activity() {
             )
     }
 
-    // =========================================================
-    // TELA CHEIA
-    // =========================================================
-
     private fun configurarTelaCheia() {
-
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_FULLSCREEN or
                     View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
@@ -271,20 +268,16 @@ class VideoViewerActivity : Activity() {
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE
     }
 
-    // =========================================================
-    // DADOS RECEBIDOS
-    // =========================================================
-
     private fun carregarDadosIntent() {
-
         val listaRecebida =
-            intent.getStringArrayListExtra("arquivos")
+            intent.getStringArrayListExtra(
+                "arquivos"
+            )
 
         if (
             listaRecebida != null &&
             listaRecebida.isNotEmpty()
         ) {
-
             arquivos.clear()
 
             listaRecebida
@@ -297,7 +290,9 @@ class VideoViewerActivity : Activity() {
         }
 
         val caminhoRecebido =
-            intent.getStringExtra("arquivo")
+            intent.getStringExtra(
+                "arquivo"
+            )
 
         val posicaoRecebida =
             intent.getIntExtra(
@@ -309,14 +304,12 @@ class VideoViewerActivity : Activity() {
             arquivos.isEmpty() &&
             !caminhoRecebido.isNullOrBlank()
         ) {
-
             arquivos.add(
                 caminhoRecebido
             )
         }
 
         if (arquivos.isEmpty()) {
-
             Toast.makeText(
                 this,
                 "Nenhum vídeo encontrado",
@@ -329,12 +322,10 @@ class VideoViewerActivity : Activity() {
 
         posicaoAtual =
             when {
-
                 posicaoRecebida in arquivos.indices ->
                     posicaoRecebida
 
                 !caminhoRecebido.isNullOrBlank() -> {
-
                     val indice =
                         arquivos.indexOf(
                             caminhoRecebido
@@ -354,7 +345,6 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun atualizarArquivoAtual() {
-
         if (arquivos.isEmpty()) {
             finish()
             return
@@ -375,15 +365,12 @@ class VideoViewerActivity : Activity() {
         atualizarCabecalho()
     }
 
-    // =========================================================
-    // INTERFACE
-    // =========================================================
-
     private fun criarInterface() {
-
         raiz =
             FrameLayout(this).apply {
-                setBackgroundColor(Color.BLACK)
+                setBackgroundColor(
+                    Color.BLACK
+                )
             }
 
         playerView =
@@ -405,9 +392,6 @@ class VideoViewerActivity : Activity() {
 
                 controllerHideOnTouch = true
 
-                showBuffering =
-                    PlayerView.SHOW_BUFFERING_WHEN_PLAYING
-
                 keepScreenOn = true
             }
 
@@ -425,10 +409,6 @@ class VideoViewerActivity : Activity() {
 
         barraInferior.bringToFront()
     }
-
-    // =========================================================
-    // BARRA SUPERIOR
-    // =========================================================
 
     private fun criarBarraSuperior() {
 
@@ -721,10 +701,6 @@ class VideoViewerActivity : Activity() {
         texto.setHorizontallyScrolling(true)
     }
 
-    // =========================================================
-    // BARRA INFERIOR
-    // =========================================================
-
     private fun criarBarraInferior() {
 
         barraInferior =
@@ -876,11 +852,7 @@ class VideoViewerActivity : Activity() {
         )
     }
 
-    // =========================================================
-    // MEDIA3 / EXOPLAYER
-    // =========================================================
-
-    @androidx.media3.common.util.UnstableApi
+    @UnstableApi
     private fun inicializarPlayer() {
 
         if (!::arquivoAtual.isInitialized) {
@@ -922,6 +894,8 @@ class VideoViewerActivity : Activity() {
 
         liberarPlayer()
 
+        arquivosDoPlayer.clear()
+
         try {
 
             val renderersFactory =
@@ -950,22 +924,22 @@ class VideoViewerActivity : Activity() {
 
                             Player.STATE_READY -> {
 
-                                playerPreparado = true
+                                playerPreparado =
+                                    true
 
                                 if (
                                     ultimaPosicao > 0
                                 ) {
 
                                     try {
-
                                         novoPlayer.seekTo(
                                             ultimaPosicao
                                         )
-
                                     } catch (_: Exception) {
                                     }
 
-                                    ultimaPosicao = 0L
+                                    ultimaPosicao =
+                                        0L
                                 }
 
                                 if (
@@ -980,16 +954,21 @@ class VideoViewerActivity : Activity() {
                             }
 
                             Player.STATE_BUFFERING -> {
-                                playerPreparado = false
+
+                                playerPreparado =
+                                    false
                             }
 
                             Player.STATE_IDLE -> {
-                                playerPreparado = false
+
+                                playerPreparado =
+                                    false
                             }
 
                             Player.STATE_ENDED -> {
 
-                                playerPreparado = true
+                                playerPreparado =
+                                    true
 
                                 reproduzirAoRetornar =
                                     false
@@ -1002,26 +981,38 @@ class VideoViewerActivity : Activity() {
                         reason: Int
                     ) {
 
-                        val indice =
+                        val indicePlayer =
                             novoPlayer.currentMediaItemIndex
 
                         if (
-                            indice >= 0 &&
-                            indice < arquivos.size
+                            indicePlayer >= 0 &&
+                            indicePlayer <
+                            arquivosDoPlayer.size
                         ) {
 
+                            val caminho =
+                                arquivosDoPlayer[
+                                    indicePlayer
+                                ]
+
+                            val indiceOriginal =
+                                arquivos.indexOf(
+                                    caminho
+                                )
+
                             if (
-                                indice !=
-                                ultimoIndicePlayer
+                                indiceOriginal >= 0
                             ) {
 
                                 ultimoIndicePlayer =
-                                    indice
+                                    indicePlayer
 
                                 posicaoAtual =
-                                    indice
+                                    indiceOriginal
 
-                                atualizarArquivoAtual()
+                                arquivoAtual =
+                                    File(caminho)
+
                                 atualizarCabecalho()
                             }
                         }
@@ -1031,7 +1022,8 @@ class VideoViewerActivity : Activity() {
                         error: PlaybackException
                     ) {
 
-                        playerPreparado = false
+                        playerPreparado =
+                            false
 
                         reproduzirAoRetornar =
                             false
@@ -1046,6 +1038,11 @@ class VideoViewerActivity : Activity() {
             val listaMediaItems =
                 ArrayList<MediaItem>()
 
+            /*
+             * Montamos uma lista paralela para que o índice
+             * do ExoPlayer nunca fique diferente do índice
+             * dos arquivos realmente carregados.
+             */
             arquivos.forEach { caminho ->
 
                 val arquivo =
@@ -1059,27 +1056,48 @@ class VideoViewerActivity : Activity() {
 
                     try {
 
+                        /*
+                         * IMPORTANTE:
+                         *
+                         * Para reprodução interna não usamos
+                         * FileProvider.
+                         *
+                         * O Media3 recebe diretamente o arquivo
+                         * local através de file://.
+                         */
                         val uri =
-                            FileProvider.getUriForFile(
-                                this,
-                                "${packageName}.fileprovider",
+                            Uri.fromFile(
                                 arquivo
                             )
 
+                        val mediaItem =
+                            MediaItem.Builder()
+                                .setUri(uri)
+                                .setMimeType(
+                                    obterMimeType(
+                                        arquivo
+                                    )
+                                )
+                                .build()
+
                         listaMediaItems.add(
-                            MediaItem.fromUri(uri)
+                            mediaItem
+                        )
+
+                        arquivosDoPlayer.add(
+                            arquivo.absolutePath
                         )
 
                     } catch (_: Exception) {
-
-                        // Se um arquivo não puder ser
-                        // transformado em URI, ele será
-                        // simplesmente ignorado.
+                        // ignora arquivo inválido
                     }
                 }
             }
 
-            if (listaMediaItems.isEmpty()) {
+            if (
+                listaMediaItems.isEmpty() ||
+                arquivosDoPlayer.isEmpty()
+            ) {
 
                 Toast.makeText(
                     this,
@@ -1091,7 +1109,9 @@ class VideoViewerActivity : Activity() {
             }
 
             var indiceInicial =
-                posicaoAtual
+                arquivosDoPlayer.indexOf(
+                    arquivoAtual.absolutePath
+                )
 
             if (
                 indiceInicial < 0 ||
@@ -1103,6 +1123,40 @@ class VideoViewerActivity : Activity() {
 
             ultimoIndicePlayer =
                 indiceInicial
+
+            /*
+             * Se o arquivoAtual não estava entre os arquivos
+             * carregados, atualizamos para o primeiro válido.
+             */
+            if (
+                arquivosDoPlayer.isNotEmpty()
+            ) {
+
+                val caminhoInicial =
+                    arquivosDoPlayer[
+                        indiceInicial
+                    ]
+
+                val indiceOriginal =
+                    arquivos.indexOf(
+                        caminhoInicial
+                    )
+
+                if (
+                    indiceOriginal >= 0
+                ) {
+
+                    posicaoAtual =
+                        indiceOriginal
+
+                    arquivoAtual =
+                        File(
+                            caminhoInicial
+                        )
+
+                    atualizarCabecalho()
+                }
+            }
 
             novoPlayer.setMediaItems(
                 listaMediaItems,
@@ -1117,7 +1171,8 @@ class VideoViewerActivity : Activity() {
 
         } catch (e: Exception) {
 
-            playerPreparado = false
+            playerPreparado =
+                false
 
             Toast.makeText(
                 this,
@@ -1149,8 +1204,13 @@ class VideoViewerActivity : Activity() {
         }
 
         player = null
-        playerView.player = null
-        playerPreparado = false
+
+        if (::playerView.isInitialized) {
+            playerView.player = null
+        }
+
+        playerPreparado =
+            false
     }
 
     private fun mostrarErroReproducao(
@@ -1158,9 +1218,7 @@ class VideoViewerActivity : Activity() {
     ) {
 
         val mensagem =
-            when (
-                error.errorCode
-            ) {
+            when (error.errorCode) {
 
                 PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ->
                     "O celular não conseguiu iniciar o decodificador deste vídeo."
@@ -1187,10 +1245,6 @@ class VideoViewerActivity : Activity() {
             Toast.LENGTH_LONG
         ).show()
     }
-
-    // =========================================================
-    // GESTOS
-    // =========================================================
 
     private fun configurarGestos() {
 
@@ -1267,12 +1321,34 @@ class VideoViewerActivity : Activity() {
             return
         }
 
+        val caminho =
+            arquivos[novoIndice]
+
+        val indicePlayer =
+            arquivosDoPlayer.indexOf(
+                caminho
+            )
+
+        if (
+            indicePlayer < 0
+        ) {
+
+            Toast.makeText(
+                this,
+                "Não foi possível abrir este vídeo",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
         posicaoAtual =
             novoIndice
 
         atualizarArquivoAtual()
 
-        ultimaPosicao = 0L
+        ultimaPosicao =
+            0L
 
         reproduzirAoRetornar =
             true
@@ -1282,19 +1358,18 @@ class VideoViewerActivity : Activity() {
             try {
 
                 it.seekTo(
-                    novoIndice,
+                    indicePlayer,
                     0L
                 )
 
                 it.play()
 
                 ultimoIndicePlayer =
-                    novoIndice
+                    indicePlayer
 
                 atualizarCabecalho()
 
                 return
-
             } catch (_: Exception) {
             }
         }
@@ -1303,10 +1378,6 @@ class VideoViewerActivity : Activity() {
 
         atualizarCabecalho()
     }
-
-    // =========================================================
-    // MENU
-    // =========================================================
 
     private fun mostrarMenu() {
 
@@ -1418,7 +1489,8 @@ class VideoViewerActivity : Activity() {
                 elevation =
                     dp(8).toFloat()
 
-                isOutsideTouchable = true
+                isOutsideTouchable =
+                    true
 
                 showAtLocation(
                     raiz,
@@ -1473,10 +1545,6 @@ class VideoViewerActivity : Activity() {
         )
     }
 
-    // =========================================================
-    // COMPARTILHAR
-    // =========================================================
-
     private fun compartilharArquivo() {
 
         try {
@@ -1525,10 +1593,6 @@ class VideoViewerActivity : Activity() {
         }
     }
 
-    // =========================================================
-    // ABRIR COM
-    // =========================================================
-
     private fun abrirComAplicativo() {
 
         try {
@@ -1561,7 +1625,9 @@ class VideoViewerActivity : Activity() {
                     )
                 }
 
-            startActivity(intent)
+            startActivity(
+                intent
+            )
 
         } catch (
             _: ActivityNotFoundException
@@ -1582,10 +1648,6 @@ class VideoViewerActivity : Activity() {
             ).show()
         }
     }
-
-    // =========================================================
-    // FAVORITO
-    // =========================================================
 
     private fun alternarFavorito() {
 
@@ -1613,22 +1675,21 @@ class VideoViewerActivity : Activity() {
 
         Toast.makeText(
             this,
-            if (!atual)
+            if (!atual) {
                 "Adicionado aos favoritos"
-            else
-                "Removido dos favoritos",
+            } else {
+                "Removido dos favoritos"
+            },
             Toast.LENGTH_SHORT
         ).show()
     }
 
-    // =========================================================
-    // INFORMAÇÕES
-    // =========================================================
-
     private fun mostrarInformacoes() {
 
         var largura = 0
+
         var altura = 0
+
         var duracao = 0L
 
         val retriever =
@@ -1643,20 +1704,17 @@ class VideoViewerActivity : Activity() {
             largura =
                 retriever.extractMetadata(
                     MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH
-                )?.toIntOrNull()
-                    ?: 0
+                )?.toIntOrNull() ?: 0
 
             altura =
                 retriever.extractMetadata(
                     MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT
-                )?.toIntOrNull()
-                    ?: 0
+                )?.toIntOrNull() ?: 0
 
             duracao =
                 retriever.extractMetadata(
                     MediaMetadataRetriever.METADATA_KEY_DURATION
-                )?.toLongOrNull()
-                    ?: 0L
+                )?.toLongOrNull() ?: 0L
 
         } catch (_: Exception) {
 
@@ -1683,8 +1741,11 @@ class VideoViewerActivity : Activity() {
                 largura > 0 &&
                 altura > 0
             ) {
-                "${largura} × ${altura}"
+
+                "$largura × $altura"
+
             } else {
+
                 "Desconhecida"
             }
 
@@ -1705,18 +1766,18 @@ class VideoViewerActivity : Activity() {
             """.trimIndent()
 
         AlertDialog.Builder(this)
-            .setTitle("Informações do vídeo")
-            .setMessage(mensagem)
+            .setTitle(
+                "Informações do vídeo"
+            )
+            .setMessage(
+                mensagem
+            )
             .setPositiveButton(
                 "OK",
                 null
             )
             .show()
     }
-
-    // =========================================================
-    // RENOMEAR
-    // =========================================================
 
     private fun renomearArquivo() {
 
@@ -1733,7 +1794,8 @@ class VideoViewerActivity : Activity() {
                     text.length
                 )
 
-                hint = "Nome do arquivo"
+                hint =
+                    "Nome do arquivo"
             }
 
         val container =
@@ -1756,8 +1818,12 @@ class VideoViewerActivity : Activity() {
             }
 
         AlertDialog.Builder(this)
-            .setTitle("Renomear vídeo")
-            .setView(container)
+            .setTitle(
+                "Renomear vídeo"
+            )
+            .setView(
+                container
+            )
             .setNegativeButton(
                 "Cancelar",
                 null
@@ -1812,6 +1878,8 @@ class VideoViewerActivity : Activity() {
 
                         atualizarCabecalho()
 
+                        inicializarPlayer()
+
                         Toast.makeText(
                             this,
                             "Arquivo renomeado",
@@ -1838,10 +1906,6 @@ class VideoViewerActivity : Activity() {
             }
             .show()
     }
-
-    // =========================================================
-    // COPIAR
-    // =========================================================
 
     private fun copiarArquivo() {
 
@@ -1874,10 +1938,12 @@ class VideoViewerActivity : Activity() {
                     return@mostrarEscolhaPasta
                 }
 
-                arquivoAtual.inputStream()
+                arquivoAtual
+                    .inputStream()
                     .use { entrada ->
 
-                        destino.outputStream()
+                        destino
+                            .outputStream()
                             .use { saida ->
 
                                 entrada.copyTo(
@@ -1902,10 +1968,6 @@ class VideoViewerActivity : Activity() {
             }
         }
     }
-
-    // =========================================================
-    // MOVER
-    // =========================================================
 
     private fun moverArquivo() {
 
@@ -1972,7 +2034,8 @@ class VideoViewerActivity : Activity() {
 
                     atualizarArquivoAtual()
 
-                    ultimaPosicao = 0L
+                    ultimaPosicao =
+                        0L
 
                     inicializarPlayer()
 
@@ -2002,10 +2065,6 @@ class VideoViewerActivity : Activity() {
         }
     }
 
-    // =========================================================
-    // CRIAR PASTA
-    // =========================================================
-
     private fun criarNovaPasta() {
 
         val campo =
@@ -2013,7 +2072,8 @@ class VideoViewerActivity : Activity() {
 
                 setSingleLine(true)
 
-                hint = "Nome da pasta"
+                hint =
+                    "Nome da pasta"
             }
 
         val container =
@@ -2036,8 +2096,12 @@ class VideoViewerActivity : Activity() {
             }
 
         AlertDialog.Builder(this)
-            .setTitle("Nova pasta")
-            .setView(container)
+            .setTitle(
+                "Nova pasta"
+            )
+            .setView(
+                container
+            )
             .setNegativeButton(
                 "Cancelar",
                 null
@@ -2094,14 +2158,12 @@ class VideoViewerActivity : Activity() {
             .show()
     }
 
-    // =========================================================
-    // LIXEIRA
-    // =========================================================
-
     private fun enviarParaLixeira() {
 
         AlertDialog.Builder(this)
-            .setTitle("Enviar para lixeira?")
+            .setTitle(
+                "Enviar para lixeira?"
+            )
             .setMessage(
                 "O vídeo será movido para a lixeira."
             )
@@ -2115,7 +2177,9 @@ class VideoViewerActivity : Activity() {
 
                 try {
 
-                    if (!pastaLixeira.exists()) {
+                    if (
+                        !pastaLixeira.exists()
+                    ) {
                         pastaLixeira.mkdirs()
                     }
 
@@ -2125,12 +2189,16 @@ class VideoViewerActivity : Activity() {
                             arquivoAtual.name
                         )
 
-                    var contador = 1
+                    var contador =
+                        1
 
-                    while (destino.exists()) {
+                    while (
+                        destino.exists()
+                    ) {
 
                         val nome =
-                            arquivoAtual.nameWithoutExtension
+                            arquivoAtual
+                                .nameWithoutExtension
 
                         val extensao =
                             arquivoAtual.extension
@@ -2138,7 +2206,9 @@ class VideoViewerActivity : Activity() {
                         destino =
                             File(
                                 pastaLixeira,
-                                if (extensao.isNotBlank()) {
+                                if (
+                                    extensao.isNotBlank()
+                                ) {
                                     "${nome}_$contador.$extensao"
                                 } else {
                                     "${nome}_$contador"
@@ -2183,10 +2253,6 @@ class VideoViewerActivity : Activity() {
             .show()
     }
 
-    // =========================================================
-    // SELEÇÃO DE PASTA
-    // =========================================================
-
     private fun mostrarEscolhaPasta(
         titulo: String,
         aoSelecionar: (File) -> Unit
@@ -2194,8 +2260,7 @@ class VideoViewerActivity : Activity() {
 
         val pastaInicial =
             arquivoAtual.parentFile
-                ?: Environment
-                    .getExternalStorageDirectory()
+                ?: Environment.getExternalStorageDirectory()
 
         val pastas =
             ArrayList<File>()
@@ -2223,8 +2288,12 @@ class VideoViewerActivity : Activity() {
             }.toTypedArray()
 
         AlertDialog.Builder(this)
-            .setTitle(titulo)
-            .setItems(nomes) { _, indice ->
+            .setTitle(
+                titulo
+            )
+            .setItems(
+                nomes
+            ) { _, indice ->
 
                 if (
                     indice >= 0 &&
@@ -2257,7 +2326,9 @@ class VideoViewerActivity : Activity() {
             return
         }
 
-        resultado.add(pasta)
+        resultado.add(
+            pasta
+        )
 
         try {
 
@@ -2284,10 +2355,6 @@ class VideoViewerActivity : Activity() {
         } catch (_: Exception) {
         }
     }
-
-    // =========================================================
-    // UTILITÁRIOS
-    // =========================================================
 
     private fun obterMimeType(
         arquivo: File
@@ -2349,11 +2416,13 @@ class VideoViewerActivity : Activity() {
         var tamanho =
             bytes.toDouble()
 
-        var indice = 0
+        var indice =
+            0
 
         while (
             tamanho >= 1024 &&
-            indice < unidades.size - 1
+            indice <
+            unidades.size - 1
         ) {
 
             tamanho /= 1024
@@ -2363,7 +2432,9 @@ class VideoViewerActivity : Activity() {
 
         return DecimalFormat(
             "#,##0.##"
-        ).format(tamanho) +
+        ).format(
+            tamanho
+        ) +
                 " " +
                 unidades[indice]
     }
@@ -2414,14 +2485,10 @@ class VideoViewerActivity : Activity() {
     ): Int {
 
         return (
-                valor *
-                        resources.displayMetrics.density
-                ).toInt()
+            valor *
+                    resources.displayMetrics.density
+            ).toInt()
     }
-
-    // =========================================================
-    // PLAYER VIEW COM GESTOS
-    // =========================================================
 
     @UnstableApi
     class GesturePlayerView(
@@ -2434,8 +2501,11 @@ class VideoViewerActivity : Activity() {
         var onSwipeRight:
                 (() -> Unit)? = null
 
-        private var toqueX = 0f
-        private var toqueY = 0f
+        private var toqueX =
+            0f
+
+        private var toqueY =
+            0f
 
         private var movimentoDetectado =
             false
@@ -2517,6 +2587,7 @@ class VideoViewerActivity : Activity() {
                 }
 
                 MotionEvent.ACTION_CANCEL -> {
+
                     movimentoDetectado =
                         false
                 }
