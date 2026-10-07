@@ -1,8 +1,10 @@
- package com.gerenciadordearquivos.app
+package com.gerenciadordearquivos.app
 
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -21,6 +23,7 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.PopupWindow
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.FileProvider
@@ -50,18 +53,10 @@ class VideoViewerActivity : Activity() {
     private lateinit var barraSuperior: LinearLayout
     private lateinit var barraInferior: LinearLayout
 
-    /*
-     * Lista original recebida do MainActivity.
-     */
     private val arquivos = ArrayList<String>()
 
-    /*
-     * Lista realmente carregada pelo ExoPlayer.
-     *
-     * Ela é separada da lista "arquivos" porque algum arquivo
-     * pode não existir mais ou não estar acessível.
-     */
-    private val arquivosDoPlayer = ArrayList<String>()
+    private val arquivosDoPlayer =
+        ArrayList<String>()
 
     private var posicaoAtual = 0
 
@@ -79,73 +74,137 @@ class VideoViewerActivity : Activity() {
 
     private var ultimoIndicePlayer = 0
 
+    private var dialogoErroAberto = false
+
     private val pastaLixeira =
         File(
             Environment.getExternalStorageDirectory(),
             ".GerenciadorArquivos/.Lixeira"
         )
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    private val preferenciasDiagnostico =
+        "diagnostico_video"
+
+    private val chaveErro =
+        "ultimo_erro"
+
+    private val chaveData =
+        "data_erro"
+
+    // =========================================================
+    // CICLO DE VIDA
+    // =========================================================
+
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
         super.onCreate(savedInstanceState)
 
-        requestedOrientation =
-            ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+        try {
 
-        window.addFlags(
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-        )
+            instalarCapturaDeErroFatal()
 
-        configurarTelaCheia()
+            requestedOrientation =
+                ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
 
-        carregarDadosIntent()
+            window.addFlags(
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+            )
 
-        if (isFinishing) {
-            return
+            configurarTelaCheia()
+
+            carregarDadosIntent()
+
+            if (isFinishing) {
+                return
+            }
+
+            criarInterface()
+
+            mostrarErroFatalAnteriorSeExistir()
+
+            restaurarEstado(
+                savedInstanceState
+            )
+
+            inicializarPlayer()
+
+            configurarGestos()
+
+        } catch (e: Throwable) {
+
+            tratarErroFatal(
+                "Erro durante a abertura do vídeo",
+                e
+            )
         }
-
-        criarInterface()
-
-        restaurarEstado(savedInstanceState)
-
-        inicializarPlayer()
-
-        configurarGestos()
     }
 
     override fun onResume() {
         super.onResume()
 
-        configurarTelaCheia()
+        try {
 
-        if (::playerView.isInitialized) {
-            playerView.requestLayout()
-        }
+            configurarTelaCheia()
 
-        player?.let {
-            if (playerPreparado && reproduzirAoRetornar) {
-                try {
-                    it.play()
-                } catch (_: Exception) {
+            if (::playerView.isInitialized) {
+                playerView.requestLayout()
+            }
+
+            player?.let {
+
+                if (
+                    playerPreparado &&
+                    reproduzirAoRetornar
+                ) {
+
+                    try {
+                        it.play()
+                    } catch (e: Exception) {
+
+                        mostrarErroDiagnostico(
+                            "Erro ao continuar a reprodução",
+                            e
+                        )
+                    }
                 }
             }
+
+        } catch (e: Exception) {
+
+            mostrarErroDiagnostico(
+                "Erro no onResume",
+                e
+            )
         }
     }
 
     override fun onPause() {
-        player?.let {
-            try {
-                ultimaPosicao = it.currentPosition
-            } catch (_: Exception) {
-            }
 
-            try {
-                reproduzirAoRetornar = it.isPlaying
+        try {
 
-                if (it.isPlaying) {
-                    it.pause()
+            player?.let {
+
+                try {
+                    ultimaPosicao =
+                        it.currentPosition
+                } catch (_: Exception) {
                 }
-            } catch (_: Exception) {
+
+                try {
+
+                    reproduzirAoRetornar =
+                        it.isPlaying
+
+                    if (it.isPlaying) {
+                        it.pause()
+                    }
+
+                } catch (_: Exception) {
+                }
             }
+
+        } catch (_: Exception) {
         }
 
         super.onPause()
@@ -154,8 +213,11 @@ class VideoViewerActivity : Activity() {
     override fun onSaveInstanceState(
         outState: Bundle
     ) {
-        player?.let {
-            try {
+
+        try {
+
+            player?.let {
+
                 outState.putLong(
                     "posicao_video",
                     it.currentPosition
@@ -166,11 +228,15 @@ class VideoViewerActivity : Activity() {
 
                 if (
                     indicePlayer >= 0 &&
-                    indicePlayer < arquivosDoPlayer.size
+                    indicePlayer <
+                    arquivosDoPlayer.size
                 ) {
+
                     outState.putString(
                         "caminho_video",
-                        arquivosDoPlayer[indicePlayer]
+                        arquivosDoPlayer[
+                            indicePlayer
+                        ]
                     )
                 }
 
@@ -178,15 +244,23 @@ class VideoViewerActivity : Activity() {
                     "reproduzindo",
                     it.isPlaying
                 )
-            } catch (_: Exception) {
             }
+
+        } catch (_: Exception) {
         }
 
-        super.onSaveInstanceState(outState)
+        super.onSaveInstanceState(
+            outState
+        )
     }
 
     override fun onDestroy() {
-        popupAtual?.dismiss()
+
+        try {
+            popupAtual?.dismiss()
+        } catch (_: Exception) {
+        }
+
         popupAtual = null
 
         liberarPlayer()
@@ -197,7 +271,10 @@ class VideoViewerActivity : Activity() {
     override fun onWindowFocusChanged(
         hasFocus: Boolean
     ) {
-        super.onWindowFocusChanged(hasFocus)
+
+        super.onWindowFocusChanged(
+            hasFocus
+        )
 
         if (hasFocus) {
             configurarTelaCheia()
@@ -205,28 +282,631 @@ class VideoViewerActivity : Activity() {
     }
 
     override fun onConfigurationChanged(
-        newConfig: android.content.res.Configuration
+        newConfig:
+        android.content.res.Configuration
     ) {
-        super.onConfigurationChanged(newConfig)
 
-        configurarTelaCheia()
+        super.onConfigurationChanged(
+            newConfig
+        )
 
-        if (::playerView.isInitialized) {
-            playerView.requestLayout()
-            playerView.invalidate()
+        try {
+
+            configurarTelaCheia()
+
+            if (::playerView.isInitialized) {
+                playerView.requestLayout()
+                playerView.invalidate()
+            }
+
+            if (::barraSuperior.isInitialized) {
+
+                barraSuperior.post {
+                    ajustarTextos()
+                }
+            }
+
+        } catch (e: Exception) {
+
+            mostrarErroDiagnostico(
+                "Erro ao mudar orientação da tela",
+                e
+            )
         }
+    }
 
-        if (::barraSuperior.isInitialized) {
-            barraSuperior.post {
-                ajustarTextos()
+    // =========================================================
+    // DIAGNÓSTICO
+    // =========================================================
+
+    private fun instalarCapturaDeErroFatal() {
+
+        val handlerAnterior =
+            Thread.getDefaultUncaughtExceptionHandler()
+
+        Thread.setDefaultUncaughtExceptionHandler {
+                thread,
+                throwable ->
+
+            try {
+
+                salvarErroFatal(
+                    thread,
+                    throwable
+                )
+
+            } catch (_: Exception) {
+            }
+
+            try {
+
+                handlerAnterior?.uncaughtException(
+                    thread,
+                    throwable
+                )
+
+            } catch (_: Exception) {
             }
         }
     }
 
+    private fun salvarErroFatal(
+        thread: Thread,
+        throwable: Throwable
+    ) {
+
+        val sb =
+            StringBuilder()
+
+        sb.append(
+            "ERRO FATAL DO GERENCIADOR DE ARQUIVOS+\n\n"
+        )
+
+        sb.append(
+            "Thread: "
+        )
+
+        sb.append(
+            thread.name
+        )
+
+        sb.append(
+            "\n\n"
+        )
+
+        sb.append(
+            "Tipo: "
+        )
+
+        sb.append(
+            throwable.javaClass.name
+        )
+
+        sb.append(
+            "\n\n"
+        )
+
+        sb.append(
+            "Mensagem:\n"
+        )
+
+        sb.append(
+            throwable.message
+                ?: "Sem mensagem"
+        )
+
+        sb.append(
+            "\n\n"
+        )
+
+        sb.append(
+            "Causa:\n"
+        )
+
+        sb.append(
+            throwable.cause?.toString()
+                ?: "Nenhuma"
+        )
+
+        sb.append(
+            "\n\n"
+        )
+
+        if (::arquivoAtual.isInitialized) {
+
+            sb.append(
+                "Arquivo:\n"
+            )
+
+            sb.append(
+                arquivoAtual.absolutePath
+            )
+
+            sb.append(
+                "\n\n"
+            )
+        }
+
+        sb.append(
+            "STACKTRACE:\n"
+        )
+
+        sb.append(
+            throwable.stackTraceToString()
+        )
+
+        getSharedPreferences(
+            preferenciasDiagnostico,
+            Context.MODE_PRIVATE
+        )
+            .edit()
+            .putString(
+                chaveErro,
+                sb.toString()
+            )
+            .putLong(
+                chaveData,
+                System.currentTimeMillis()
+            )
+            .commit()
+    }
+
+    private fun tratarErroFatal(
+        local: String,
+        erro: Throwable
+    ) {
+
+        try {
+
+            val sb =
+                StringBuilder()
+
+            sb.append(
+                "LOCAL DO ERRO:\n"
+            )
+
+            sb.append(
+                local
+            )
+
+            sb.append(
+                "\n\n"
+            )
+
+            sb.append(
+                "TIPO:\n"
+            )
+
+            sb.append(
+                erro.javaClass.name
+            )
+
+            sb.append(
+                "\n\n"
+            )
+
+            sb.append(
+                "MENSAGEM:\n"
+            )
+
+            sb.append(
+                erro.message
+                    ?: "Sem mensagem"
+            )
+
+            sb.append(
+                "\n\n"
+            )
+
+            sb.append(
+                "CAUSA:\n"
+            )
+
+            sb.append(
+                erro.cause?.toString()
+                    ?: "Nenhuma"
+            )
+
+            sb.append(
+                "\n\n"
+            )
+
+            if (::arquivoAtual.isInitialized) {
+
+                sb.append(
+                    "ARQUIVO:\n"
+                )
+
+                sb.append(
+                    arquivoAtual.absolutePath
+                )
+
+                sb.append(
+                    "\n\n"
+                )
+            }
+
+            sb.append(
+                "STACKTRACE:\n"
+            )
+
+            sb.append(
+                erro.stackTraceToString()
+            )
+
+            getSharedPreferences(
+                preferenciasDiagnostico,
+                Context.MODE_PRIVATE
+            )
+                .edit()
+                .putString(
+                    chaveErro,
+                    sb.toString()
+                )
+                .putLong(
+                    chaveData,
+                    System.currentTimeMillis()
+                )
+                .commit()
+
+            if (
+                ::raiz.isInitialized
+            ) {
+
+                raiz.post {
+
+                    mostrarCaixaDiagnostico(
+                        "ERRO AO ABRIR O VÍDEO",
+                        sb.toString()
+                    )
+                }
+
+            } else {
+
+                Toast.makeText(
+                    this,
+                    "Erro ao abrir vídeo. O diagnóstico foi salvo.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+
+        } catch (_: Exception) {
+
+            try {
+
+                Toast.makeText(
+                    this,
+                    "Ocorreu um erro ao abrir o vídeo.",
+                    Toast.LENGTH_LONG
+                ).show()
+
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    private fun mostrarErroDiagnostico(
+        local: String,
+        erro: Throwable
+    ) {
+
+        try {
+
+            val sb =
+                StringBuilder()
+
+            sb.append(
+                "LOCAL DO ERRO:\n"
+            )
+
+            sb.append(
+                local
+            )
+
+            sb.append(
+                "\n\n"
+            )
+
+            sb.append(
+                "TIPO:\n"
+            )
+
+            sb.append(
+                erro.javaClass.name
+            )
+
+            sb.append(
+                "\n\n"
+            )
+
+            sb.append(
+                "MENSAGEM:\n"
+            )
+
+            sb.append(
+                erro.message
+                    ?: "Sem mensagem"
+            )
+
+            sb.append(
+                "\n\n"
+            )
+
+            sb.append(
+                "CAUSA:\n"
+            )
+
+            sb.append(
+                erro.cause?.toString()
+                    ?: "Nenhuma"
+            )
+
+            sb.append(
+                "\n\n"
+            )
+
+            if (::arquivoAtual.isInitialized) {
+
+                sb.append(
+                    "ARQUIVO:\n"
+                )
+
+                sb.append(
+                    arquivoAtual.absolutePath
+                )
+
+                sb.append(
+                    "\n\n"
+                )
+            }
+
+            sb.append(
+                "STACKTRACE:\n"
+            )
+
+            sb.append(
+                erro.stackTraceToString()
+            )
+
+            mostrarCaixaDiagnostico(
+                "ERRO NO VÍDEO",
+                sb.toString()
+            )
+
+        } catch (_: Exception) {
+
+            Toast.makeText(
+                this,
+                "Erro ao reproduzir vídeo",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun mostrarErroFatalAnteriorSeExistir() {
+
+        val prefs =
+            getSharedPreferences(
+                preferenciasDiagnostico,
+                Context.MODE_PRIVATE
+            )
+
+        val erro =
+            prefs.getString(
+                chaveErro,
+                null
+            )
+
+        if (
+            erro.isNullOrBlank()
+        ) {
+            return
+        }
+
+        prefs.edit()
+            .remove(chaveErro)
+            .remove(chaveData)
+            .apply()
+
+        raiz.postDelayed(
+            {
+                mostrarCaixaDiagnostico(
+                    "ERRO ANTERIOR DETECTADO",
+                    erro
+                )
+            },
+            500
+        )
+    }
+
+    private fun mostrarCaixaDiagnostico(
+        titulo: String,
+        detalhes: String
+    ) {
+
+        if (isFinishing) {
+            return
+        }
+
+        if (dialogoErroAberto) {
+            return
+        }
+
+        dialogoErroAberto = true
+
+        val container =
+            LinearLayout(this).apply {
+
+                orientation =
+                    LinearLayout.VERTICAL
+
+                setPadding(
+                    dp(18),
+                    dp(5),
+                    dp(18),
+                    dp(5)
+                )
+            }
+
+        val aviso =
+            TextView(this).apply {
+
+                text =
+                    "O aplicativo encontrou um erro ao tentar reproduzir o vídeo. " +
+                            "Abaixo estão os detalhes para identificarmos exatamente o problema."
+
+                textSize = 14f
+
+                setTextColor(
+                    Color.DKGRAY
+                )
+
+                setPadding(
+                    0,
+                    dp(5),
+                    0,
+                    dp(12)
+                )
+            }
+
+        container.addView(
+            aviso
+        )
+
+        val scroll =
+            ScrollView(this).apply {
+
+                val texto =
+                    TextView(this@VideoViewerActivity).apply {
+
+                        text =
+                            detalhes
+
+                        textSize = 12f
+
+                        setTextColor(
+                            Color.BLACK
+                        )
+
+                        setPadding(
+                            dp(10),
+                            dp(10),
+                            dp(10),
+                            dp(10)
+                        )
+
+                        setBackgroundColor(
+                            Color.rgb(
+                                240,
+                                240,
+                                240
+                            )
+
+                        )
+
+                        setTextIsSelectable(
+                            true
+                        )
+                    }
+
+                addView(
+                    texto,
+                    ScrollView.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                )
+            }
+
+        container.addView(
+            scroll,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(280)
+            )
+        )
+
+        val dialog =
+            AlertDialog.Builder(this)
+                .setTitle(titulo)
+                .setView(container)
+                .setPositiveButton(
+                    "COPIAR ERRO"
+                ) { _, _ ->
+
+                    copiarDiagnostico(
+                        detalhes
+                    )
+
+                    dialogoErroAberto =
+                        false
+                }
+                .setNegativeButton(
+                    "FECHAR"
+                ) { _, _ ->
+
+                    dialogoErroAberto =
+                        false
+                }
+                .create()
+
+        dialog.setOnDismissListener {
+
+            dialogoErroAberto =
+                false
+        }
+
+        dialog.show()
+    }
+
+    private fun copiarDiagnostico(
+        texto: String
+    ) {
+
+        try {
+
+            val clipboard =
+                getSystemService(
+                    Context.CLIPBOARD_SERVICE
+                ) as ClipboardManager
+
+            val clip =
+                ClipData.newPlainText(
+                    "Diagnóstico do vídeo",
+                    texto
+                )
+
+            clipboard.setPrimaryClip(
+                clip
+            )
+
+            Toast.makeText(
+                this,
+                "Erro copiado. Agora pode colar aqui.",
+                Toast.LENGTH_LONG
+            ).show()
+
+        } catch (_: Exception) {
+
+            Toast.makeText(
+                this,
+                "Não foi possível copiar o erro.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    // =========================================================
+    // ESTADO
+    // =========================================================
+
     private fun restaurarEstado(
         savedInstanceState: Bundle?
     ) {
-        if (savedInstanceState == null) {
+
+        if (
+            savedInstanceState == null
+        ) {
             return
         }
 
@@ -235,12 +915,38 @@ class VideoViewerActivity : Activity() {
                 "caminho_video"
             )
 
-        if (!caminhoSalvo.isNullOrBlank()) {
+        if (
+            !caminhoSalvo.isNullOrBlank()
+        ) {
+
             val indice =
-                arquivos.indexOf(caminhoSalvo)
+                arquivos.indexOf(
+                    caminhoSalvo
+                )
 
             if (indice >= 0) {
-                posicaoAtual = indice
+
+                posicaoAtual =
+                    indice
+
+                atualizarArquivoAtual()
+            }
+        } else {
+
+            val indice =
+                savedInstanceState.getInt(
+                    "indice_video",
+                    posicaoAtual
+                )
+
+            if (
+                indice >= 0 &&
+                indice < arquivos.size
+            ) {
+
+                posicaoAtual =
+                    indice
+
                 atualizarArquivoAtual()
             }
         }
@@ -258,7 +964,12 @@ class VideoViewerActivity : Activity() {
             )
     }
 
+    // =========================================================
+    // TELA CHEIA
+    // =========================================================
+
     private fun configurarTelaCheia() {
+
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_FULLSCREEN or
                     View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
@@ -268,7 +979,12 @@ class VideoViewerActivity : Activity() {
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE
     }
 
+    // =========================================================
+    // DADOS RECEBIDOS
+    // =========================================================
+
     private fun carregarDadosIntent() {
+
         val listaRecebida =
             intent.getStringArrayListExtra(
                 "arquivos"
@@ -278,6 +994,7 @@ class VideoViewerActivity : Activity() {
             listaRecebida != null &&
             listaRecebida.isNotEmpty()
         ) {
+
             arquivos.clear()
 
             listaRecebida
@@ -304,12 +1021,16 @@ class VideoViewerActivity : Activity() {
             arquivos.isEmpty() &&
             !caminhoRecebido.isNullOrBlank()
         ) {
+
             arquivos.add(
                 caminhoRecebido
             )
         }
 
-        if (arquivos.isEmpty()) {
+        if (
+            arquivos.isEmpty()
+        ) {
+
             Toast.makeText(
                 this,
                 "Nenhum vídeo encontrado",
@@ -317,15 +1038,20 @@ class VideoViewerActivity : Activity() {
             ).show()
 
             finish()
+
             return
         }
 
         posicaoAtual =
             when {
-                posicaoRecebida in arquivos.indices ->
+
+                posicaoRecebida in
+                        arquivos.indices ->
+
                     posicaoRecebida
 
                 !caminhoRecebido.isNullOrBlank() -> {
+
                     val indice =
                         arquivos.indexOf(
                             caminhoRecebido
@@ -345,15 +1071,22 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun atualizarArquivoAtual() {
-        if (arquivos.isEmpty()) {
+
+        if (
+            arquivos.isEmpty()
+        ) {
+
             finish()
+
             return
         }
 
         if (
             posicaoAtual < 0 ||
-            posicaoAtual >= arquivos.size
+            posicaoAtual >=
+            arquivos.size
         ) {
+
             posicaoAtual = 0
         }
 
@@ -365,16 +1098,24 @@ class VideoViewerActivity : Activity() {
         atualizarCabecalho()
     }
 
+    // =========================================================
+    // INTERFACE
+    // =========================================================
+
     private fun criarInterface() {
+
         raiz =
             FrameLayout(this).apply {
+
                 setBackgroundColor(
                     Color.BLACK
                 )
             }
 
         playerView =
-            GesturePlayerView(this).apply {
+            GesturePlayerView(
+                this
+            ).apply {
 
                 layoutParams =
                     FrameLayout.LayoutParams(
@@ -386,22 +1127,30 @@ class VideoViewerActivity : Activity() {
                     Color.BLACK
                 )
 
-                useController = true
+                useController =
+                    true
 
-                controllerShowTimeoutMs = 3000
+                controllerShowTimeoutMs =
+                    3000
 
-                controllerHideOnTouch = true
+                controllerHideOnTouch =
+                    true
 
-                keepScreenOn = true
+                keepScreenOn =
+                    true
             }
 
-        raiz.addView(playerView)
+        raiz.addView(
+            playerView
+        )
 
         criarBarraSuperior()
 
         criarBarraInferior()
 
-        setContentView(raiz)
+        setContentView(
+            raiz
+        )
 
         playerView.bringToFront()
 
@@ -409,6 +1158,10 @@ class VideoViewerActivity : Activity() {
 
         barraInferior.bringToFront()
     }
+
+    // =========================================================
+    // BARRA SUPERIOR
+    // =========================================================
 
     private fun criarBarraSuperior() {
 
@@ -465,9 +1218,11 @@ class VideoViewerActivity : Activity() {
         val voltar =
             TextView(this).apply {
 
-                text = "‹"
+                text =
+                    "‹"
 
-                textSize = 38f
+                textSize =
+                    38f
 
                 setTextColor(
                     Color.WHITE
@@ -516,7 +1271,8 @@ class VideoViewerActivity : Activity() {
         nomePastaText =
             TextView(this).apply {
 
-                textSize = 13f
+                textSize =
+                    13f
 
                 setTextColor(
                     Color.LTGRAY
@@ -525,13 +1281,16 @@ class VideoViewerActivity : Activity() {
                 gravity =
                     Gravity.CENTER_VERTICAL
 
-                configurarTextoRolante(this)
+                configurarTextoRolante(
+                    this
+                )
             }
 
         nomeArquivoText =
             TextView(this).apply {
 
-                textSize = 15f
+                textSize =
+                    15f
 
                 setTextColor(
                     Color.WHITE
@@ -540,7 +1299,9 @@ class VideoViewerActivity : Activity() {
                 gravity =
                     Gravity.CENTER_VERTICAL
 
-                configurarTextoRolante(this)
+                configurarTextoRolante(
+                    this
+                )
             }
 
         colunaTitulo.addView(
@@ -568,7 +1329,8 @@ class VideoViewerActivity : Activity() {
         contadorText =
             TextView(this).apply {
 
-                textSize = 14f
+                textSize =
+                    14f
 
                 setTextColor(
                     Color.WHITE
@@ -596,9 +1358,11 @@ class VideoViewerActivity : Activity() {
         val menu =
             TextView(this).apply {
 
-                text = "⋮"
+                text =
+                    "⋮"
 
-                textSize = 30f
+                textSize =
+                    30f
 
                 setTextColor(
                     Color.WHITE
@@ -640,7 +1404,9 @@ class VideoViewerActivity : Activity() {
 
     private fun atualizarCabecalho() {
 
-        if (!::arquivoAtual.isInitialized) {
+        if (
+            !::arquivoAtual.isInitialized
+        ) {
             return
         }
 
@@ -666,13 +1432,19 @@ class VideoViewerActivity : Activity() {
 
     private fun ajustarTextos() {
 
-        if (::nomePastaText.isInitialized) {
+        if (
+            ::nomePastaText.isInitialized
+        ) {
+
             configurarTextoRolante(
                 nomePastaText
             )
         }
 
-        if (::nomeArquivoText.isInitialized) {
+        if (
+            ::nomeArquivoText.isInitialized
+        ) {
+
             configurarTextoRolante(
                 nomeArquivoText
             )
@@ -683,23 +1455,36 @@ class VideoViewerActivity : Activity() {
         texto: TextView
     ) {
 
-        texto.setSingleLine(true)
+        texto.setSingleLine(
+            true
+        )
 
-        texto.maxLines = 1
+        texto.maxLines =
+            1
 
         texto.ellipsize =
             TextUtils.TruncateAt.MARQUEE
 
-        texto.marqueeRepeatLimit = -1
+        texto.marqueeRepeatLimit =
+            -1
 
-        texto.isSelected = true
+        texto.isSelected =
+            true
 
-        texto.isFocusable = true
+        texto.isFocusable =
+            true
 
-        texto.isFocusableInTouchMode = true
+        texto.isFocusableInTouchMode =
+            true
 
-        texto.setHorizontallyScrolling(true)
+        texto.setHorizontallyScrolling(
+            true
+        )
     }
+
+    // =========================================================
+    // BARRA INFERIOR
+    // =========================================================
 
     private fun criarBarraInferior() {
 
@@ -799,9 +1584,11 @@ class VideoViewerActivity : Activity() {
         val textoIcone =
             TextView(this).apply {
 
-                text = icone
+                text =
+                    icone
 
-                textSize = 22f
+                textSize =
+                    22f
 
                 setTextColor(
                     Color.WHITE
@@ -814,9 +1601,11 @@ class VideoViewerActivity : Activity() {
         val textoDescricao =
             TextView(this).apply {
 
-                text = descricao
+                text =
+                    descricao
 
-                textSize = 9f
+                textSize =
+                    9f
 
                 setTextColor(
                     Color.LTGRAY
@@ -852,55 +1641,73 @@ class VideoViewerActivity : Activity() {
         )
     }
 
-    @UnstableApi
+    // =========================================================
+    // EXOPLAYER
+    // =========================================================
+
     private fun inicializarPlayer() {
-
-        if (!::arquivoAtual.isInitialized) {
-            return
-        }
-
-        if (!arquivoAtual.exists()) {
-
-            Toast.makeText(
-                this,
-                "Vídeo não encontrado",
-                Toast.LENGTH_LONG
-            ).show()
-
-            return
-        }
-
-        if (!arquivoAtual.isFile) {
-
-            Toast.makeText(
-                this,
-                "O arquivo selecionado não é um vídeo",
-                Toast.LENGTH_LONG
-            ).show()
-
-            return
-        }
-
-        if (!arquivoAtual.canRead()) {
-
-            Toast.makeText(
-                this,
-                "Não foi possível acessar este vídeo",
-                Toast.LENGTH_LONG
-            ).show()
-
-            return
-        }
-
-        liberarPlayer()
-
-        arquivosDoPlayer.clear()
 
         try {
 
+            if (
+                !::arquivoAtual.isInitialized
+            ) {
+                return
+            }
+
+            if (
+                !arquivoAtual.exists()
+            ) {
+
+                mostrarErroDiagnostico(
+                    "VERIFICAÇÃO DO ARQUIVO",
+                    IllegalStateException(
+                        "O arquivo não existe:\n${arquivoAtual.absolutePath}"
+                    )
+                )
+
+                return
+            }
+
+            if (
+                !arquivoAtual.isFile
+            ) {
+
+                mostrarErroDiagnostico(
+                    "VERIFICAÇÃO DO ARQUIVO",
+                    IllegalStateException(
+                        "O caminho não aponta para um arquivo:\n${arquivoAtual.absolutePath}"
+                    )
+                )
+
+                return
+            }
+
+            if (
+                !arquivoAtual.canRead()
+            ) {
+
+                mostrarErroDiagnostico(
+                    "VERIFICAÇÃO DE PERMISSÃO",
+                    SecurityException(
+                        "O aplicativo não consegue ler este arquivo:\n${arquivoAtual.absolutePath}"
+                    )
+                )
+
+                return
+            }
+
+            liberarPlayer()
+
+            arquivosDoPlayer.clear()
+
             val renderersFactory =
-                DefaultRenderersFactory(this)
-                    .setEnableDecoderFallback(true)
+                DefaultRenderersFactory(
+                    this
+                )
+                    .setEnableDecoderFallback(
+                        true
+                    )
 
             val novoPlayer =
                 ExoPlayer.Builder(
@@ -908,7 +1715,8 @@ class VideoViewerActivity : Activity() {
                     renderersFactory
                 ).build()
 
-            player = novoPlayer
+            player =
+                novoPlayer
 
             playerView.player =
                 novoPlayer
@@ -920,59 +1728,89 @@ class VideoViewerActivity : Activity() {
                         playbackState: Int
                     ) {
 
-                        when (playbackState) {
+                        try {
 
-                            Player.STATE_READY -> {
+                            when (
+                                playbackState
+                            ) {
 
-                                playerPreparado =
-                                    true
+                                Player.STATE_READY -> {
 
-                                if (
-                                    ultimaPosicao > 0
-                                ) {
+                                    playerPreparado =
+                                        true
 
-                                    try {
-                                        novoPlayer.seekTo(
-                                            ultimaPosicao
-                                        )
-                                    } catch (_: Exception) {
+                                    if (
+                                        ultimaPosicao > 0
+                                    ) {
+
+                                        try {
+
+                                            novoPlayer.seekTo(
+                                                ultimaPosicao
+                                            )
+
+                                        } catch (
+                                            e: Exception
+                                        ) {
+
+                                            mostrarErroDiagnostico(
+                                                "ERRO AO RESTAURAR POSIÇÃO",
+                                                e
+                                            )
+                                        }
+
+                                        ultimaPosicao =
+                                            0L
                                     }
 
-                                    ultimaPosicao =
-                                        0L
-                                }
+                                    if (
+                                        reproduzirAoRetornar
+                                    ) {
 
-                                if (
-                                    reproduzirAoRetornar
-                                ) {
+                                        try {
+                                            novoPlayer.play()
+                                        } catch (
+                                            e: Exception
+                                        ) {
 
-                                    try {
-                                        novoPlayer.play()
-                                    } catch (_: Exception) {
+                                            mostrarErroDiagnostico(
+                                                "ERRO AO INICIAR PLAY",
+                                                e
+                                            )
+                                        }
                                     }
                                 }
+
+                                Player.STATE_BUFFERING -> {
+
+                                    playerPreparado =
+                                        false
+                                }
+
+                                Player.STATE_IDLE -> {
+
+                                    playerPreparado =
+                                        false
+                                }
+
+                                Player.STATE_ENDED -> {
+
+                                    playerPreparado =
+                                        true
+
+                                    reproduzirAoRetornar =
+                                        false
+                                }
                             }
 
-                            Player.STATE_BUFFERING -> {
+                        } catch (
+                            e: Exception
+                        ) {
 
-                                playerPreparado =
-                                    false
-                            }
-
-                            Player.STATE_IDLE -> {
-
-                                playerPreparado =
-                                    false
-                            }
-
-                            Player.STATE_ENDED -> {
-
-                                playerPreparado =
-                                    true
-
-                                reproduzirAoRetornar =
-                                    false
-                            }
+                            mostrarErroDiagnostico(
+                                "ERRO NO ESTADO DO PLAYER",
+                                e
+                            )
                         }
                     }
 
@@ -981,45 +1819,60 @@ class VideoViewerActivity : Activity() {
                         reason: Int
                     ) {
 
-                        val indicePlayer =
-                            novoPlayer.currentMediaItemIndex
+                        try {
 
-                        if (
-                            indicePlayer >= 0 &&
-                            indicePlayer <
-                            arquivosDoPlayer.size
-                        ) {
-
-                            val caminho =
-                                arquivosDoPlayer[
-                                    indicePlayer
-                                ]
-
-                            val indiceOriginal =
-                                arquivos.indexOf(
-                                    caminho
-                                )
+                            val indice =
+                                novoPlayer.currentMediaItemIndex
 
                             if (
-                                indiceOriginal >= 0
+                                indice >= 0 &&
+                                indice <
+                                arquivosDoPlayer.size
                             ) {
 
-                                ultimoIndicePlayer =
-                                    indicePlayer
+                                val caminho =
+                                    arquivosDoPlayer[
+                                        indice
+                                    ]
 
-                                posicaoAtual =
-                                    indiceOriginal
+                                val indiceOriginal =
+                                    arquivos.indexOf(
+                                        caminho
+                                    )
 
-                                arquivoAtual =
-                                    File(caminho)
+                                if (
+                                    indiceOriginal >= 0
+                                ) {
 
-                                atualizarCabecalho()
+                                    ultimoIndicePlayer =
+                                        indice
+
+                                    posicaoAtual =
+                                        indiceOriginal
+
+                                    arquivoAtual =
+                                        File(
+                                            caminho
+                                        )
+
+                                    atualizarCabecalho()
+                                }
                             }
+
+                        } catch (
+                            e: Exception
+                        ) {
+
+                            mostrarErroDiagnostico(
+                                "ERRO AO TROCAR VÍDEO",
+                                e
+                            )
                         }
                     }
 
                     override fun onPlayerError(
-                        error: PlaybackException
+                        error:
+                        PlaybackException
                     ) {
 
                         playerPreparado =
@@ -1028,7 +1881,7 @@ class VideoViewerActivity : Activity() {
                         reproduzirAoRetornar =
                             false
 
-                        mostrarErroReproducao(
+                        mostrarErroMedia3(
                             error
                         )
                     }
@@ -1038,35 +1891,28 @@ class VideoViewerActivity : Activity() {
             val listaMediaItems =
                 ArrayList<MediaItem>()
 
-            /*
-             * Montamos uma lista paralela para que o índice
-             * do ExoPlayer nunca fique diferente do índice
-             * dos arquivos realmente carregados.
-             */
             arquivos.forEach { caminho ->
 
-                val arquivo =
-                    File(caminho)
+                try {
 
-                if (
-                    arquivo.exists() &&
-                    arquivo.isFile &&
-                    arquivo.canRead()
-                ) {
+                    val arquivo =
+                        File(caminho)
 
-                    try {
+                    if (
+                        arquivo.exists() &&
+                        arquivo.isFile &&
+                        arquivo.canRead()
+                    ) {
 
                         /*
-                         * IMPORTANTE:
-                         *
-                         * Para reprodução interna não usamos
-                         * FileProvider.
-                         *
-                         * O Media3 recebe diretamente o arquivo
-                         * local através de file://.
+                         * Para o diagnóstico também vamos
+                         * guardar exatamente os arquivos
+                         * que entraram no player.
                          */
                         val uri =
-                            Uri.fromFile(
+                            FileProvider.getUriForFile(
+                                this,
+                                "${packageName}.fileprovider",
                                 arquivo
                             )
 
@@ -1087,23 +1933,29 @@ class VideoViewerActivity : Activity() {
                         arquivosDoPlayer.add(
                             arquivo.absolutePath
                         )
-
-                    } catch (_: Exception) {
-                        // ignora arquivo inválido
                     }
+
+                } catch (
+                    e: Exception
+                ) {
+
+                    mostrarErroDiagnostico(
+                        "ERRO AO PREPARAR ARQUIVO PARA O PLAYER",
+                        e
+                    )
                 }
             }
 
             if (
-                listaMediaItems.isEmpty() ||
-                arquivosDoPlayer.isEmpty()
+                listaMediaItems.isEmpty()
             ) {
 
-                Toast.makeText(
-                    this,
-                    "Não foi possível carregar o vídeo",
-                    Toast.LENGTH_LONG
-                ).show()
+                mostrarErroDiagnostico(
+                    "LISTA DE VÍDEOS",
+                    IllegalStateException(
+                        "Nenhum vídeo conseguiu ser preparado para reprodução."
+                    )
+                )
 
                 return
             }
@@ -1121,13 +1973,6 @@ class VideoViewerActivity : Activity() {
                 indiceInicial = 0
             }
 
-            ultimoIndicePlayer =
-                indiceInicial
-
-            /*
-             * Se o arquivoAtual não estava entre os arquivos
-             * carregados, atualizamos para o primeiro válido.
-             */
             if (
                 arquivosDoPlayer.isNotEmpty()
             ) {
@@ -1158,6 +2003,9 @@ class VideoViewerActivity : Activity() {
                 }
             }
 
+            ultimoIndicePlayer =
+                indiceInicial
+
             novoPlayer.setMediaItems(
                 listaMediaItems,
                 indiceInicial,
@@ -1169,82 +2017,188 @@ class VideoViewerActivity : Activity() {
             novoPlayer.playWhenReady =
                 reproduzirAoRetornar
 
-        } catch (e: Exception) {
+        } catch (
+            e: Throwable
+        ) {
 
-            playerPreparado =
-                false
+            tratarErroFatal(
+                "ERRO AO INICIALIZAR EXOPLAYER",
+                e
+            )
+        }
+    }
 
-            Toast.makeText(
-                this,
-                "Erro ao iniciar o vídeo",
-                Toast.LENGTH_LONG
-            ).show()
+    private fun mostrarErroMedia3(
+        error: PlaybackException
+    ) {
+
+        val detalhes =
+            StringBuilder()
+
+        detalhes.append(
+            "CÓDIGO DO ERRO:\n"
+        )
+
+        detalhes.append(
+            error.errorCode
+        )
+
+        detalhes.append(
+            "\n\n"
+        )
+
+        detalhes.append(
+            "NOME DO CÓDIGO:\n"
+        )
+
+        detalhes.append(
+            nomeCodigoErro(
+                error.errorCode
+            )
+        )
+
+        detalhes.append(
+            "\n\n"
+        )
+
+        detalhes.append(
+            "MENSAGEM:\n"
+        )
+
+        detalhes.append(
+            error.message
+                ?: "Sem mensagem"
+        )
+
+        detalhes.append(
+            "\n\n"
+        )
+
+        detalhes.append(
+            "CAUSA:\n"
+        )
+
+        detalhes.append(
+            error.cause?.toString()
+                ?: "Nenhuma"
+        )
+
+        detalhes.append(
+            "\n\n"
+        )
+
+        if (
+            ::arquivoAtual.isInitialized
+        ) {
+
+            detalhes.append(
+                "ARQUIVO:\n"
+            )
+
+            detalhes.append(
+                arquivoAtual.absolutePath
+            )
+
+            detalhes.append(
+                "\n\n"
+            )
+        }
+
+        detalhes.append(
+            "STACKTRACE:\n"
+        )
+
+        detalhes.append(
+            error.stackTraceToString()
+        )
+
+        mostrarCaixaDiagnostico(
+            "ERRO DO MEDIA3 / EXOPLAYER",
+            detalhes.toString()
+        )
+    }
+
+    private fun nomeCodigoErro(
+        codigo: Int
+    ): String {
+
+        return when (codigo) {
+
+            PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ->
+                "DECODER_INIT_FAILED"
+
+            PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED ->
+                "DECODER_QUERY_FAILED"
+
+            PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ->
+                "PARSING_CONTAINER_MALFORMED"
+
+            PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND ->
+                "IO_FILE_NOT_FOUND"
+
+            PlaybackException.ERROR_CODE_IO_NO_PERMISSION ->
+                "IO_NO_PERMISSION"
+
+            PlaybackException.ERROR_CODE_IO_UNSPECIFIED ->
+                "IO_UNSPECIFIED"
+
+            PlaybackException.ERROR_CODE_PARSING_UNSUPPORTED ->
+                "PARSING_UNSUPPORTED"
+
+            PlaybackException.ERROR_CODE_DECODER_UNSPECIFIED ->
+                "DECODER_UNSPECIFIED"
+
+            else ->
+                "CÓDIGO DESCONHECIDO"
         }
     }
 
     private fun liberarPlayer() {
 
-        player?.let {
+        try {
 
-            try {
-                ultimaPosicao =
-                    it.currentPosition
-            } catch (_: Exception) {
+            player?.let {
+
+                try {
+                    ultimaPosicao =
+                        it.currentPosition
+                } catch (_: Exception) {
+                }
+
+                try {
+                    it.stop()
+                } catch (_: Exception) {
+                }
+
+                try {
+                    it.release()
+                } catch (_: Exception) {
+                }
             }
 
-            try {
-                it.stop()
-            } catch (_: Exception) {
-            }
-
-            try {
-                it.release()
-            } catch (_: Exception) {
-            }
+        } catch (_: Exception) {
         }
 
         player = null
 
-        if (::playerView.isInitialized) {
-            playerView.player = null
+        if (
+            ::playerView.isInitialized
+        ) {
+
+            try {
+                playerView.player =
+                    null
+            } catch (_: Exception) {
+            }
         }
 
         playerPreparado =
             false
     }
 
-    private fun mostrarErroReproducao(
-        error: PlaybackException
-    ) {
-
-        val mensagem =
-            when (error.errorCode) {
-
-                PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ->
-                    "O celular não conseguiu iniciar o decodificador deste vídeo."
-
-                PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED ->
-                    "O formato ou codec deste vídeo não é compatível."
-
-                PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ->
-                    "O arquivo de vídeo parece estar corrompido."
-
-                PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND ->
-                    "O arquivo de vídeo não foi encontrado."
-
-                PlaybackException.ERROR_CODE_IO_NO_PERMISSION ->
-                    "O aplicativo não tem permissão para acessar este vídeo."
-
-                else ->
-                    "Não foi possível reproduzir este vídeo."
-            }
-
-        Toast.makeText(
-            this,
-            mensagem,
-            Toast.LENGTH_LONG
-        ).show()
-    }
+    // =========================================================
+    // GESTOS
+    // =========================================================
 
     private fun configurarGestos() {
 
@@ -1259,7 +2213,9 @@ class VideoViewerActivity : Activity() {
 
     private fun abrirProximoVideo() {
 
-        if (arquivos.size <= 1) {
+        if (
+            arquivos.size <= 1
+        ) {
             return
         }
 
@@ -1277,21 +2233,22 @@ class VideoViewerActivity : Activity() {
             return
         }
 
-        val novoIndice =
-            posicaoAtual + 1
-
         trocarVideo(
-            novoIndice
+            posicaoAtual + 1
         )
     }
 
     private fun abrirVideoAnterior() {
 
-        if (arquivos.size <= 1) {
+        if (
+            arquivos.size <= 1
+        ) {
             return
         }
 
-        if (posicaoAtual <= 0) {
+        if (
+            posicaoAtual <= 0
+        ) {
 
             Toast.makeText(
                 this,
@@ -1302,11 +2259,8 @@ class VideoViewerActivity : Activity() {
             return
         }
 
-        val novoIndice =
-            posicaoAtual - 1
-
         trocarVideo(
-            novoIndice
+            posicaoAtual - 1
         )
     }
 
@@ -1314,48 +2268,50 @@ class VideoViewerActivity : Activity() {
         novoIndice: Int
     ) {
 
-        if (
-            novoIndice < 0 ||
-            novoIndice >= arquivos.size
-        ) {
-            return
-        }
+        try {
 
-        val caminho =
-            arquivos[novoIndice]
+            if (
+                novoIndice < 0 ||
+                novoIndice >=
+                arquivos.size
+            ) {
+                return
+            }
 
-        val indicePlayer =
-            arquivosDoPlayer.indexOf(
-                caminho
-            )
+            val caminho =
+                arquivos[novoIndice]
 
-        if (
-            indicePlayer < 0
-        ) {
+            val indicePlayer =
+                arquivosDoPlayer.indexOf(
+                    caminho
+                )
 
-            Toast.makeText(
-                this,
-                "Não foi possível abrir este vídeo",
-                Toast.LENGTH_SHORT
-            ).show()
+            if (
+                indicePlayer < 0
+            ) {
 
-            return
-        }
+                mostrarErroDiagnostico(
+                    "TROCA DE VÍDEO",
+                    IllegalStateException(
+                        "O vídeo existe na lista principal, mas não está na lista do player.\n\nArquivo:\n$caminho"
+                    )
+                )
 
-        posicaoAtual =
-            novoIndice
+                return
+            }
 
-        atualizarArquivoAtual()
+            posicaoAtual =
+                novoIndice
 
-        ultimaPosicao =
-            0L
+            atualizarArquivoAtual()
 
-        reproduzirAoRetornar =
-            true
+            ultimaPosicao =
+                0L
 
-        player?.let {
+            reproduzirAoRetornar =
+                true
 
-            try {
+            player?.let {
 
                 it.seekTo(
                     indicePlayer,
@@ -1370,14 +2326,26 @@ class VideoViewerActivity : Activity() {
                 atualizarCabecalho()
 
                 return
-            } catch (_: Exception) {
             }
+
+            inicializarPlayer()
+
+            atualizarCabecalho()
+
+        } catch (
+            e: Exception
+        ) {
+
+            mostrarErroDiagnostico(
+                "ERRO AO TROCAR VÍDEO",
+                e
+            )
         }
-
-        inicializarPlayer()
-
-        atualizarCabecalho()
     }
+
+    // =========================================================
+    // MENU
+    // =========================================================
 
     private fun mostrarMenu() {
 
@@ -1494,7 +2462,8 @@ class VideoViewerActivity : Activity() {
 
                 showAtLocation(
                     raiz,
-                    Gravity.TOP or Gravity.END,
+                    Gravity.TOP or
+                            Gravity.END,
                     dp(10),
                     dp(65)
                 )
@@ -1510,9 +2479,11 @@ class VideoViewerActivity : Activity() {
         val item =
             TextView(this).apply {
 
-                text = texto
+                text =
+                    texto
 
-                textSize = 15f
+                textSize =
+                    15f
 
                 setTextColor(
                     Color.WHITE
@@ -1544,6 +2515,10 @@ class VideoViewerActivity : Activity() {
             )
         )
     }
+
+    // =========================================================
+    // COMPARTILHAR
+    // =========================================================
 
     private fun compartilharArquivo() {
 
@@ -1583,15 +2558,20 @@ class VideoViewerActivity : Activity() {
                 )
             )
 
-        } catch (_: Exception) {
+        } catch (
+            e: Exception
+        ) {
 
-            Toast.makeText(
-                this,
-                "Não foi possível compartilhar",
-                Toast.LENGTH_LONG
-            ).show()
+            mostrarErroDiagnostico(
+                "COMPARTILHAMENTO",
+                e
+            )
         }
     }
+
+    // =========================================================
+    // ABRIR COM
+    // =========================================================
 
     private fun abrirComAplicativo() {
 
@@ -1639,15 +2619,20 @@ class VideoViewerActivity : Activity() {
                 Toast.LENGTH_LONG
             ).show()
 
-        } catch (_: Exception) {
+        } catch (
+            e: Exception
+        ) {
 
-            Toast.makeText(
-                this,
-                "Não foi possível abrir o vídeo",
-                Toast.LENGTH_LONG
-            ).show()
+            mostrarErroDiagnostico(
+                "ABRIR COM APLICATIVO EXTERNO",
+                e
+            )
         }
     }
+
+    // =========================================================
+    // FAVORITO
+    // =========================================================
 
     private fun alternarFavorito() {
 
@@ -1675,21 +2660,22 @@ class VideoViewerActivity : Activity() {
 
         Toast.makeText(
             this,
-            if (!atual) {
+            if (!atual)
                 "Adicionado aos favoritos"
-            } else {
-                "Removido dos favoritos"
-            },
+            else
+                "Removido dos favoritos",
             Toast.LENGTH_SHORT
         ).show()
     }
 
+    // =========================================================
+    // INFORMAÇÕES
+    // =========================================================
+
     private fun mostrarInformacoes() {
 
         var largura = 0
-
         var altura = 0
-
         var duracao = 0L
 
         val retriever =
@@ -1704,19 +2690,29 @@ class VideoViewerActivity : Activity() {
             largura =
                 retriever.extractMetadata(
                     MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH
-                )?.toIntOrNull() ?: 0
+                )?.toIntOrNull()
+                    ?: 0
 
             altura =
                 retriever.extractMetadata(
                     MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT
-                )?.toIntOrNull() ?: 0
+                )?.toIntOrNull()
+                    ?: 0
 
             duracao =
                 retriever.extractMetadata(
                     MediaMetadataRetriever.METADATA_KEY_DURATION
-                )?.toLongOrNull() ?: 0L
+                )?.toLongOrNull()
+                    ?: 0L
 
-        } catch (_: Exception) {
+        } catch (
+            e: Exception
+        ) {
+
+            mostrarErroDiagnostico(
+                "LEITURA DAS INFORMAÇÕES DO VÍDEO",
+                e
+            )
 
         } finally {
 
@@ -1779,12 +2775,18 @@ class VideoViewerActivity : Activity() {
             .show()
     }
 
+    // =========================================================
+    // RENOMEAR
+    // =========================================================
+
     private fun renomearArquivo() {
 
         val campo =
             EditText(this).apply {
 
-                setSingleLine(true)
+                setSingleLine(
+                    true
+                )
 
                 setText(
                     arquivoAtual.name
@@ -1837,7 +2839,9 @@ class VideoViewerActivity : Activity() {
                         .toString()
                         .trim()
 
-                if (novoNome.isBlank()) {
+                if (
+                    novoNome.isBlank()
+                ) {
                     return@setPositiveButton
                 }
 
@@ -1870,15 +2874,15 @@ class VideoViewerActivity : Activity() {
                         )
                     ) {
 
-                        arquivos[posicaoAtual] =
+                        arquivos[
+                            posicaoAtual
+                        ] =
                             novoArquivo.absolutePath
 
                         arquivoAtual =
                             novoArquivo
 
                         atualizarCabecalho()
-
-                        inicializarPlayer()
 
                         Toast.makeText(
                             this,
@@ -1895,17 +2899,22 @@ class VideoViewerActivity : Activity() {
                         ).show()
                     }
 
-                } catch (e: Exception) {
+                } catch (
+                    e: Exception
+                ) {
 
-                    Toast.makeText(
-                        this,
-                        "Erro ao renomear: ${e.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    mostrarErroDiagnostico(
+                        "RENOMEAR ARQUIVO",
+                        e
+                    )
                 }
             }
             .show()
     }
+
+    // =========================================================
+    // COPIAR
+    // =========================================================
 
     private fun copiarArquivo() {
 
@@ -1927,7 +2936,9 @@ class VideoViewerActivity : Activity() {
                         arquivoAtual.name
                     )
 
-                if (destino.exists()) {
+                if (
+                    destino.exists()
+                ) {
 
                     Toast.makeText(
                         this,
@@ -1958,16 +2969,21 @@ class VideoViewerActivity : Activity() {
                     Toast.LENGTH_SHORT
                 ).show()
 
-            } catch (e: Exception) {
+            } catch (
+                e: Exception
+            ) {
 
-                Toast.makeText(
-                    this,
-                    "Erro ao copiar: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
+                mostrarErroDiagnostico(
+                    "COPIAR ARQUIVO",
+                    e
+                )
             }
         }
     }
+
+    // =========================================================
+    // MOVER
+    // =========================================================
 
     private fun moverArquivo() {
 
@@ -1989,7 +3005,9 @@ class VideoViewerActivity : Activity() {
                         arquivoAtual.name
                     )
 
-                if (destino.exists()) {
+                if (
+                    destino.exists()
+                ) {
 
                     Toast.makeText(
                         this,
@@ -2010,7 +3028,9 @@ class VideoViewerActivity : Activity() {
                         posicaoAtual
                     )
 
-                    if (arquivos.isEmpty()) {
+                    if (
+                        arquivos.isEmpty()
+                    ) {
 
                         Toast.makeText(
                             this,
@@ -2054,23 +3074,30 @@ class VideoViewerActivity : Activity() {
                     ).show()
                 }
 
-            } catch (e: Exception) {
+            } catch (
+                e: Exception
+            ) {
 
-                Toast.makeText(
-                    this,
-                    "Erro ao mover: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
+                mostrarErroDiagnostico(
+                    "MOVER ARQUIVO",
+                    e
+                )
             }
         }
     }
+
+    // =========================================================
+    // CRIAR PASTA
+    // =========================================================
 
     private fun criarNovaPasta() {
 
         val campo =
             EditText(this).apply {
 
-                setSingleLine(true)
+                setSingleLine(
+                    true
+                )
 
                 hint =
                     "Nome da pasta"
@@ -2115,7 +3142,9 @@ class VideoViewerActivity : Activity() {
                         .toString()
                         .trim()
 
-                if (nome.isBlank()) {
+                if (
+                    nome.isBlank()
+                ) {
                     return@setPositiveButton
                 }
 
@@ -2146,17 +3175,22 @@ class VideoViewerActivity : Activity() {
                         ).show()
                     }
 
-                } catch (e: Exception) {
+                } catch (
+                    e: Exception
+                ) {
 
-                    Toast.makeText(
-                        this,
-                        "Erro: ${e.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    mostrarErroDiagnostico(
+                        "CRIAR PASTA",
+                        e
+                    )
                 }
             }
             .show()
     }
+
+    // =========================================================
+    // LIXEIRA
+    // =========================================================
 
     private fun enviarParaLixeira() {
 
@@ -2209,8 +3243,11 @@ class VideoViewerActivity : Activity() {
                                 if (
                                     extensao.isNotBlank()
                                 ) {
+
                                     "${nome}_$contador.$extensao"
+
                                 } else {
+
                                     "${nome}_$contador"
                                 }
                             )
@@ -2241,75 +3278,95 @@ class VideoViewerActivity : Activity() {
                         ).show()
                     }
 
-                } catch (e: Exception) {
+                } catch (
+                    e: Exception
+                ) {
 
-                    Toast.makeText(
-                        this,
-                        "Erro: ${e.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    mostrarErroDiagnostico(
+                        "ENVIAR PARA LIXEIRA",
+                        e
+                    )
                 }
             }
             .show()
     }
+
+    // =========================================================
+    // ESCOLHA DE PASTA
+    // =========================================================
 
     private fun mostrarEscolhaPasta(
         titulo: String,
         aoSelecionar: (File) -> Unit
     ) {
 
-        val pastaInicial =
-            arquivoAtual.parentFile
-                ?: Environment.getExternalStorageDirectory()
+        try {
 
-        val pastas =
-            ArrayList<File>()
+            val pastaInicial =
+                arquivoAtual.parentFile
+                    ?: Environment
+                        .getExternalStorageDirectory()
 
-        coletarPastas(
-            pastaInicial,
-            pastas,
-            0
-        )
+            val pastas =
+                ArrayList<File>()
 
-        if (pastas.isEmpty()) {
-
-            Toast.makeText(
-                this,
-                "Nenhuma pasta encontrada",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            return
-        }
-
-        val nomes =
-            pastas.map {
-                it.absolutePath
-            }.toTypedArray()
-
-        AlertDialog.Builder(this)
-            .setTitle(
-                titulo
+            coletarPastas(
+                pastaInicial,
+                pastas,
+                0
             )
-            .setItems(
-                nomes
-            ) { _, indice ->
 
-                if (
-                    indice >= 0 &&
-                    indice < pastas.size
-                ) {
+            if (
+                pastas.isEmpty()
+            ) {
 
-                    aoSelecionar(
-                        pastas[indice]
-                    )
-                }
+                Toast.makeText(
+                    this,
+                    "Nenhuma pasta encontrada",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                return
             }
-            .setNegativeButton(
-                "Cancelar",
-                null
+
+            val nomes =
+                pastas.map {
+                    it.absolutePath
+                }.toTypedArray()
+
+            AlertDialog.Builder(this)
+                .setTitle(
+                    titulo
+                )
+                .setItems(
+                    nomes
+                ) { _, indice ->
+
+                    if (
+                        indice >= 0 &&
+                        indice < pastas.size
+                    ) {
+
+                        aoSelecionar(
+                            pastas[indice]
+                        )
+                    }
+                }
+                .setNegativeButton(
+                    "Cancelar",
+                    null
+                )
+                .show()
+
+        } catch (
+            e: Exception
+        ) {
+
+            mostrarErroDiagnostico(
+                "SELEÇÃO DE PASTA",
+                e
             )
-            .show()
+        }
     }
 
     private fun coletarPastas(
@@ -2356,6 +3413,10 @@ class VideoViewerActivity : Activity() {
         }
     }
 
+    // =========================================================
+    // UTILITÁRIOS
+    // =========================================================
+
     private fun obterMimeType(
         arquivo: File
     ): String {
@@ -2400,7 +3461,9 @@ class VideoViewerActivity : Activity() {
         bytes: Long
     ): String {
 
-        if (bytes <= 0) {
+        if (
+            bytes <= 0
+        ) {
             return "0 B"
         }
 
@@ -2443,7 +3506,9 @@ class VideoViewerActivity : Activity() {
         milissegundos: Long
     ): String {
 
-        if (milissegundos <= 0) {
+        if (
+            milissegundos <= 0
+        ) {
             return "Desconhecida"
         }
 
@@ -2459,7 +3524,9 @@ class VideoViewerActivity : Activity() {
         val segundos =
             totalSegundos % 60
 
-        return if (horas > 0) {
+        return if (
+            horas > 0
+        ) {
 
             String.format(
                 Locale.getDefault(),
@@ -2485,10 +3552,14 @@ class VideoViewerActivity : Activity() {
     ): Int {
 
         return (
-            valor *
-                    resources.displayMetrics.density
-            ).toInt()
+                valor *
+                        resources.displayMetrics.density
+                ).toInt()
     }
+
+    // =========================================================
+    // PLAYER VIEW / GESTOS
+    // =========================================================
 
     @UnstableApi
     class GesturePlayerView(
@@ -2517,85 +3588,94 @@ class VideoViewerActivity : Activity() {
             event: MotionEvent
         ): Boolean {
 
-            when (
-                event.actionMasked
-            ) {
+            try {
 
-                MotionEvent.ACTION_DOWN -> {
+                when (
+                    event.actionMasked
+                ) {
 
-                    toqueX =
-                        event.x
+                    MotionEvent.ACTION_DOWN -> {
 
-                    toqueY =
-                        event.y
+                        toqueX =
+                            event.x
 
-                    movimentoDetectado =
-                        false
-                }
-
-                MotionEvent.ACTION_MOVE -> {
-
-                    val distanciaX =
-                        event.x - toqueX
-
-                    val distanciaY =
-                        event.y - toqueY
-
-                    if (
-                        abs(distanciaX) >
-                        distanciaMinima &&
-                        abs(distanciaX) >
-                        abs(distanciaY)
-                    ) {
+                        toqueY =
+                            event.y
 
                         movimentoDetectado =
-                            true
+                            false
                     }
-                }
 
-                MotionEvent.ACTION_UP -> {
+                    MotionEvent.ACTION_MOVE -> {
 
-                    val distanciaX =
-                        event.x - toqueX
+                        val distanciaX =
+                            event.x - toqueX
 
-                    val distanciaY =
-                        event.y - toqueY
-
-                    if (
-                        abs(distanciaX) >
-                        distanciaMinima &&
-                        abs(distanciaX) >
-                        abs(distanciaY)
-                    ) {
+                        val distanciaY =
+                            event.y - toqueY
 
                         if (
-                            distanciaX < 0
+                            abs(distanciaX) >
+                            distanciaMinima &&
+                            abs(distanciaX) >
+                            abs(distanciaY)
                         ) {
 
-                            onSwipeLeft?.invoke()
-
-                        } else {
-
-                            onSwipeRight?.invoke()
+                            movimentoDetectado =
+                                true
                         }
+                    }
+
+                    MotionEvent.ACTION_UP -> {
+
+                        val distanciaX =
+                            event.x - toqueX
+
+                        val distanciaY =
+                            event.y - toqueY
+
+                        if (
+                            abs(distanciaX) >
+                            distanciaMinima &&
+                            abs(distanciaX) >
+                            abs(distanciaY)
+                        ) {
+
+                            if (
+                                distanciaX < 0
+                            ) {
+
+                                onSwipeLeft?.invoke()
+
+                            } else {
+
+                                onSwipeRight?.invoke()
+                            }
+
+                            movimentoDetectado =
+                                true
+
+                            return true
+                        }
+                    }
+
+                    MotionEvent.ACTION_CANCEL -> {
 
                         movimentoDetectado =
-                            true
-
-                        return true
+                            false
                     }
                 }
 
-                MotionEvent.ACTION_CANCEL -> {
-
-                    movimentoDetectado =
-                        false
-                }
+            } catch (_: Exception) {
             }
 
-            return super.onTouchEvent(
-                event
-            )
+            return try {
+                super.onTouchEvent(
+                    event
+                )
+            } catch (_: Exception) {
+                true
+            }
         }
     }
 }
