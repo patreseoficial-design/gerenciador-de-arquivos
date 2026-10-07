@@ -23,15 +23,12 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.PopupWindow
-import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.FileProvider
-import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
@@ -40,7 +37,6 @@ import java.text.DecimalFormat
 import java.util.Locale
 import kotlin.math.abs
 
-@UnstableApi
 class VideoViewerActivity : Activity() {
 
     private lateinit var playerView: GesturePlayerView
@@ -89,16 +85,26 @@ class VideoViewerActivity : Activity() {
         instalarCapturadorErros()
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        window.addFlags(
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        )
+
         window.setFlags(
             WindowManager.LayoutParams.FLAG_FULLSCREEN,
             WindowManager.LayoutParams.FLAG_FULLSCREEN
         )
 
         carregarDadosDaIntent()
+
+        if (isFinishing) {
+            return
+        }
+
         criarInterface()
-        mostrarErroFatalAnterior()
         restaurarEstado(savedInstanceState)
+
+        mostrarErroFatalAnterior()
 
         inicializarPlayer()
         configurarGestos()
@@ -107,7 +113,11 @@ class VideoViewerActivity : Activity() {
     override fun onResume() {
         super.onResume()
 
-        if (player != null && playerPreparado && reproduzirAoRetornar) {
+        if (
+            player != null &&
+            playerPreparado &&
+            reproduzirAoRetornar
+        ) {
             player?.playWhenReady = true
         }
     }
@@ -115,16 +125,28 @@ class VideoViewerActivity : Activity() {
     override fun onPause() {
         super.onPause()
 
-        if (player != null) {
-            ultimaPosicao = player?.currentPosition ?: ultimaPosicao
-            ultimoIndicePlayer = player?.currentMediaItemIndex ?: ultimoIndicePlayer
+        player?.let {
+            ultimaPosicao = it.currentPosition
+            ultimoIndicePlayer = it.currentMediaItemIndex
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putLong("ultima_posicao", ultimaPosicao)
-        outState.putInt("ultimo_indice", ultimoIndicePlayer)
-        outState.putInt("posicao_atual", posicaoAtual)
+        outState.putLong(
+            "ultima_posicao",
+            ultimaPosicao
+        )
+
+        outState.putInt(
+            "ultimo_indice",
+            ultimoIndicePlayer
+        )
+
+        outState.putInt(
+            "posicao_atual",
+            posicaoAtual
+        )
+
         super.onSaveInstanceState(outState)
     }
 
@@ -152,15 +174,22 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun instalarCapturadorErros() {
-        if (capturadorInstalado) return
+        if (capturadorInstalado) {
+            return
+        }
 
         capturadorInstalado = true
 
-        val handlerAnterior = Thread.getDefaultUncaughtExceptionHandler()
+        val handlerAnterior =
+            Thread.getDefaultUncaughtExceptionHandler()
 
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+
             try {
-                getSharedPreferences(preferenciasDiagnostico, MODE_PRIVATE)
+                getSharedPreferences(
+                    preferenciasDiagnostico,
+                    MODE_PRIVATE
+                )
                     .edit()
                     .putString(
                         chaveErro,
@@ -174,17 +203,29 @@ class VideoViewerActivity : Activity() {
                         System.currentTimeMillis()
                     )
                     .apply()
+
             } catch (_: Exception) {
             }
 
-            handlerAnterior?.uncaughtException(thread, throwable)
+            handlerAnterior?.uncaughtException(
+                thread,
+                throwable
+            )
         }
     }
 
     private fun mostrarErroFatalAnterior() {
-        val prefs = getSharedPreferences(preferenciasDiagnostico, MODE_PRIVATE)
+        val prefs =
+            getSharedPreferences(
+                preferenciasDiagnostico,
+                MODE_PRIVATE
+            )
 
-        val erro = prefs.getString(chaveErro, null) ?: return
+        val erro =
+            prefs.getString(
+                chaveErro,
+                null
+            ) ?: return
 
         prefs.edit()
             .remove(chaveErro)
@@ -196,57 +237,94 @@ class VideoViewerActivity : Activity() {
             .setMessage(
                 "O aplicativo registrou um erro na última execução.\n\n$erro"
             )
-            .setPositiveButton("OK", null)
-            .setNeutralButton("COPIAR") { _, _ ->
+            .setPositiveButton(
+                "OK",
+                null
+            )
+            .setNeutralButton(
+                "COPIAR"
+            ) { _, _ ->
                 copiarTexto(erro)
             }
             .show()
     }
 
-    private fun restaurarEstado(savedInstanceState: Bundle?) {
-        if (savedInstanceState == null) return
+    private fun restaurarEstado(
+        savedInstanceState: Bundle?
+    ) {
+        if (savedInstanceState == null) {
+            return
+        }
 
-        ultimaPosicao = savedInstanceState.getLong(
-            "ultima_posicao",
-            0L
-        )
+        ultimaPosicao =
+            savedInstanceState.getLong(
+                "ultima_posicao",
+                0L
+            )
 
-        ultimoIndicePlayer = savedInstanceState.getInt(
-            "ultimo_indice",
-            0
-        )
+        ultimoIndicePlayer =
+            savedInstanceState.getInt(
+                "ultimo_indice",
+                0
+            )
 
-        posicaoAtual = savedInstanceState.getInt(
-            "posicao_atual",
-            posicaoAtual
-        )
+        posicaoAtual =
+            savedInstanceState.getInt(
+                "posicao_atual",
+                posicaoAtual
+            )
+
+        if (posicaoAtual !in arquivos.indices) {
+            posicaoAtual = 0
+        }
+
+        if (arquivos.isNotEmpty()) {
+            arquivoAtual =
+                File(
+                    arquivos[posicaoAtual]
+                )
+        }
+
+        atualizarCabecalho()
     }
 
     private fun carregarDadosDaIntent() {
         arquivos.clear()
 
-        val lista = intent.getStringArrayListExtra("arquivos")
+        val lista =
+            intent.getStringArrayListExtra(
+                "arquivos"
+            )
 
         if (lista != null) {
             arquivos.addAll(lista)
         }
 
-        var caminho = intent.getStringExtra("arquivo")
+        var caminho =
+            intent.getStringExtra(
+                "arquivo"
+            )
 
         if (caminho.isNullOrBlank()) {
-            caminho = intent.data?.path
+            caminho =
+                intent.data?.path
         }
 
-        if (!caminho.isNullOrBlank() && !arquivos.contains(caminho)) {
+        if (
+            !caminho.isNullOrBlank() &&
+            !arquivos.contains(caminho)
+        ) {
             arquivos.add(caminho)
         }
 
-        posicaoAtual = intent.getIntExtra(
-            "posicao",
-            0
-        )
+        posicaoAtual =
+            intent.getIntExtra(
+                "posicao",
+                0
+            )
 
         if (arquivos.isEmpty()) {
+
             Toast.makeText(
                 this,
                 "Nenhum vídeo foi recebido.",
@@ -261,18 +339,30 @@ class VideoViewerActivity : Activity() {
             posicaoAtual = 0
         }
 
-        arquivoAtual = File(arquivos[posicaoAtual])
-
-        atualizarCabecalho()
+        arquivoAtual =
+            File(
+                arquivos[posicaoAtual]
+            )
     }
 
     private fun criarInterface() {
-        raiz = FrameLayout(this)
-        raiz.setBackgroundColor(Color.BLACK)
 
-        val principal = LinearLayout(this)
-        principal.orientation = LinearLayout.VERTICAL
-        principal.setBackgroundColor(Color.BLACK)
+        raiz =
+            FrameLayout(this)
+
+        raiz.setBackgroundColor(
+            Color.BLACK
+        )
+
+        val principal =
+            LinearLayout(this)
+
+        principal.orientation =
+            LinearLayout.VERTICAL
+
+        principal.setBackgroundColor(
+            Color.BLACK
+        )
 
         raiz.addView(
             principal,
@@ -282,112 +372,21 @@ class VideoViewerActivity : Activity() {
             )
         )
 
-        barraSuperior = LinearLayout(this)
-        barraSuperior.orientation = LinearLayout.HORIZONTAL
-        barraSuperior.gravity = Gravity.CENTER_VERTICAL
-        barraSuperior.setPadding(
-            dp(12),
-            dp(8),
-            dp(8),
-            dp(8)
-        )
-        barraSuperior.setBackgroundColor(Color.rgb(25, 25, 25))
+        criarBarraSuperior(principal)
 
-        val voltar = criarBotao(
-            "‹",
-            34
+        playerView =
+            GesturePlayerView(this)
+
+        playerView.setBackgroundColor(
+            Color.BLACK
         )
 
-        voltar.setOnClickListener {
-            finish()
-        }
-
-        barraSuperior.addView(
-            voltar,
-            LinearLayout.LayoutParams(
-                dp(48),
-                dp(48)
-            )
-        )
-
-        val blocoTitulo = LinearLayout(this)
-        blocoTitulo.orientation = LinearLayout.VERTICAL
-        blocoTitulo.gravity = Gravity.CENTER_VERTICAL
-
-        nomePastaText = TextView(this)
-        nomePastaText.setTextColor(Color.LTGRAY)
-        nomePastaText.textSize = 12f
-        nomePastaText.maxLines = 1
-        nomePastaText.ellipsize = TextUtils.TruncateAt.END
-
-        nomeArquivoText = TextView(this)
-        nomeArquivoText.setTextColor(Color.WHITE)
-        nomeArquivoText.textSize = 16f
-        nomeArquivoText.maxLines = 1
-        nomeArquivoText.ellipsize = TextUtils.TruncateAt.END
-
-        blocoTitulo.addView(nomePastaText)
-        blocoTitulo.addView(nomeArquivoText)
-
-        barraSuperior.addView(
-            blocoTitulo,
-            LinearLayout.LayoutParams(
-                0,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
-
-        contadorText = TextView(this)
-        contadorText.setTextColor(Color.WHITE)
-        contadorText.textSize = 13f
-        contadorText.gravity = Gravity.CENTER
-        contadorText.setPadding(
-            dp(8),
-            0,
-            dp(8),
-            0
-        )
-
-        barraSuperior.addView(
-            contadorText,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                dp(48)
-            )
-        )
-
-        val menu = criarBotao(
-            "⋮",
-            30
-        )
-
-        menu.setOnClickListener {
-            mostrarMenu()
-        }
-
-        barraSuperior.addView(
-            menu,
-            LinearLayout.LayoutParams(
-                dp(48),
-                dp(48)
-            )
-        )
-
-        principal.addView(
-            barraSuperior,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(64)
-            )
-        )
-
-        playerView = GesturePlayerView(this)
-
-        playerView.setBackgroundColor(Color.BLACK)
         playerView.useController = true
+
         playerView.controllerShowTimeoutMs = 3000
+
         playerView.controllerHideOnTouch = true
+
         playerView.setShowBuffering(
             PlayerView.SHOW_BUFFERING_WHEN_PLAYING
         )
@@ -409,24 +408,193 @@ class VideoViewerActivity : Activity() {
             )
         )
 
-        barraInferior = LinearLayout(this)
-        barraInferior.orientation = LinearLayout.HORIZONTAL
-        barraInferior.gravity = Gravity.CENTER
-        barraInferior.setBackgroundColor(Color.rgb(20, 20, 20))
+        criarBarraInferior(principal)
 
-        val anterior = criarBotao(
-            "‹",
-            32
+        setContentView(raiz)
+
+        atualizarCabecalho()
+    }
+
+    private fun criarBarraSuperior(
+        principal: LinearLayout
+    ) {
+        barraSuperior =
+            LinearLayout(this)
+
+        barraSuperior.orientation =
+            LinearLayout.HORIZONTAL
+
+        barraSuperior.gravity =
+            Gravity.CENTER_VERTICAL
+
+        barraSuperior.setPadding(
+            dp(12),
+            dp(8),
+            dp(8),
+            dp(8)
         )
+
+        barraSuperior.setBackgroundColor(
+            Color.rgb(25, 25, 25)
+        )
+
+        val voltar =
+            criarBotao(
+                "‹",
+                34
+            )
+
+        voltar.setOnClickListener {
+            finish()
+        }
+
+        barraSuperior.addView(
+            voltar,
+            LinearLayout.LayoutParams(
+                dp(48),
+                dp(48)
+            )
+        )
+
+        val blocoTitulo =
+            LinearLayout(this)
+
+        blocoTitulo.orientation =
+            LinearLayout.VERTICAL
+
+        blocoTitulo.gravity =
+            Gravity.CENTER_VERTICAL
+
+        nomePastaText =
+            TextView(this)
+
+        nomePastaText.setTextColor(
+            Color.LTGRAY
+        )
+
+        nomePastaText.textSize = 12f
+
+        nomePastaText.maxLines = 1
+
+        nomePastaText.ellipsize =
+            TextUtils.TruncateAt.END
+
+        nomeArquivoText =
+            TextView(this)
+
+        nomeArquivoText.setTextColor(
+            Color.WHITE
+        )
+
+        nomeArquivoText.textSize = 16f
+
+        nomeArquivoText.maxLines = 1
+
+        nomeArquivoText.ellipsize =
+            TextUtils.TruncateAt.END
+
+        blocoTitulo.addView(
+            nomePastaText
+        )
+
+        blocoTitulo.addView(
+            nomeArquivoText
+        )
+
+        barraSuperior.addView(
+            blocoTitulo,
+            LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f
+            )
+        )
+
+        contadorText =
+            TextView(this)
+
+        contadorText.setTextColor(
+            Color.WHITE
+        )
+
+        contadorText.textSize = 13f
+
+        contadorText.gravity =
+            Gravity.CENTER
+
+        contadorText.setPadding(
+            dp(8),
+            0,
+            dp(8),
+            0
+        )
+
+        barraSuperior.addView(
+            contadorText,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                dp(48)
+            )
+        )
+
+        val menu =
+            criarBotao(
+                "⋮",
+                30
+            )
+
+        menu.setOnClickListener {
+            mostrarMenu()
+        }
+
+        barraSuperior.addView(
+            menu,
+            LinearLayout.LayoutParams(
+                dp(48),
+                dp(48)
+            )
+        )
+
+        principal.addView(
+            barraSuperior,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(64)
+            )
+        )
+    }
+
+    private fun criarBarraInferior(
+        principal: LinearLayout
+    ) {
+        barraInferior =
+            LinearLayout(this)
+
+        barraInferior.orientation =
+            LinearLayout.HORIZONTAL
+
+        barraInferior.gravity =
+            Gravity.CENTER
+
+        barraInferior.setBackgroundColor(
+            Color.rgb(20, 20, 20)
+        )
+
+        val anterior =
+            criarBotao(
+                "‹",
+                32
+            )
 
         anterior.setOnClickListener {
             trocarVideo(-1)
         }
 
-        val proximo = criarBotao(
-            "›",
-            32
-        )
+        val proximo =
+            criarBotao(
+                "›",
+                32
+            )
 
         proximo.setOnClickListener {
             trocarVideo(1)
@@ -455,32 +623,43 @@ class VideoViewerActivity : Activity() {
                 dp(64)
             )
         )
-
-        setContentView(raiz)
-
-        atualizarCabecalho()
     }
 
     private fun criarBotao(
         texto: String,
         tamanho: Int
     ): TextView {
-        val botao = TextView(this)
 
-        botao.text = texto
-        botao.textSize = tamanho.toFloat()
-        botao.setTextColor(Color.WHITE)
-        botao.gravity = Gravity.CENTER
+        val botao =
+            TextView(this)
+
+        botao.text =
+            texto
+
+        botao.textSize =
+            tamanho.toFloat()
+
+        botao.setTextColor(
+            Color.WHITE
+        )
+
+        botao.gravity =
+            Gravity.CENTER
+
         botao.isClickable = true
+
         botao.isFocusable = true
 
         return botao
     }
 
     private fun atualizarCabecalho() {
-        if (!::arquivoAtual.isInitialized) return
+        if (!::arquivoAtual.isInitialized) {
+            return
+        }
 
-        nomeArquivoText.text = arquivoAtual.name
+        nomeArquivoText.text =
+            arquivoAtual.name
 
         nomePastaText.text =
             arquivoAtual.parentFile?.name ?: ""
@@ -490,7 +669,10 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun inicializarPlayer() {
-        if (!::arquivoAtual.isInitialized) return
+
+        if (!::arquivoAtual.isInitialized) {
+            return
+        }
 
         if (!arquivoAtual.exists()) {
             mostrarDiagnostico(
@@ -521,18 +703,22 @@ class VideoViewerActivity : Activity() {
         arquivosDoPlayer.clear()
 
         try {
+
             val renderersFactory =
                 DefaultRenderersFactory(this)
                     .setEnableDecoderFallback(true)
 
-            val novoPlayer = ExoPlayer.Builder(
-                this,
-                renderersFactory
-            ).build()
+            val novoPlayer =
+                ExoPlayer.Builder(
+                    this,
+                    renderersFactory
+                ).build()
 
-            player = novoPlayer
+            player =
+                novoPlayer
 
-            playerView.player = novoPlayer
+            playerView.player =
+                novoPlayer
 
             novoPlayer.addListener(
                 object : Player.Listener {
@@ -543,9 +729,13 @@ class VideoViewerActivity : Activity() {
                         when (playbackState) {
 
                             Player.STATE_READY -> {
-                                playerPreparado = true
 
-                                if (ultimaPosicao > 0L) {
+                                playerPreparado =
+                                    true
+
+                                if (
+                                    ultimaPosicao > 0L
+                                ) {
                                     try {
                                         novoPlayer.seekTo(
                                             ultimaPosicao
@@ -554,21 +744,27 @@ class VideoViewerActivity : Activity() {
                                     }
                                 }
 
-                                if (reproduzirAoRetornar) {
-                                    novoPlayer.playWhenReady = true
+                                if (
+                                    reproduzirAoRetornar
+                                ) {
+                                    novoPlayer.playWhenReady =
+                                        true
                                 }
                             }
 
                             Player.STATE_BUFFERING -> {
-                                playerPreparado = false
+                                playerPreparado =
+                                    false
                             }
 
                             Player.STATE_IDLE -> {
-                                playerPreparado = false
+                                playerPreparado =
+                                    false
                             }
 
                             Player.STATE_ENDED -> {
-                                reproduzirAoRetornar = false
+                                reproduzirAoRetornar =
+                                    false
                             }
                         }
                     }
@@ -580,19 +776,29 @@ class VideoViewerActivity : Activity() {
                         val indice =
                             novoPlayer.currentMediaItemIndex
 
-                        if (indice in arquivosDoPlayer.indices) {
+                        if (
+                            indice in arquivosDoPlayer.indices
+                        ) {
+
                             val caminho =
                                 arquivosDoPlayer[indice]
 
-                            val novoArquivo = File(caminho)
+                            val novoArquivo =
+                                File(caminho)
 
                             if (novoArquivo.exists()) {
-                                arquivoAtual = novoArquivo
+
+                                arquivoAtual =
+                                    novoArquivo
 
                                 val originalIndex =
-                                    arquivos.indexOf(caminho)
+                                    arquivos.indexOf(
+                                        caminho
+                                    )
 
-                                if (originalIndex >= 0) {
+                                if (
+                                    originalIndex >= 0
+                                ) {
                                     posicaoAtual =
                                         originalIndex
                                 }
@@ -605,7 +811,8 @@ class VideoViewerActivity : Activity() {
                     override fun onPlayerError(
                         error: PlaybackException
                     ) {
-                        playerPreparado = false
+                        playerPreparado =
+                            false
 
                         tratarFalhaReproducaoInterna(
                             error
@@ -615,31 +822,35 @@ class VideoViewerActivity : Activity() {
             )
 
             for (caminho in arquivos) {
-                val arquivo = File(caminho)
 
-                if (!arquivo.exists()) continue
-                if (!arquivo.isFile) continue
-                if (!arquivo.canRead()) continue
+                val arquivo =
+                    File(caminho)
+
+                if (!arquivo.exists()) {
+                    continue
+                }
+
+                if (!arquivo.isFile) {
+                    continue
+                }
+
+                if (!arquivo.canRead()) {
+                    continue
+                }
 
                 arquivosDoPlayer.add(
                     arquivo.absolutePath
                 )
-
-                val uri =
-                    Uri.fromFile(arquivo)
 
                 val mime =
                     obterMimeType(arquivo)
 
                 val builder =
                     MediaItem.Builder()
-                        .setUri(uri)
+                        .setUri(
+                            Uri.fromFile(arquivo)
+                        )
 
-                /*
-                 * Não força video/* no Media3.
-                 * Quando o MIME não é conhecido, o ExoPlayer
-                 * tenta descobrir pelo URI/extensão.
-                 */
                 if (mime != "video/*") {
                     builder.setMimeType(mime)
                 }
@@ -650,6 +861,7 @@ class VideoViewerActivity : Activity() {
             }
 
             if (arquivosDoPlayer.isEmpty()) {
+
                 mostrarDiagnostico(
                     "Nenhum vídeo válido foi encontrado."
                 )
@@ -667,10 +879,10 @@ class VideoViewerActivity : Activity() {
                 indiceInicial = 0
             }
 
-            ultimoIndicePlayer = indiceInicial
+            ultimoIndicePlayer =
+                indiceInicial
 
-            novoPlayer.setMediaItems(
-                novoPlayer.mediaItems,
+            novoPlayer.seekTo(
                 indiceInicial,
                 ultimaPosicao
             )
@@ -681,13 +893,17 @@ class VideoViewerActivity : Activity() {
                 reproduzirAoRetornar
 
         } catch (e: Throwable) {
-            tratarFalhaInicializacaoPlayer(e)
+
+            tratarFalhaInicializacaoPlayer(
+                e
+            )
         }
     }
 
     private fun tratarFalhaReproducaoInterna(
         erro: PlaybackException
     ) {
+
         if (fallbackExternoTentado) {
             mostrarErroMedia3(erro)
             return
@@ -705,6 +921,7 @@ class VideoViewerActivity : Activity() {
         liberarPlayer()
 
         raiz.post {
+
             if (!isFinishing) {
                 abrirVideoExternamenteAutomatico(
                     erro
@@ -716,16 +933,20 @@ class VideoViewerActivity : Activity() {
     private fun tratarFalhaInicializacaoPlayer(
         erro: Throwable
     ) {
+
         playerPreparado = false
+
         reproduzirAoRetornar = false
 
         if (fallbackExternoTentado) {
+
             mostrarDiagnostico(
                 gerarDiagnostico(
                     "Falha ao iniciar o player",
                     erro
                 )
             )
+
             return
         }
 
@@ -734,6 +955,7 @@ class VideoViewerActivity : Activity() {
         liberarPlayer()
 
         raiz.post {
+
             if (!isFinishing) {
                 abrirVideoExternamenteAutomatico(
                     erro
@@ -745,11 +967,16 @@ class VideoViewerActivity : Activity() {
     private fun abrirVideoExternamenteAutomatico(
         erroInterno: Throwable
     ) {
-        if (isFinishing) return
 
-        var erroExterno: Throwable? = null
+        if (isFinishing) {
+            return
+        }
+
+        var erroExterno: Throwable? =
+            null
 
         try {
+
             if (!::arquivoAtual.isInitialized) {
                 mostrarFalhaSemPlayerExterno(
                     erroInterno
@@ -757,7 +984,8 @@ class VideoViewerActivity : Activity() {
                 return
             }
 
-            if (!arquivoAtual.exists() ||
+            if (
+                !arquivoAtual.exists() ||
                 !arquivoAtual.isFile
             ) {
                 mostrarFalhaSemPlayerExterno(
@@ -774,11 +1002,10 @@ class VideoViewerActivity : Activity() {
                 )
 
             val mime =
-                obterMimeType(arquivoAtual)
+                obterMimeType(
+                    arquivoAtual
+                )
 
-            /*
-             * Primeiro tenta o MIME exato.
-             */
             val intentExato =
                 criarIntentVideoExterno(
                     uri,
@@ -799,16 +1026,15 @@ class VideoViewerActivity : Activity() {
                 )
 
                 try {
-                    startActivity(intentExato)
+                    startActivity(
+                        intentExato
+                    )
                     return
                 } catch (e: Exception) {
                     erroExterno = e
                 }
             }
 
-            /*
-             * Se não funcionou, tenta video/*.
-             */
             if (mime != "video/*") {
 
                 val intentGenerico =
@@ -847,6 +1073,7 @@ class VideoViewerActivity : Activity() {
             )
 
         } catch (e: Exception) {
+
             erroExterno = e
 
             mostrarFalhaSemPlayerExterno(
@@ -860,6 +1087,7 @@ class VideoViewerActivity : Activity() {
         uri: Uri,
         mime: String
     ): Intent {
+
         return Intent(
             Intent.ACTION_VIEW
         ).apply {
@@ -871,10 +1099,6 @@ class VideoViewerActivity : Activity() {
 
             addFlags(
                 Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
-
-            addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK
             )
 
             clipData =
@@ -889,13 +1113,17 @@ class VideoViewerActivity : Activity() {
         resolved: List<android.content.pm.ResolveInfo>,
         uri: Uri
     ) {
+
         for (info in resolved) {
+
             try {
+
                 grantUriPermission(
                     info.activityInfo.packageName,
                     uri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
+
             } catch (_: Exception) {
             }
         }
@@ -905,12 +1133,19 @@ class VideoViewerActivity : Activity() {
         erroInterno: Throwable,
         erroExterno: Throwable? = null
     ) {
-        if (isFinishing) return
-        if (dialogoErroAberto) return
+
+        if (isFinishing) {
+            return
+        }
+
+        if (dialogoErroAberto) {
+            return
+        }
 
         dialogoErroAberto = true
 
-        val detalhes = StringBuilder()
+        val detalhes =
+            StringBuilder()
 
         detalhes.append(
             "Não foi possível reproduzir este vídeo.\n\n"
@@ -934,20 +1169,18 @@ class VideoViewerActivity : Activity() {
             )
         )
 
-        detalhes.append("\n\n")
-
         detalhes.append(
-            "MIME:\n"
+            "\n\nMIME:\n"
         )
 
         detalhes.append(
-            obterMimeType(arquivoAtual)
+            obterMimeType(
+                arquivoAtual
+            )
         )
 
-        detalhes.append("\n\n")
-
         detalhes.append(
-            "Player interno:\n"
+            "\n\nPlayer interno:\n"
         )
 
         detalhes.append(
@@ -956,6 +1189,7 @@ class VideoViewerActivity : Activity() {
         )
 
         if (erroExterno != null) {
+
             detalhes.append(
                 "\n\nPlayer externo:\n"
             )
@@ -966,10 +1200,8 @@ class VideoViewerActivity : Activity() {
             )
         }
 
-        detalhes.append("\n\n")
-
         detalhes.append(
-            "Possíveis causas:\n"
+            "\n\nPossíveis causas:\n"
         )
 
         detalhes.append(
@@ -993,23 +1225,40 @@ class VideoViewerActivity : Activity() {
         )
 
         AlertDialog.Builder(this)
-            .setTitle("Não foi possível abrir o vídeo")
-            .setMessage(detalhes.toString())
-            .setPositiveButton("TENTAR NOVAMENTE") { _, _ ->
+            .setTitle(
+                "Não foi possível abrir o vídeo"
+            )
+            .setMessage(
+                detalhes.toString()
+            )
+            .setPositiveButton(
+                "TENTAR NOVAMENTE"
+            ) { _, _ ->
+
                 dialogoErroAberto = false
+
                 fallbackExternoTentado = false
+
                 reproduzirAoRetornar = true
+
                 inicializarPlayer()
             }
-            .setNeutralButton("COPIAR ERRO") { _, _ ->
+            .setNeutralButton(
+                "COPIAR ERRO"
+            ) { _, _ ->
+
                 copiarTexto(
                     detalhes.toString()
                 )
 
                 dialogoErroAberto = false
             }
-            .setNegativeButton("FECHAR") { _, _ ->
+            .setNegativeButton(
+                "FECHAR"
+            ) { _, _ ->
+
                 dialogoErroAberto = false
+
                 finish()
             }
             .setOnDismissListener {
@@ -1021,8 +1270,14 @@ class VideoViewerActivity : Activity() {
     private fun mostrarErroMedia3(
         erro: PlaybackException
     ) {
-        if (isFinishing) return
-        if (dialogoErroAberto) return
+
+        if (isFinishing) {
+            return
+        }
+
+        if (dialogoErroAberto) {
+            return
+        }
 
         dialogoErroAberto = true
 
@@ -1033,20 +1288,40 @@ class VideoViewerActivity : Activity() {
             )
 
         AlertDialog.Builder(this)
-            .setTitle("Erro ao reproduzir vídeo")
-            .setMessage(diagnostico)
-            .setPositiveButton("TENTAR NOVAMENTE") { _, _ ->
+            .setTitle(
+                "Erro ao reproduzir vídeo"
+            )
+            .setMessage(
+                diagnostico
+            )
+            .setPositiveButton(
+                "TENTAR NOVAMENTE"
+            ) { _, _ ->
+
                 dialogoErroAberto = false
+
                 fallbackExternoTentado = false
+
                 reproduzirAoRetornar = true
+
                 inicializarPlayer()
             }
-            .setNeutralButton("COPIAR ERRO") { _, _ ->
-                copiarTexto(diagnostico)
+            .setNeutralButton(
+                "COPIAR ERRO"
+            ) { _, _ ->
+
+                copiarTexto(
+                    diagnostico
+                )
+
                 dialogoErroAberto = false
             }
-            .setNegativeButton("FECHAR") { _, _ ->
+            .setNegativeButton(
+                "FECHAR"
+            ) { _, _ ->
+
                 dialogoErroAberto = false
+
                 finish()
             }
             .setOnDismissListener {
@@ -1058,19 +1333,33 @@ class VideoViewerActivity : Activity() {
     private fun mostrarDiagnostico(
         mensagem: String
     ) {
-        if (isFinishing) return
-        if (dialogoErroAberto) return
+
+        if (isFinishing) {
+            return
+        }
+
+        if (dialogoErroAberto) {
+            return
+        }
 
         dialogoErroAberto = true
 
         AlertDialog.Builder(this)
             .setTitle("Diagnóstico")
             .setMessage(mensagem)
-            .setPositiveButton("OK") { _, _ ->
+            .setPositiveButton(
+                "OK"
+            ) { _, _ ->
                 dialogoErroAberto = false
             }
-            .setNeutralButton("COPIAR") { _, _ ->
-                copiarTexto(mensagem)
+            .setNeutralButton(
+                "COPIAR"
+            ) { _, _ ->
+
+                copiarTexto(
+                    mensagem
+                )
+
                 dialogoErroAberto = false
             }
             .setOnDismissListener {
@@ -1083,84 +1372,109 @@ class VideoViewerActivity : Activity() {
         titulo: String,
         erro: Throwable
     ): String {
-        val texto = StringBuilder()
 
-        texto.append(titulo)
-        texto.append("\n\n")
+        val texto =
+            StringBuilder()
+
+        texto.append(
+            titulo
+        )
+
+        texto.append(
+            "\n\n"
+        )
 
         if (::arquivoAtual.isInitialized) {
 
-            texto.append("Arquivo:\n")
+            texto.append(
+                "Arquivo:\n"
+            )
+
             texto.append(
                 arquivoAtual.absolutePath
             )
-            texto.append("\n\n")
 
-            texto.append("Tamanho:\n")
+            texto.append(
+                "\n\nTamanho:\n"
+            )
+
             texto.append(
                 formatarTamanho(
                     arquivoAtual.length()
                 )
             )
-            texto.append("\n\n")
 
-            texto.append("MIME:\n")
             texto.append(
-                obterMimeType(arquivoAtual)
+                "\n\nMIME:\n"
             )
-            texto.append("\n\n")
+
+            texto.append(
+                obterMimeType(
+                    arquivoAtual
+                )
+            )
         }
 
-        texto.append("Classe:\n")
+        texto.append(
+            "\n\nClasse:\n"
+        )
+
         texto.append(
             erro.javaClass.name
         )
 
-        texto.append("\n\n")
-
-        texto.append("Mensagem:\n")
         texto.append(
-            erro.message ?: "Sem mensagem"
+            "\n\nMensagem:\n"
+        )
+
+        texto.append(
+            erro.message
+                ?: "Sem mensagem"
         )
 
         if (erro is PlaybackException) {
 
-            texto.append("\n\n")
+            texto.append(
+                "\n\nCódigo Media3:\n"
+            )
 
-            texto.append("Código Media3:\n")
             texto.append(
                 erro.errorCode
             )
 
-            texto.append("\n\n")
-
-            texto.append("Nome do código:\n")
             texto.append(
-                PlaybackException
-                    .getErrorCodeName(
-                        erro.errorCode
-                    )
+                "\n\nNome do código:\n"
+            )
+
+            texto.append(
+                PlaybackException.getErrorCodeName(
+                    erro.errorCode
+                )
             )
         }
 
-        if (erro.cause != null) {
+        erro.cause?.let { causa ->
 
-            texto.append("\n\n")
-
-            texto.append("Causa:\n")
             texto.append(
-                erro.cause?.javaClass?.name
+                "\n\nCausa:\n"
             )
 
-            texto.append("\n")
+            texto.append(
+                causa.javaClass.name
+            )
 
             texto.append(
-                erro.cause?.message
-                    ?: ""
+                "\n"
+            )
+
+            texto.append(
+                causa.message ?: ""
             )
         }
 
-        texto.append("\n\nStacktrace:\n")
+        texto.append(
+            "\n\nStacktrace:\n"
+        )
 
         texto.append(
             erro.stackTraceToString()
@@ -1172,7 +1486,9 @@ class VideoViewerActivity : Activity() {
     private fun copiarTexto(
         texto: String
     ) {
+
         try {
+
             val clipboard =
                 getSystemService(
                     Context.CLIPBOARD_SERVICE
@@ -1196,23 +1512,26 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun liberarPlayer() {
+
         try {
-            if (player != null) {
+
+            player?.let {
+
                 ultimaPosicao =
-                    player?.currentPosition
-                        ?: ultimaPosicao
+                    it.currentPosition
 
                 ultimoIndicePlayer =
-                    player?.currentMediaItemIndex
-                        ?: ultimoIndicePlayer
+                    it.currentMediaItemIndex
 
-                player?.stop()
-                player?.release()
+                it.stop()
+                it.release()
             }
+
         } catch (_: Exception) {
         }
 
         player = null
+
         playerPreparado = false
 
         if (::playerView.isInitialized) {
@@ -1220,25 +1539,17 @@ class VideoViewerActivity : Activity() {
         }
     }
 
-    private fun tentarReproduzirNovamente() {
-        fallbackExternoTentado = false
-        dialogoErroAberto = false
-        reproduzirAoRetornar = true
-
-        inicializarPlayer()
-    }
-
     private fun configurarGestos() {
-        /*
-         * Os gestos principais são tratados pelo
-         * GesturePlayerView.
-         */
+        // Os gestos são tratados pelo GesturePlayerView.
     }
 
     private fun trocarVideo(
         deslocamento: Int
     ) {
-        if (arquivos.isEmpty()) return
+
+        if (arquivos.isEmpty()) {
+            return
+        }
 
         val novoIndice =
             posicaoAtual + deslocamento
@@ -1247,13 +1558,20 @@ class VideoViewerActivity : Activity() {
             return
         }
 
-        posicaoAtual = novoIndice
+        posicaoAtual =
+            novoIndice
+
         arquivoAtual =
-            File(arquivos[posicaoAtual])
+            File(
+                arquivos[posicaoAtual]
+            )
 
         ultimaPosicao = 0L
+
         ultimoIndicePlayer = 0
+
         fallbackExternoTentado = false
+
         reproduzirAoRetornar = true
 
         atualizarCabecalho()
@@ -1262,7 +1580,10 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun mostrarMenu() {
-        if (isFinishing) return
+
+        if (isFinishing) {
+            return
+        }
 
         val layout =
             LinearLayout(this)
@@ -1274,16 +1595,17 @@ class VideoViewerActivity : Activity() {
             Color.rgb(35, 35, 35)
         )
 
-        val opcoes = arrayOf(
-            "Compartilhar",
-            "Abrir com...",
-            "Informações",
-            "Renomear",
-            "Copiar",
-            "Mover",
-            "Criar pasta",
-            "Enviar para lixeira"
-        )
+        val opcoes =
+            arrayOf(
+                "Compartilhar",
+                "Abrir com...",
+                "Informações",
+                "Renomear",
+                "Copiar",
+                "Mover",
+                "Criar pasta",
+                "Enviar para lixeira"
+            )
 
         val popup =
             PopupWindow(
@@ -1293,16 +1615,24 @@ class VideoViewerActivity : Activity() {
                 true
             )
 
-        popupAtual = popup
+        popupAtual =
+            popup
 
         for (opcao in opcoes) {
 
             val item =
                 TextView(this)
 
-            item.text = opcao
-            item.textSize = 16f
-            item.setTextColor(Color.WHITE)
+            item.text =
+                opcao
+
+            item.textSize =
+                16f
+
+            item.setTextColor(
+                Color.WHITE
+            )
+
             item.gravity =
                 Gravity.CENTER_VERTICAL
 
@@ -1316,6 +1646,7 @@ class VideoViewerActivity : Activity() {
             item.setOnClickListener {
 
                 popup.dismiss()
+
                 popupAtual = null
 
                 when (opcao) {
@@ -1361,8 +1692,15 @@ class VideoViewerActivity : Activity() {
             )
         )
 
-        popup.isOutsideTouchable = true
-        popup.elevation = dp(8).toFloat()
+        popup.isOutsideTouchable =
+            true
+
+        popup.elevation =
+            dp(8).toFloat()
+
+        popup.setOnDismissListener {
+            popupAtual = null
+        }
 
         popup.showAtLocation(
             raiz,
@@ -1373,9 +1711,13 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun compartilharArquivo() {
-        if (!arquivoAtual.exists()) return
+
+        if (!arquivoAtual.exists()) {
+            return
+        }
 
         try {
+
             val uri =
                 FileProvider.getUriForFile(
                     this,
@@ -1384,7 +1726,9 @@ class VideoViewerActivity : Activity() {
                 )
 
             val intent =
-                Intent(Intent.ACTION_SEND).apply {
+                Intent(
+                    Intent.ACTION_SEND
+                ).apply {
 
                     type =
                         obterMimeType(
@@ -1414,7 +1758,8 @@ class VideoViewerActivity : Activity() {
                 )
             )
 
-        } catch (e: Exception) {
+        } catch (_: Exception) {
+
             Toast.makeText(
                 this,
                 "Não foi possível compartilhar.",
@@ -1424,9 +1769,13 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun abrirComAplicativo() {
-        if (!arquivoAtual.exists()) return
+
+        if (!arquivoAtual.exists()) {
+            return
+        }
 
         try {
+
             val uri =
                 FileProvider.getUriForFile(
                     this,
@@ -1458,7 +1807,10 @@ class VideoViewerActivity : Activity() {
                     uri
                 )
 
-                startActivity(intentExato)
+                startActivity(
+                    intentExato
+                )
+
                 return
             }
 
@@ -1483,7 +1835,10 @@ class VideoViewerActivity : Activity() {
                         uri
                     )
 
-                    startActivity(generico)
+                    startActivity(
+                        generico
+                    )
+
                     return
                 }
             }
@@ -1494,7 +1849,7 @@ class VideoViewerActivity : Activity() {
                 Toast.LENGTH_LONG
             ).show()
 
-        } catch (e: ActivityNotFoundException) {
+        } catch (_: ActivityNotFoundException) {
 
             Toast.makeText(
                 this,
@@ -1502,7 +1857,7 @@ class VideoViewerActivity : Activity() {
                 Toast.LENGTH_LONG
             ).show()
 
-        } catch (e: Exception) {
+        } catch (_: Exception) {
 
             Toast.makeText(
                 this,
@@ -1513,24 +1868,44 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun mostrarInformacoes() {
-        if (!arquivoAtual.exists()) return
 
-        val info = StringBuilder()
+        if (!arquivoAtual.exists()) {
+            return
+        }
 
-        info.append("Nome:\n")
-        info.append(arquivoAtual.name)
+        val info =
+            StringBuilder()
 
-        info.append("\n\nCaminho:\n")
-        info.append(arquivoAtual.absolutePath)
+        info.append(
+            "Nome:\n"
+        )
 
-        info.append("\n\nTamanho:\n")
+        info.append(
+            arquivoAtual.name
+        )
+
+        info.append(
+            "\n\nCaminho:\n"
+        )
+
+        info.append(
+            arquivoAtual.absolutePath
+        )
+
+        info.append(
+            "\n\nTamanho:\n"
+        )
+
         info.append(
             formatarTamanho(
                 arquivoAtual.length()
             )
         )
 
-        info.append("\n\nTipo:\n")
+        info.append(
+            "\n\nTipo:\n"
+        )
+
         info.append(
             obterMimeType(
                 arquivoAtual
@@ -1538,6 +1913,7 @@ class VideoViewerActivity : Activity() {
         )
 
         try {
+
             val retriever =
                 MediaMetadataRetriever()
 
@@ -1566,7 +1942,11 @@ class VideoViewerActivity : Activity() {
                 )
 
             if (!duracao.isNullOrBlank()) {
-                info.append("\n\nDuração:\n")
+
+                info.append(
+                    "\n\nDuração:\n"
+                )
+
                 info.append(
                     formatarDuracao(
                         duracao.toLongOrNull()
@@ -1575,18 +1955,29 @@ class VideoViewerActivity : Activity() {
                 )
             }
 
-            if (!largura.isNullOrBlank() &&
+            if (
+                !largura.isNullOrBlank() &&
                 !altura.isNullOrBlank()
             ) {
-                info.append("\n\nResolução:\n")
+
                 info.append(
-                    "${largura} x ${altura}"
+                    "\n\nResolução:\n"
+                )
+
+                info.append(
+                    "$largura x $altura"
                 )
             }
 
             if (!codec.isNullOrBlank()) {
-                info.append("\n\nFormato detectado:\n")
-                info.append(codec)
+
+                info.append(
+                    "\n\nFormato detectado:\n"
+                )
+
+                info.append(
+                    codec
+                )
             }
 
             retriever.release()
@@ -1595,17 +1986,31 @@ class VideoViewerActivity : Activity() {
         }
 
         AlertDialog.Builder(this)
-            .setTitle("Informações do vídeo")
-            .setMessage(info.toString())
-            .setPositiveButton("OK", null)
-            .setNeutralButton("COPIAR") { _, _ ->
-                copiarTexto(info.toString())
+            .setTitle(
+                "Informações do vídeo"
+            )
+            .setMessage(
+                info.toString()
+            )
+            .setPositiveButton(
+                "OK",
+                null
+            )
+            .setNeutralButton(
+                "COPIAR"
+            ) { _, _ ->
+                copiarTexto(
+                    info.toString()
+                )
             }
             .show()
     }
 
     private fun renomearArquivo() {
-        if (!arquivoAtual.exists()) return
+
+        if (!arquivoAtual.exists()) {
+            return
+        }
 
         val campo =
             EditText(this)
@@ -1618,7 +2023,9 @@ class VideoViewerActivity : Activity() {
 
         val dialog =
             AlertDialog.Builder(this)
-                .setTitle("Renomear")
+                .setTitle(
+                    "Renomear"
+                )
                 .setView(campo)
                 .setNegativeButton(
                     "CANCELAR",
@@ -1640,33 +2047,51 @@ class VideoViewerActivity : Activity() {
                     campo.text.toString().trim()
 
                 if (novoNome.isBlank()) {
+
                     campo.error =
                         "Digite um nome."
+
+                    return@setOnClickListener
+                }
+
+                val pai =
+                    arquivoAtual.parentFile
+
+                if (pai == null) {
+
+                    campo.error =
+                        "Pasta de origem inválida."
+
                     return@setOnClickListener
                 }
 
                 val destino =
                     File(
-                        arquivoAtual.parentFile,
+                        pai,
                         novoNome
                     )
 
                 if (destino.exists()) {
+
                     campo.error =
                         "Já existe um arquivo com esse nome."
+
                     return@setOnClickListener
                 }
 
                 try {
-                    if (arquivoAtual.renameTo(destino)) {
 
-                        val indice =
-                            posicaoAtual
+                    if (
+                        arquivoAtual.renameTo(
+                            destino
+                        )
+                    ) {
 
-                        arquivos[indice] =
+                        arquivos[posicaoAtual] =
                             destino.absolutePath
 
-                        arquivoAtual = destino
+                        arquivoAtual =
+                            destino
 
                         atualizarCabecalho()
 
@@ -1697,6 +2122,7 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun copiarArquivo() {
+
         selecionarPastaDestino(
             "Copiar para"
         ) { pastaDestino ->
@@ -1710,11 +2136,13 @@ class VideoViewerActivity : Activity() {
                     )
 
                 if (destino.exists()) {
+
                     Toast.makeText(
                         this,
                         "Já existe um arquivo com esse nome.",
                         Toast.LENGTH_LONG
                     ).show()
+
                     return@selecionarPastaDestino
                 }
 
@@ -1741,6 +2169,7 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun moverArquivo() {
+
         selecionarPastaDestino(
             "Mover para"
         ) { pastaDestino ->
@@ -1754,23 +2183,27 @@ class VideoViewerActivity : Activity() {
                     )
 
                 if (destino.exists()) {
+
                     Toast.makeText(
                         this,
                         "Já existe um arquivo com esse nome.",
                         Toast.LENGTH_LONG
                     ).show()
+
                     return@selecionarPastaDestino
                 }
 
-                if (arquivoAtual.renameTo(destino)) {
+                if (
+                    arquivoAtual.renameTo(
+                        destino
+                    )
+                ) {
 
-                    val indice =
-                        posicaoAtual
-
-                    arquivos[indice] =
+                    arquivos[posicaoAtual] =
                         destino.absolutePath
 
-                    arquivoAtual = destino
+                    arquivoAtual =
+                        destino
 
                     atualizarCabecalho()
 
@@ -1792,7 +2225,8 @@ class VideoViewerActivity : Activity() {
                         arquivos[posicaoAtual] =
                             destino.absolutePath
 
-                        arquivoAtual = destino
+                        arquivoAtual =
+                            destino
 
                         atualizarCabecalho()
                     }
@@ -1813,6 +2247,7 @@ class VideoViewerActivity : Activity() {
         titulo: String,
         callback: (File) -> Unit
     ) {
+
         val raizStorage =
             Environment.getExternalStorageDirectory()
 
@@ -1831,28 +2266,35 @@ class VideoViewerActivity : Activity() {
         )
 
         val nomes =
-            pastas.map {
-                if (it.absolutePath ==
+            pastas.map { pasta ->
+
+                if (
+                    pasta.absolutePath ==
                     raizStorage.absolutePath
                 ) {
+
                     "Armazenamento principal"
+
                 } else {
-                    it.absolutePath
+
+                    pasta.absolutePath
                         .removePrefix(
                             raizStorage.absolutePath
                         )
                         .trim('/')
                 }
+
             }.toTypedArray()
 
         AlertDialog.Builder(this)
             .setTitle(titulo)
-            .setItems(nomes) { _, which ->
+            .setItems(
+                nomes
+            ) { _, which ->
 
-                val pasta =
+                callback(
                     pastas[which]
-
-                callback(pasta)
+                )
             }
             .setNegativeButton(
                 "CANCELAR",
@@ -1866,7 +2308,10 @@ class VideoViewerActivity : Activity() {
         lista: ArrayList<File>,
         nivel: Int
     ) {
-        if (nivel >= 3) return
+
+        if (nivel >= 3) {
+            return
+        }
 
         try {
 
@@ -1898,6 +2343,7 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun criarPasta() {
+
         val campo =
             EditText(this)
 
@@ -1905,7 +2351,9 @@ class VideoViewerActivity : Activity() {
             "Nome da pasta"
 
         AlertDialog.Builder(this)
-            .setTitle("Criar pasta")
+            .setTitle(
+                "Criar pasta"
+            )
             .setView(campo)
             .setNegativeButton(
                 "CANCELAR",
@@ -1919,11 +2367,13 @@ class VideoViewerActivity : Activity() {
                     campo.text.toString().trim()
 
                 if (nome.isBlank()) {
+
                     Toast.makeText(
                         this,
                         "Digite um nome.",
                         Toast.LENGTH_SHORT
                     ).show()
+
                     return@setPositiveButton
                 }
 
@@ -1976,10 +2426,15 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun enviarParaLixeira() {
-        if (!arquivoAtual.exists()) return
+
+        if (!arquivoAtual.exists()) {
+            return
+        }
 
         AlertDialog.Builder(this)
-            .setTitle("Enviar para lixeira?")
+            .setTitle(
+                "Enviar para lixeira?"
+            )
             .setMessage(
                 "O arquivo será movido para a lixeira do Gerenciador de Arquivos."
             )
@@ -2007,16 +2462,33 @@ class VideoViewerActivity : Activity() {
 
                     while (destino.exists()) {
 
+                        val extensao =
+                            arquivoAtual.extension
+
                         destino =
-                            File(
-                                pastaLixeira,
-                                "${arquivoAtual.nameWithoutExtension} ($contador).${arquivoAtual.extension}"
-                            )
+                            if (extensao.isBlank()) {
+
+                                File(
+                                    pastaLixeira,
+                                    "${arquivoAtual.nameWithoutExtension} ($contador)"
+                                )
+
+                            } else {
+
+                                File(
+                                    pastaLixeira,
+                                    "${arquivoAtual.nameWithoutExtension} ($contador).$extensao"
+                                )
+                            }
 
                         contador++
                     }
 
-                    if (arquivoAtual.renameTo(destino)) {
+                    if (
+                        arquivoAtual.renameTo(
+                            destino
+                        )
+                    ) {
 
                         liberarPlayer()
 
@@ -2033,10 +2505,13 @@ class VideoViewerActivity : Activity() {
                             ).show()
 
                             finish()
+
                             return@setPositiveButton
                         }
 
-                        if (posicaoAtual >= arquivos.size) {
+                        if (
+                            posicaoAtual >= arquivos.size
+                        ) {
                             posicaoAtual =
                                 arquivos.size - 1
                         }
@@ -2049,6 +2524,7 @@ class VideoViewerActivity : Activity() {
                         atualizarCabecalho()
 
                         fallbackExternoTentado = false
+
                         reproduzirAoRetornar = true
 
                         inicializarPlayer()
@@ -2083,6 +2559,7 @@ class VideoViewerActivity : Activity() {
     private fun obterMimeType(
         arquivo: File
     ): String {
+
         return when (
             arquivo.extension.lowercase(
                 Locale.getDefault()
@@ -2114,6 +2591,12 @@ class VideoViewerActivity : Activity() {
             "m4v" ->
                 "video/x-m4v"
 
+            "ts" ->
+                "video/mp2t"
+
+            "flv" ->
+                "video/x-flv"
+
             else ->
                 "video/*"
         }
@@ -2122,6 +2605,7 @@ class VideoViewerActivity : Activity() {
     private fun formatarTamanho(
         tamanho: Long
     ): String {
+
         if (tamanho <= 0L) {
             return "0 B"
         }
@@ -2141,22 +2625,29 @@ class VideoViewerActivity : Activity() {
         var indice = 0
 
         while (
-            valor >= 1024 &&
+            valor >= 1024.0 &&
             indice < unidades.lastIndex
         ) {
-            valor /= 1024
+
+            valor /= 1024.0
+
             indice++
         }
 
         val decimal =
-            DecimalFormat("0.##")
+            DecimalFormat(
+                "0.##"
+            )
 
-        return "${decimal.format(valor)} ${unidades[indice]}"
+        return "${
+            decimal.format(valor)
+        } ${unidades[indice]}"
     }
 
     private fun formatarDuracao(
         milissegundos: Long
     ): String {
+
         if (milissegundos <= 0L) {
             return "0:00"
         }
@@ -2174,6 +2665,7 @@ class VideoViewerActivity : Activity() {
             segundos % 60
 
         return if (horas > 0) {
+
             String.format(
                 Locale.getDefault(),
                 "%d:%02d:%02d",
@@ -2181,7 +2673,9 @@ class VideoViewerActivity : Activity() {
                 minutos,
                 segundosRestantes
             )
+
         } else {
+
             String.format(
                 Locale.getDefault(),
                 "%d:%02d",
@@ -2194,6 +2688,7 @@ class VideoViewerActivity : Activity() {
     private fun dp(
         valor: Int
     ): Int {
+
         return (
             valor *
                     resources.displayMetrics.density
@@ -2204,8 +2699,11 @@ class VideoViewerActivity : Activity() {
         context: Context
     ) : PlayerView(context) {
 
-        var onSwipeLeft: (() -> Unit)? = null
-        var onSwipeRight: (() -> Unit)? = null
+        var onSwipeLeft:
+                (() -> Unit)? = null
+
+        var onSwipeRight:
+                (() -> Unit)? = null
 
         private var inicioX = 0f
         private var inicioY = 0f
@@ -2217,14 +2715,21 @@ class VideoViewerActivity : Activity() {
             when (event.actionMasked) {
 
                 MotionEvent.ACTION_DOWN -> {
-                    inicioX = event.x
-                    inicioY = event.y
+
+                    inicioX =
+                        event.x
+
+                    inicioY =
+                        event.y
                 }
 
                 MotionEvent.ACTION_UP -> {
 
-                    val fimX = event.x
-                    val fimY = event.y
+                    val fimX =
+                        event.x
+
+                    val fimY =
+                        event.y
 
                     val distanciaX =
                         fimX - inicioX
@@ -2233,13 +2738,18 @@ class VideoViewerActivity : Activity() {
                         fimY - inicioY
 
                     if (
-                        abs(distanciaX) > dpGesture(100) &&
-                        abs(distanciaX) > abs(distanciaY)
+                        abs(distanciaX) >
+                        dpGesture(100) &&
+                        abs(distanciaX) >
+                        abs(distanciaY)
                     ) {
 
                         if (distanciaX < 0) {
+
                             onSwipeLeft?.invoke()
+
                         } else {
+
                             onSwipeRight?.invoke()
                         }
 
@@ -2248,12 +2758,15 @@ class VideoViewerActivity : Activity() {
                 }
             }
 
-            return super.onTouchEvent(event)
+            return super.onTouchEvent(
+                event
+            )
         }
 
         private fun dpGesture(
             valor: Int
         ): Float {
+
             return valor *
                     resources.displayMetrics.density
         }
