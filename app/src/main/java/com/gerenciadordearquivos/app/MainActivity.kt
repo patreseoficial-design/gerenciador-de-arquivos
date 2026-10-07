@@ -1,6 +1,5 @@
 package com.gerenciadordearquivos.app
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.ClipData
@@ -22,7 +21,6 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
-import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.GridView
@@ -41,7 +39,6 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import android.util.LruCache
-import android.view.inputmethod.InputMethodManager
 
 class MainActivity : AppCompatActivity() {
 
@@ -362,6 +359,7 @@ class MainActivity : AppCompatActivity() {
         searchEdit.setOnFocusChangeListener { _, hasFocus ->
 
             if (!hasFocus) {
+
                 val texto =
                     searchEdit.text.toString()
 
@@ -445,8 +443,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         return if (indice == 0) {
+
             "${valor.toLong()} ${unidades[indice]}"
+
         } else {
+
             String.format(
                 Locale.getDefault(),
                 "%.1f %s",
@@ -466,16 +467,13 @@ class MainActivity : AppCompatActivity() {
             if (
                 !Environment.isExternalStorageManager()
             ) {
-
                 // Não abre automaticamente a tela de configurações.
-                // O aplicativo continua funcionando normalmente
-                // enquanto o usuário não conceder a permissão.
             }
         }
     }
 
     // ============================================================
-    // ABRIR ARMAZENAMENTO
+    // ARMAZENAMENTO
     // ============================================================
 
     private fun abrirArmazenamento() {
@@ -653,7 +651,6 @@ class MainActivity : AppCompatActivity() {
                     it.pasta.name.lowercase(
                         Locale.getDefault()
                     )
-
                 }
 
             runOnUiThread {
@@ -825,7 +822,7 @@ class MainActivity : AppCompatActivity() {
             "Aplicativos"
 
         currentPath.text =
-            "Aplicativos instalados"
+            "Carregando aplicativos..."
 
         mediaGrid.visibility =
             View.GONE
@@ -847,6 +844,15 @@ class MainActivity : AppCompatActivity() {
 
                 currentPath.text =
                     "${aplicativos.size} aplicativos instalados"
+
+                if (aplicativos.isEmpty()) {
+
+                    Toast.makeText(
+                        this,
+                        "Nenhum aplicativo encontrado",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
@@ -862,59 +868,90 @@ class MainActivity : AppCompatActivity() {
 
         try {
 
-            val aplicativos =
+            /*
+             * Usamos ACTION_MAIN + CATEGORY_LAUNCHER
+             * para encontrar os aplicativos que possuem
+             * um ícone e podem ser iniciados pelo usuário.
+             *
+             * Isso é mais confiável para um gerenciador
+             * de arquivos do que simplesmente mostrar
+             * todos os pacotes internos do Android.
+             */
+
+            val intent =
+                Intent(
+                    Intent.ACTION_MAIN,
+                    null
+                ).apply {
+                    addCategory(
+                        Intent.CATEGORY_LAUNCHER
+                    )
+                }
+
+            val atividades =
                 if (
                     android.os.Build.VERSION.SDK_INT >=
                     android.os.Build.VERSION_CODES.TIRAMISU
                 ) {
 
-                    pm.getInstalledApplications(
-                        PackageManager.ApplicationInfoFlags.of(
-                            PackageManager.GET_META_DATA.toLong()
+                    pm.queryIntentActivities(
+                        intent,
+                        PackageManager.ResolveInfoFlags.of(
+                            PackageManager.MATCH_ALL.toLong()
                         )
                     )
 
                 } else {
 
                     @Suppress("DEPRECATION")
-                    pm.getInstalledApplications(
-                        PackageManager.GET_META_DATA
+                    pm.queryIntentActivities(
+                        intent,
+                        PackageManager.MATCH_ALL
                     )
                 }
 
-            for (app in aplicativos) {
+            val pacotesAdicionados =
+                HashSet<String>()
+
+            for (resolveInfo in atividades) {
 
                 try {
 
-                    val intent =
-                        pm.getLaunchIntentForPackage(
-                            app.packageName
+                    val info =
+                        resolveInfo.activityInfo
+                            ?.applicationInfo
+                            ?: continue
+
+                    val pacote =
+                        info.packageName
+
+                    if (
+                        pacotesAdicionados.contains(
+                            pacote
                         )
+                    ) {
+                        continue
+                    }
 
-                    /*
-                     * Só mostramos aplicativos que podem
-                     * ser abertos pelo usuário.
-                     *
-                     * Isso evita que apareçam dezenas
-                     * de serviços internos do Android.
-                     */
+                    pacotesAdicionados.add(
+                        pacote
+                    )
 
-                    if (intent != null) {
+                    val nome =
+                        info.loadLabel(pm)
+                            .toString()
+                            .trim()
 
-                        val nome =
-                            app.loadLabel(pm)
-                                .toString()
-                                .trim()
+                    if (
+                        nome.isNotEmpty()
+                    ) {
 
-                        if (nome.isNotEmpty()) {
-
-                            resultado.add(
-                                AppInfoItem(
-                                    app,
-                                    nome
-                                )
+                        resultado.add(
+                            AppInfoItem(
+                                info,
+                                nome
                             )
-                        }
+                        )
                     }
 
                 } catch (_: Exception) {
@@ -922,13 +959,82 @@ class MainActivity : AppCompatActivity() {
             }
 
         } catch (_: Exception) {
+
+            /*
+             * Fallback para aparelhos onde a consulta
+             * acima apresentar alguma limitação.
+             */
+
+            try {
+
+                val aplicativos =
+                    if (
+                        android.os.Build.VERSION.SDK_INT >=
+                        android.os.Build.VERSION_CODES.TIRAMISU
+                    ) {
+
+                        pm.getInstalledApplications(
+                            PackageManager.ApplicationInfoFlags.of(
+                                PackageManager.GET_META_DATA.toLong()
+                            )
+                        )
+
+                    } else {
+
+                        @Suppress("DEPRECATION")
+                        pm.getInstalledApplications(
+                            PackageManager.GET_META_DATA
+                        )
+                    }
+
+                for (app in aplicativos) {
+
+                    try {
+
+                        val launchIntent =
+                            pm.getLaunchIntentForPackage(
+                                app.packageName
+                            )
+
+                        if (
+                            launchIntent != null
+                        ) {
+
+                            val nome =
+                                app.loadLabel(pm)
+                                    .toString()
+                                    .trim()
+
+                            if (
+                                nome.isNotEmpty()
+                            ) {
+
+                                resultado.add(
+                                    AppInfoItem(
+                                        app,
+                                        nome
+                                    )
+                                )
+                            }
+                        }
+
+                    } catch (_: Exception) {
+                    }
+                }
+
+            } catch (_: Exception) {
+            }
         }
 
-        return resultado.sortedBy {
-            it.nome.lowercase(
-                Locale.getDefault()
-            )
-        }
+        return resultado
+            .distinctBy {
+                it.info.packageName
+            }
+            .sortedBy {
+                it.nome.lowercase(
+                    Locale.getDefault()
+                )
+            }
     }
 
     private fun abrirAplicativo(
@@ -1181,6 +1287,7 @@ class MainActivity : AppCompatActivity() {
     ) {
 
         if (!arquivo.exists()) {
+
             Toast.makeText(
                 this,
                 "Arquivo não encontrado",
@@ -1289,7 +1396,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-        } catch (e: Exception) {
+        } catch (_: Exception) {
 
             Toast.makeText(
                 this,
@@ -1401,9 +1508,7 @@ class MainActivity : AppCompatActivity() {
 
             startActivity(intent)
 
-        } catch (
-            e: ActivityNotFoundException
-        ) {
+        } catch (_: ActivityNotFoundException) {
 
             Toast.makeText(
                 this,
@@ -1677,39 +1782,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     // ============================================================
-    // VOLTAR
+    // VOLTAR — DIRETO PARA A TELA INICIAL
     // ============================================================
 
     private fun voltar() {
 
-        if (
-            fileScreen.visibility !=
-            View.VISIBLE
-        ) {
-            return
-        }
-
-        if (
-            tipoDeMidiaAtual != 0 &&
-            pastaAtual !=
-            Environment.getExternalStorageDirectory()
-        ) {
-
-            val pai =
-                pastaAtual.parentFile
-
-            if (
-                pai != null &&
-                pai.exists()
-            ) {
-
-                abrirPastaDeMidia(
-                    pai
-                )
-
-                return
-            }
-        }
+        /*
+         * Não importa em qual pasta/subpasta o usuário esteja:
+         *
+         * Imagens
+         *   -> DCIM
+         *      -> WhatsApp
+         *
+         * ao apertar voltar, retorna diretamente para
+         * a tela inicial do Gerenciador de Arquivos+.
+         */
 
         fileScreen.visibility =
             View.GONE
@@ -1727,6 +1814,8 @@ class MainActivity : AppCompatActivity() {
             Environment.getExternalStorageDirectory()
 
         tipoDeMidiaAtual = 0
+
+        searchEdit.clearFocus()
 
         atualizarArmazenamento()
     }
@@ -1956,7 +2045,6 @@ class MainActivity : AppCompatActivity() {
                 dp(8)
             )
 
-            // ÍCONE REAL DO APLICATIVO
             val icone =
                 ImageView(
                     this@MainActivity
@@ -2243,16 +2331,6 @@ class MainActivity : AppCompatActivity() {
                     android.R.drawable.ic_menu_gallery
                 )
             }
-
-            /*
-             * Reservamos espaço suficiente para:
-             *
-             * 1. miniatura
-             * 2. nome da pasta
-             * 3. quantidade de arquivos
-             *
-             * Isso evita que "(12)" fique cortado.
-             */
 
             layout.addView(
                 imagem,
