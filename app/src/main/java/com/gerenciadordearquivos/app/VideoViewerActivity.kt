@@ -55,6 +55,10 @@ class VideoViewerActivity : Activity() {
 
     private val arquivos = ArrayList<String>()
 
+    /*
+     * Lista EXATA dos arquivos que realmente entraram
+     * no ExoPlayer.
+     */
     private val arquivosDoPlayer =
         ArrayList<String>()
 
@@ -90,6 +94,11 @@ class VideoViewerActivity : Activity() {
 
     private val chaveData =
         "data_erro"
+
+    companion object {
+
+        private var capturadorInstalado = false
+    }
 
     // =========================================================
     // CICLO DE VIDA
@@ -228,17 +237,19 @@ class VideoViewerActivity : Activity() {
 
                 if (
                     indicePlayer >= 0 &&
-                    indicePlayer <
-                    arquivosDoPlayer.size
+                    indicePlayer < arquivosDoPlayer.size
                 ) {
 
                     outState.putString(
                         "caminho_video",
-                        arquivosDoPlayer[
-                            indicePlayer
-                        ]
+                        arquivosDoPlayer[indicePlayer]
                     )
                 }
+
+                outState.putInt(
+                    "indice_video",
+                    posicaoAtual
+                )
 
                 outState.putBoolean(
                     "reproduzindo",
@@ -282,8 +293,7 @@ class VideoViewerActivity : Activity() {
     }
 
     override fun onConfigurationChanged(
-        newConfig:
-        android.content.res.Configuration
+        newConfig: android.content.res.Configuration
     ) {
 
         super.onConfigurationChanged(
@@ -316,10 +326,19 @@ class VideoViewerActivity : Activity() {
     }
 
     // =========================================================
-    // DIAGNÓSTICO
+    // CAPTURA DE ERRO FATAL
     // =========================================================
 
     private fun instalarCapturaDeErroFatal() {
+
+        if (capturadorInstalado) {
+            return
+        }
+
+        capturadorInstalado = true
+
+        val contexto =
+            applicationContext
 
         val handlerAnterior =
             Thread.getDefaultUncaughtExceptionHandler()
@@ -331,6 +350,7 @@ class VideoViewerActivity : Activity() {
             try {
 
                 salvarErroFatal(
+                    contexto,
                     thread,
                     throwable
                 )
@@ -351,105 +371,116 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun salvarErroFatal(
+        contexto: Context,
         thread: Thread,
         throwable: Throwable
     ) {
 
-        val sb =
-            StringBuilder()
+        try {
 
-        sb.append(
-            "ERRO FATAL DO GERENCIADOR DE ARQUIVOS+\n\n"
-        )
-
-        sb.append(
-            "Thread: "
-        )
-
-        sb.append(
-            thread.name
-        )
-
-        sb.append(
-            "\n\n"
-        )
-
-        sb.append(
-            "Tipo: "
-        )
-
-        sb.append(
-            throwable.javaClass.name
-        )
-
-        sb.append(
-            "\n\n"
-        )
-
-        sb.append(
-            "Mensagem:\n"
-        )
-
-        sb.append(
-            throwable.message
-                ?: "Sem mensagem"
-        )
-
-        sb.append(
-            "\n\n"
-        )
-
-        sb.append(
-            "Causa:\n"
-        )
-
-        sb.append(
-            throwable.cause?.toString()
-                ?: "Nenhuma"
-        )
-
-        sb.append(
-            "\n\n"
-        )
-
-        if (::arquivoAtual.isInitialized) {
+            val sb =
+                StringBuilder()
 
             sb.append(
-                "Arquivo:\n"
+                "ERRO FATAL DO GERENCIADOR DE ARQUIVOS+\n\n"
             )
 
             sb.append(
-                arquivoAtual.absolutePath
+                "Thread: "
+            )
+
+            sb.append(
+                thread.name
             )
 
             sb.append(
                 "\n\n"
             )
+
+            sb.append(
+                "Tipo: "
+            )
+
+            sb.append(
+                throwable.javaClass.name
+            )
+
+            sb.append(
+                "\n\n"
+            )
+
+            sb.append(
+                "Mensagem:\n"
+            )
+
+            sb.append(
+                throwable.message
+                    ?: "Sem mensagem"
+            )
+
+            sb.append(
+                "\n\n"
+            )
+
+            sb.append(
+                "Causa:\n"
+            )
+
+            sb.append(
+                throwable.cause?.toString()
+                    ?: "Nenhuma"
+            )
+
+            sb.append(
+                "\n\n"
+            )
+
+            if (::arquivoAtual.isInitialized) {
+
+                sb.append(
+                    "Arquivo:\n"
+                )
+
+                sb.append(
+                    arquivoAtual.absolutePath
+                )
+
+                sb.append(
+                    "\n\n"
+                )
+            }
+
+            sb.append(
+                "STACKTRACE:\n"
+            )
+
+            sb.append(
+                throwable.stackTraceToString()
+            )
+
+            contexto
+                .getSharedPreferences(
+                    preferenciasDiagnostico,
+                    Context.MODE_PRIVATE
+                )
+                .edit()
+                .putString(
+                    chaveErro,
+                    sb.toString()
+                )
+                .putLong(
+                    chaveData,
+                    System.currentTimeMillis()
+                )
+                .commit()
+
+        } catch (_: Exception) {
         }
-
-        sb.append(
-            "STACKTRACE:\n"
-        )
-
-        sb.append(
-            throwable.stackTraceToString()
-        )
-
-        getSharedPreferences(
-            preferenciasDiagnostico,
-            Context.MODE_PRIVATE
-        )
-            .edit()
-            .putString(
-                chaveErro,
-                sb.toString()
-            )
-            .putLong(
-                chaveData,
-                System.currentTimeMillis()
-            )
-            .commit()
     }
+
+    // =========================================================
+    // ERRO FATAL
+    // =========================================================
 
     private fun tratarErroFatal(
         local: String,
@@ -549,9 +580,7 @@ class VideoViewerActivity : Activity() {
                 )
                 .commit()
 
-            if (
-                ::raiz.isInitialized
-            ) {
+            if (::raiz.isInitialized) {
 
                 raiz.post {
 
@@ -584,6 +613,10 @@ class VideoViewerActivity : Activity() {
             }
         }
     }
+
+    // =========================================================
+    // DIAGNÓSTICO NORMAL
+    // =========================================================
 
     private fun mostrarErroDiagnostico(
         local: String,
@@ -658,10 +691,58 @@ class VideoViewerActivity : Activity() {
                 sb.append(
                     "\n\n"
                 )
+
+                sb.append(
+                    "EXISTE: "
+                )
+
+                sb.append(
+                    arquivoAtual.exists()
+                )
+
+                sb.append(
+                    "\n"
+                )
+
+                sb.append(
+                    "É ARQUIVO: "
+                )
+
+                sb.append(
+                    arquivoAtual.isFile
+                )
+
+                sb.append(
+                    "\n"
+                )
+
+                sb.append(
+                    "PODE LER: "
+                )
+
+                sb.append(
+                    arquivoAtual.canRead()
+                )
+
+                sb.append(
+                    "\n"
+                )
+
+                sb.append(
+                    "TAMANHO: "
+                )
+
+                sb.append(
+                    arquivoAtual.length()
+                )
+
+                sb.append(
+                    " bytes\n"
+                )
             }
 
             sb.append(
-                "STACKTRACE:\n"
+                "\nSTACKTRACE:\n"
             )
 
             sb.append(
@@ -682,6 +763,10 @@ class VideoViewerActivity : Activity() {
             ).show()
         }
     }
+
+    // =========================================================
+    // ERRO FATAL ANTERIOR
+    // =========================================================
 
     private fun mostrarErroFatalAnteriorSeExistir() {
 
@@ -719,6 +804,10 @@ class VideoViewerActivity : Activity() {
         )
     }
 
+    // =========================================================
+    // CAIXA DE DIAGNÓSTICO
+    // =========================================================
+
     private fun mostrarCaixaDiagnostico(
         titulo: String,
         detalhes: String
@@ -753,9 +842,10 @@ class VideoViewerActivity : Activity() {
 
                 text =
                     "O aplicativo encontrou um erro ao tentar reproduzir o vídeo. " +
-                            "Abaixo estão os detalhes para identificarmos exatamente o problema."
+                            "Abaixo estão os detalhes técnicos para identificarmos exatamente o problema."
 
-                textSize = 14f
+                textSize =
+                    14f
 
                 setTextColor(
                     Color.DKGRAY
@@ -770,53 +860,62 @@ class VideoViewerActivity : Activity() {
             }
 
         container.addView(
-            aviso
+            aviso,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
         )
 
         val scroll =
             ScrollView(this).apply {
 
-                val texto =
-                    TextView(this@VideoViewerActivity).apply {
-
-                        text =
-                            detalhes
-
-                        textSize = 12f
-
-                        setTextColor(
-                            Color.BLACK
-                        )
-
-                        setPadding(
-                            dp(10),
-                            dp(10),
-                            dp(10),
-                            dp(10)
-                        )
-
-                        setBackgroundColor(
-                            Color.rgb(
-                                240,
-                                240,
-                                240
-                            )
-
-                        )
-
-                        setTextIsSelectable(
-                            true
-                        )
-                    }
-
-                addView(
-                    texto,
-                    ScrollView.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                    )
+                setFillViewport(
+                    true
                 )
             }
+
+        val texto =
+            TextView(this).apply {
+
+                text =
+                    detalhes
+
+                textSize =
+                    12f
+
+                setTextColor(
+                    Color.BLACK
+                )
+
+                setPadding(
+                    dp(10),
+                    dp(10),
+                    dp(10),
+                    dp(10)
+                )
+
+                setBackgroundColor(
+                    Color.rgb(
+                        240,
+                        240,
+                        240
+                    )
+                )
+
+                setTextIsSelectable(
+                    true
+                )
+            }
+
+        /*
+         * CORREÇÃO:
+         * Não usamos LayoutParams diretamente.
+         * O ScrollView recebe o TextView normalmente.
+         */
+        scroll.addView(
+            texto
+        )
 
         container.addView(
             scroll,
@@ -828,9 +927,32 @@ class VideoViewerActivity : Activity() {
 
         val dialog =
             AlertDialog.Builder(this)
-                .setTitle(titulo)
-                .setView(container)
+                .setTitle(
+                    titulo
+                )
+                .setView(
+                    container
+                )
                 .setPositiveButton(
+                    "TENTAR NOVAMENTE"
+                ) { dialogInterface, _ ->
+
+                    dialogoErroAberto =
+                        false
+
+                    try {
+                        dialogInterface.dismiss()
+                    } catch (_: Exception) {
+                    }
+
+                    raiz.postDelayed(
+                        {
+                            tentarReproduzirNovamente()
+                        },
+                        200
+                    )
+                }
+                .setNeutralButton(
                     "COPIAR ERRO"
                 ) { _, _ ->
 
@@ -857,6 +979,35 @@ class VideoViewerActivity : Activity() {
         }
 
         dialog.show()
+    }
+
+    private fun tentarReproduzirNovamente() {
+
+        try {
+
+            dialogoErroAberto =
+                false
+
+            playerPreparado =
+                false
+
+            ultimaPosicao =
+                0L
+
+            reproduzirAoRetornar =
+                true
+
+            inicializarPlayer()
+
+        } catch (
+            e: Exception
+        ) {
+
+            mostrarErroDiagnostico(
+                "TENTAR REPRODUZIR NOVAMENTE",
+                e
+            )
+        }
     }
 
     private fun copiarDiagnostico(
@@ -931,6 +1082,7 @@ class VideoViewerActivity : Activity() {
 
                 atualizarArquivoAtual()
             }
+
         } else {
 
             val indice =
@@ -1083,11 +1235,11 @@ class VideoViewerActivity : Activity() {
 
         if (
             posicaoAtual < 0 ||
-            posicaoAtual >=
-            arquivos.size
+            posicaoAtual >= arquivos.size
         ) {
 
-            posicaoAtual = 0
+            posicaoAtual =
+                0
         }
 
         arquivoAtual =
@@ -1826,14 +1978,11 @@ class VideoViewerActivity : Activity() {
 
                             if (
                                 indice >= 0 &&
-                                indice <
-                                arquivosDoPlayer.size
+                                indice < arquivosDoPlayer.size
                             ) {
 
                                 val caminho =
-                                    arquivosDoPlayer[
-                                        indice
-                                    ]
+                                    arquivosDoPlayer[indice]
 
                                 val indiceOriginal =
                                     arquivos.indexOf(
@@ -1871,8 +2020,7 @@ class VideoViewerActivity : Activity() {
                     }
 
                     override fun onPlayerError(
-                        error:
-                        PlaybackException
+                        error: PlaybackException
                     ) {
 
                         playerPreparado =
@@ -1891,6 +2039,13 @@ class VideoViewerActivity : Activity() {
             val listaMediaItems =
                 ArrayList<MediaItem>()
 
+            /*
+             * Reprodução INTERNA:
+             * usamos diretamente o arquivo.
+             *
+             * FileProvider fica somente para
+             * compartilhar/abrir externamente.
+             */
             arquivos.forEach { caminho ->
 
                 try {
@@ -1904,15 +2059,8 @@ class VideoViewerActivity : Activity() {
                         arquivo.canRead()
                     ) {
 
-                        /*
-                         * Para o diagnóstico também vamos
-                         * guardar exatamente os arquivos
-                         * que entraram no player.
-                         */
                         val uri =
-                            FileProvider.getUriForFile(
-                                this,
-                                "${packageName}.fileprovider",
+                            Uri.fromFile(
                                 arquivo
                             )
 
@@ -1967,10 +2115,11 @@ class VideoViewerActivity : Activity() {
 
             if (
                 indiceInicial < 0 ||
-                indiceInicial >=
-                listaMediaItems.size
+                indiceInicial >= listaMediaItems.size
             ) {
-                indiceInicial = 0
+
+                indiceInicial =
+                    0
             }
 
             if (
@@ -2028,6 +2177,10 @@ class VideoViewerActivity : Activity() {
         }
     }
 
+    // =========================================================
+    // ERRO MEDIA3
+    // =========================================================
+
     private fun mostrarErroMedia3(
         error: PlaybackException
     ) {
@@ -2075,12 +2228,25 @@ class VideoViewerActivity : Activity() {
         )
 
         detalhes.append(
-            "CAUSA:\n"
+            "TIPO DA CAUSA:\n"
         )
 
         detalhes.append(
-            error.cause?.toString()
+            error.cause?.javaClass?.name
                 ?: "Nenhuma"
+        )
+
+        detalhes.append(
+            "\n\n"
+        )
+
+        detalhes.append(
+            "MENSAGEM DA CAUSA:\n"
+        )
+
+        detalhes.append(
+            error.cause?.message
+                ?: "Sem mensagem"
         )
 
         detalhes.append(
@@ -2102,6 +2268,80 @@ class VideoViewerActivity : Activity() {
             detalhes.append(
                 "\n\n"
             )
+
+            detalhes.append(
+                "EXISTE: "
+            )
+
+            detalhes.append(
+                arquivoAtual.exists()
+            )
+
+            detalhes.append(
+                "\n"
+            )
+
+            detalhes.append(
+                "É ARQUIVO: "
+            )
+
+            detalhes.append(
+                arquivoAtual.isFile
+            )
+
+            detalhes.append(
+                "\n"
+            )
+
+            detalhes.append(
+                "PODE LER: "
+            )
+
+            detalhes.append(
+                arquivoAtual.canRead()
+            )
+
+            detalhes.append(
+                "\n"
+            )
+
+            detalhes.append(
+                "TAMANHO: "
+            )
+
+            detalhes.append(
+                arquivoAtual.length()
+            )
+
+            detalhes.append(
+                " bytes\n"
+            )
+
+            detalhes.append(
+                "EXTENSÃO: "
+            )
+
+            detalhes.append(
+                arquivoAtual.extension
+            )
+
+            detalhes.append(
+                "\n"
+            )
+
+            detalhes.append(
+                "MIME: "
+            )
+
+            detalhes.append(
+                obterMimeType(
+                    arquivoAtual
+                )
+            )
+
+            detalhes.append(
+                "\n\n"
+            )
         }
 
         detalhes.append(
@@ -2118,40 +2358,24 @@ class VideoViewerActivity : Activity() {
         )
     }
 
+    /*
+     * Não usamos constantes específicas do Media3
+     * que podem variar entre versões.
+     *
+     * Assim evitamos:
+     * ERROR_CODE_PARSING_UNSUPPORTED
+     * ERROR_CODE_DECODER_UNSPECIFIED
+     */
     private fun nomeCodigoErro(
         codigo: Int
     ): String {
 
-        return when (codigo) {
-
-            PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ->
-                "DECODER_INIT_FAILED"
-
-            PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED ->
-                "DECODER_QUERY_FAILED"
-
-            PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ->
-                "PARSING_CONTAINER_MALFORMED"
-
-            PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND ->
-                "IO_FILE_NOT_FOUND"
-
-            PlaybackException.ERROR_CODE_IO_NO_PERMISSION ->
-                "IO_NO_PERMISSION"
-
-            PlaybackException.ERROR_CODE_IO_UNSPECIFIED ->
-                "IO_UNSPECIFIED"
-
-            PlaybackException.ERROR_CODE_PARSING_UNSUPPORTED ->
-                "PARSING_UNSUPPORTED"
-
-            PlaybackException.ERROR_CODE_DECODER_UNSPECIFIED ->
-                "DECODER_UNSPECIFIED"
-
-            else ->
-                "CÓDIGO DESCONHECIDO"
-        }
+        return "CÓDIGO MEDIA3: $codigo"
     }
+
+    // =========================================================
+    // LIBERAR PLAYER
+    // =========================================================
 
     private fun liberarPlayer() {
 
@@ -2272,8 +2496,7 @@ class VideoViewerActivity : Activity() {
 
             if (
                 novoIndice < 0 ||
-                novoIndice >=
-                arquivos.size
+                novoIndice >= arquivos.size
             ) {
                 return
             }
@@ -2462,8 +2685,7 @@ class VideoViewerActivity : Activity() {
 
                 showAtLocation(
                     raiz,
-                    Gravity.TOP or
-                            Gravity.END,
+                    Gravity.TOP or Gravity.END,
                     dp(10),
                     dp(65)
                 )
@@ -2845,16 +3067,19 @@ class VideoViewerActivity : Activity() {
                     return@setPositiveButton
                 }
 
+                val arquivoAntigo =
+                    arquivoAtual
+
                 val novoArquivo =
                     File(
-                        arquivoAtual.parentFile,
+                        arquivoAntigo.parentFile,
                         novoNome
                     )
 
                 if (
                     novoArquivo.exists() &&
                     novoArquivo.absolutePath !=
-                    arquivoAtual.absolutePath
+                    arquivoAntigo.absolutePath
                 ) {
 
                     Toast.makeText(
@@ -2869,7 +3094,7 @@ class VideoViewerActivity : Activity() {
                 try {
 
                     if (
-                        arquivoAtual.renameTo(
+                        arquivoAntigo.renameTo(
                             novoArquivo
                         )
                     ) {
@@ -2878,6 +3103,21 @@ class VideoViewerActivity : Activity() {
                             posicaoAtual
                         ] =
                             novoArquivo.absolutePath
+
+                        val indicePlayer =
+                            arquivosDoPlayer.indexOf(
+                                arquivoAntigo.absolutePath
+                            )
+
+                        if (
+                            indicePlayer >= 0
+                        ) {
+
+                            arquivosDoPlayer[
+                                indicePlayer
+                            ] =
+                                novoArquivo.absolutePath
+                        }
 
                         arquivoAtual =
                             novoArquivo
@@ -3027,6 +3267,8 @@ class VideoViewerActivity : Activity() {
                     arquivos.removeAt(
                         posicaoAtual
                     )
+
+                    arquivosDoPlayer.clear()
 
                     if (
                         arquivos.isEmpty()
@@ -3484,8 +3726,7 @@ class VideoViewerActivity : Activity() {
 
         while (
             tamanho >= 1024 &&
-            indice <
-            unidades.size - 1
+            indice < unidades.size - 1
         ) {
 
             tamanho /= 1024
@@ -3670,10 +3911,13 @@ class VideoViewerActivity : Activity() {
             }
 
             return try {
+
                 super.onTouchEvent(
                     event
                 )
+
             } catch (_: Exception) {
+
                 true
             }
         }
