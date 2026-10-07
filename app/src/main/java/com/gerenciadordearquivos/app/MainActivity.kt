@@ -3984,10 +3984,10 @@ class MainActivity : AppCompatActivity() {
                 )
 
             container.setPadding(
-                2,
-                2,
-                2,
-                2
+                3,
+                3,
+                3,
+                6
             )
 
             val larguraTela =
@@ -4005,7 +4005,7 @@ class MainActivity : AppCompatActivity() {
                 LinearLayout.VERTICAL
 
             layout.gravity =
-                Gravity.CENTER
+                Gravity.CENTER_HORIZONTAL
 
             val imagem =
                 ImageView(
@@ -4112,14 +4112,31 @@ class MainActivity : AppCompatActivity() {
                 )
             }
 
+            /*
+             * MINIATURA:
+             *
+             * Antes:
+             * tamanho - 40
+             *
+             * Agora deixamos um pouco menos de altura
+             * para reservar espaço real para nomes longos.
+             */
             layout.addView(
                 imagem,
                 LinearLayout.LayoutParams(
-                    tamanho - 4,
-                    tamanho - 40
+                    tamanho - 6,
+                    tamanho - 56
                 )
             )
 
+            /*
+             * NOME DA PASTA:
+             *
+             * Agora aceita até 2 linhas.
+             * Nomes longos aparecem corretamente e,
+             * caso ainda não caibam, recebem "..."
+             * no final.
+             */
             val nome =
                 TextView(
                     this@MainActivity
@@ -4139,16 +4156,19 @@ class MainActivity : AppCompatActivity() {
                 Gravity.CENTER
 
             nome.maxLines =
-                1
+                2
 
             nome.ellipsize =
                 TextUtils.TruncateAt.END
+
+            nome.includeFontPadding =
+                true
 
             layout.addView(
                 nome,
                 LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
-                    24
+                    42
                 )
             )
 
