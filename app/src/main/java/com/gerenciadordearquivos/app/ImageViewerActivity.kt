@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -12,11 +14,13 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.text.TextUtils
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.Window
+import android.view.WindowManager
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
@@ -34,6 +38,7 @@ import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -46,18 +51,13 @@ class ImageViewerActivity : Activity() {
     private var menuButton: ImageButton? = null
     private var favoritoButton: ImageButton? = null
 
-    /*
-     * Lista de imagens recebida pela MainActivity.
-     *
-     * Quando a MainActivity enviar várias imagens,
-     * o usuário poderá deslizar entre elas.
-     */
     private val arquivos =
         ArrayList<File>()
 
     private var posicaoAtual = 0
 
     private lateinit var contadorText: TextView
+    private lateinit var nomePastaText: TextView
     private lateinit var nomeArquivoText: TextView
 
     private var carregandoImagem = false
@@ -70,8 +70,23 @@ class ImageViewerActivity : Activity() {
         super.onCreate(savedInstanceState)
 
         /*
-         * Arquivo atual
+         * Permite que o usuário escolha a posição
+         * do aparelho:
+         *
+         * retrato = celular em pé
+         * paisagem = celular de lado
          */
+        requestedOrientation =
+            ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+
+        /*
+         * Evita que a tela desligue enquanto
+         * a imagem estiver aberta.
+         */
+        window.addFlags(
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        )
+
         val caminho =
             intent.getStringExtra("arquivo")
 
@@ -105,9 +120,6 @@ class ImageViewerActivity : Activity() {
             return
         }
 
-        /*
-         * Recebe a lista enviada pela MainActivity.
-         */
         val listaRecebida =
             intent.getStringArrayListExtra(
                 "arquivos"
@@ -138,10 +150,6 @@ class ImageViewerActivity : Activity() {
             }
         }
 
-        /*
-         * Se a lista não foi enviada,
-         * trabalha normalmente com uma imagem.
-         */
         if (arquivos.isEmpty()) {
 
             arquivos.add(
@@ -149,9 +157,6 @@ class ImageViewerActivity : Activity() {
             )
         }
 
-        /*
-         * Descobre a posição.
-         */
         val posicaoRecebida =
             intent.getIntExtra(
                 "posicao",
@@ -187,7 +192,7 @@ class ImageViewerActivity : Activity() {
 
     /*
      * =========================================================
-     * TELA CHEIA
+     * TELA CHEIA + ROTAÇÃO
      * =========================================================
      */
 
@@ -202,6 +207,13 @@ class ImageViewerActivity : Activity() {
         } catch (_: Exception) {
         }
 
+        /*
+         * Garante novamente que o aparelho
+         * possa girar livremente.
+         */
+        requestedOrientation =
+            ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_FULLSCREEN or
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
@@ -209,6 +221,30 @@ class ImageViewerActivity : Activity() {
             View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
             View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
             View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+    }
+
+
+    override fun onConfigurationChanged(
+        newConfig: Configuration
+    ) {
+
+        super.onConfigurationChanged(
+            newConfig
+        )
+
+        /*
+         * A Activity não precisa ser recriada
+         * quando o usuário gira o celular.
+         *
+         * A imagem continua aberta e o layout
+         * simplesmente se adapta ao novo tamanho.
+         */
+        configurarTelaCheia()
+
+        imageView.post {
+
+            imageView.recalcularDepoisDaRotacao()
+        }
     }
 
 
@@ -261,17 +297,14 @@ class ImageViewerActivity : Activity() {
 
         topo.setPadding(
             dp(8),
-            dp(8),
+            dp(6),
             dp(8),
             dp(4)
         )
 
-        /*
-         * Fundo levemente transparente.
-         */
         topo.setBackgroundColor(
             Color.argb(
-                170,
+                175,
                 0,
                 0,
                 0
@@ -279,8 +312,9 @@ class ImageViewerActivity : Activity() {
         )
 
         /*
-         * Botão voltar
+         * VOLTAR
          */
+
         val voltar =
             ImageButton(this)
 
@@ -312,8 +346,11 @@ class ImageViewerActivity : Activity() {
         }
 
         /*
-         * Nome + contador
+         * =====================================================
+         * TEXTOS
+         * =====================================================
          */
+
         val textos =
             LinearLayout(this)
 
@@ -330,6 +367,39 @@ class ImageViewerActivity : Activity() {
             0
         )
 
+        /*
+         * NOME DA PASTA
+         */
+
+        nomePastaText =
+            TextView(this)
+
+        nomePastaText.textSize =
+            12f
+
+        nomePastaText.setTextColor(
+            Color.LTGRAY
+        )
+
+        nomePastaText.gravity =
+            Gravity.CENTER_VERTICAL
+
+        configurarTextoRolante(
+            nomePastaText
+        )
+
+        textos.addView(
+            nomePastaText,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(23)
+            )
+        )
+
+        /*
+         * NOME DO ARQUIVO
+         */
+
         nomeArquivoText =
             TextView(this)
 
@@ -340,34 +410,43 @@ class ImageViewerActivity : Activity() {
             Color.WHITE
         )
 
-        nomeArquivoText.maxLines = 1
+        nomeArquivoText.gravity =
+            Gravity.CENTER_VERTICAL
 
-        nomeArquivoText.ellipsize =
-            android.text.TextUtils.TruncateAt.MIDDLE
+        configurarTextoRolante(
+            nomeArquivoText
+        )
 
         textos.addView(
             nomeArquivoText,
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(28)
+                dp(27)
             )
         )
+
+        /*
+         * CONTADOR
+         */
 
         contadorText =
             TextView(this)
 
         contadorText.textSize =
-            13f
+            11f
 
         contadorText.setTextColor(
             Color.LTGRAY
         )
 
+        contadorText.gravity =
+            Gravity.CENTER_VERTICAL
+
         textos.addView(
             contadorText,
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(22)
+                dp(18)
             )
         )
 
@@ -375,14 +454,15 @@ class ImageViewerActivity : Activity() {
             textos,
             LinearLayout.LayoutParams(
                 0,
-                dp(52),
+                dp(68),
                 1f
             )
         )
 
         /*
-         * Favorito
+         * FAVORITO
          */
+
         favoritoButton =
             ImageButton(this)
 
@@ -410,8 +490,9 @@ class ImageViewerActivity : Activity() {
         }
 
         /*
-         * 3 pontinhos
+         * MENU
          */
+
         val menu =
             ImageButton(this)
 
@@ -445,13 +526,10 @@ class ImageViewerActivity : Activity() {
             mostrarMenu(menu)
         }
 
-        /*
-         * Coloca o topo sobre a imagem.
-         */
         val topoParams =
             FrameLayoutCompat.LayoutParams(
                 FrameLayoutCompat.MATCH_PARENT,
-                dp(64)
+                dp(76)
             )
 
         topoParams.gravity =
@@ -486,61 +564,45 @@ class ImageViewerActivity : Activity() {
 
         inferior.setBackgroundColor(
             Color.argb(
-                185,
+                190,
                 0,
                 0,
                 0
             )
         )
 
-        /*
-         * Compartilhar
-         */
         adicionarBotaoInferior(
             inferior,
             "↗",
             "Compartilhar"
         ) {
-
             compartilharArquivo()
         }
 
-        /*
-         * Copiar
-         */
         adicionarBotaoInferior(
             inferior,
             "⧉",
             "Copiar"
         ) {
-
             mostrarEscolhaDePastaParaCopiar()
         }
 
-        /*
-         * Mover
-         */
         adicionarBotaoInferior(
             inferior,
             "➜",
             "Mover"
         ) {
-
             abrirSeletorDePasta(
                 arquivoAtual.parentFile
                     ?: Environment.getExternalStorageDirectory()
             )
         }
 
-        /*
-         * Mais
-         */
         adicionarBotaoInferior(
             inferior,
             "⋮",
             "Mais"
         ) {
-
             mostrarMenuInferior()
         }
 
@@ -559,24 +621,55 @@ class ImageViewerActivity : Activity() {
         )
 
         /*
-         * =====================================================
          * SWIPE
-         * =====================================================
          */
 
         imageView.onSwipeLeft = {
-
             abrirProximaImagem()
         }
 
         imageView.onSwipeRight = {
-
             abrirImagemAnterior()
         }
 
         setContentView(raiz)
 
         carregarImagem()
+    }
+
+
+    /*
+     * Texto longo:
+     * em vez de cortar com "...",
+     * ele desliza horizontalmente.
+     */
+
+    private fun configurarTextoRolante(
+        texto: TextView
+    ) {
+
+        texto.isSingleLine = true
+
+        texto.maxLines = 1
+
+        texto.ellipsize =
+            TextUtils.TruncateAt.MARQUEE
+
+        texto.marqueeRepeatLimit =
+            -1
+
+        texto.isSelected =
+            true
+
+        texto.isFocusable =
+            true
+
+        texto.isFocusableInTouchMode =
+            true
+
+        texto.setHorizontallyScrolling(
+            true
+        )
     }
 
 
@@ -668,17 +761,34 @@ class ImageViewerActivity : Activity() {
 
     /*
      * =========================================================
-     * ATUALIZAÇÕES
+     * INFORMAÇÕES DA TELA
      * =========================================================
      */
 
     private fun atualizarInformacoesDaTela() {
+
+        val pasta =
+            arquivoAtual.parentFile
+                ?.name
+                ?.takeIf {
+                    it.isNotBlank()
+                }
+                ?: "Armazenamento"
+
+        nomePastaText.text =
+            "📁 $pasta"
 
         nomeArquivoText.text =
             arquivoAtual.name
 
         contadorText.text =
             "${posicaoAtual + 1} / ${arquivos.size}"
+
+        nomePastaText.isSelected =
+            true
+
+        nomeArquivoText.isSelected =
+            true
 
         atualizarIconeFavorito()
     }
@@ -817,7 +927,7 @@ class ImageViewerActivity : Activity() {
                 }
 
             } catch (
-                e: OutOfMemoryError
+                _: OutOfMemoryError
             ) {
 
                 runOnUiThread {
@@ -833,7 +943,7 @@ class ImageViewerActivity : Activity() {
                 }
 
             } catch (
-                e: Exception
+                _: Exception
             ) {
 
                 runOnUiThread {
@@ -1308,7 +1418,7 @@ class ImageViewerActivity : Activity() {
                 )
             )
 
-        } catch (e: Exception) {
+        } catch (_: Exception) {
 
             Toast.makeText(
                 this,
@@ -1394,7 +1504,7 @@ class ImageViewerActivity : Activity() {
                 )
             )
 
-        } catch (e: Exception) {
+        } catch (_: Exception) {
 
             Toast.makeText(
                 this,
@@ -1627,9 +1737,6 @@ class ImageViewerActivity : Activity() {
                         )
                     ) {
 
-                        /*
-                         * Atualiza também a lista.
-                         */
                         arquivos[posicaoAtual] =
                             novoArquivo
 
@@ -1653,7 +1760,7 @@ class ImageViewerActivity : Activity() {
                         ).show()
                     }
 
-                } catch (e: Exception) {
+                } catch (_: Exception) {
 
                     Toast.makeText(
                         this,
@@ -1756,8 +1863,16 @@ class ImageViewerActivity : Activity() {
             dp(8)
         )
 
-        principal.addView(
+        configurarTextoRolante(
             titulo
+        )
+
+        principal.addView(
+            titulo,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(45)
+            )
         )
 
         val lista =
@@ -1927,6 +2042,9 @@ class ImageViewerActivity : Activity() {
 
                 "📁 ${pasta.name}"
             }
+
+        titulo.isSelected =
+            true
 
         val arquivos =
             ArrayList<File>()
@@ -2114,7 +2232,7 @@ class ImageViewerActivity : Activity() {
                         ).show()
                     }
 
-                } catch (e: Exception) {
+                } catch (_: Exception) {
 
                     Toast.makeText(
                         this,
@@ -2179,7 +2297,7 @@ class ImageViewerActivity : Activity() {
                     ).show()
                 }
 
-            } catch (e: Exception) {
+            } catch (_: Exception) {
 
                 try {
                     arquivoDestino.delete()
@@ -2391,7 +2509,7 @@ class ImageViewerActivity : Activity() {
                 )
             }
 
-        } catch (e: Exception) {
+        } catch (_: Exception) {
 
             Toast.makeText(
                 this,
@@ -2450,7 +2568,7 @@ class ImageViewerActivity : Activity() {
                 ).show()
             }
 
-        } catch (e: Exception) {
+        } catch (_: Exception) {
 
             try {
                 destino.delete()
@@ -2549,7 +2667,7 @@ class ImageViewerActivity : Activity() {
                 }
                 .show()
 
-        } catch (e: Exception) {
+        } catch (_: Exception) {
 
             Toast.makeText(
                 this,
@@ -2727,11 +2845,6 @@ class ZoomImageView(
                         evento.y -
                             inicioY
 
-                    /*
-                     * Se estiver no zoom mínimo,
-                     * podemos interpretar um movimento
-                     * horizontal como troca de imagem.
-                     */
                     if (
                         escala <=
                         escalaMinima + 0.001f &&
@@ -2739,9 +2852,9 @@ class ZoomImageView(
                     ) {
 
                         if (
-                            kotlin.math.abs(deltaX) >
-                            kotlin.math.abs(deltaY) &&
-                            kotlin.math.abs(deltaX) >
+                            abs(deltaX) >
+                            abs(deltaY) &&
+                            abs(deltaX) >
                             30f
                         ) {
 
@@ -2750,10 +2863,6 @@ class ZoomImageView(
                         }
                     }
 
-                    /*
-                     * Só arrasta a imagem quando
-                     * estiver ampliada.
-                     */
                     if (
                         arrastando &&
                         evento.pointerCount == 1 &&
@@ -2794,18 +2903,14 @@ class ZoomImageView(
                         evento.y -
                             inicioY
 
-                    /*
-                     * Swipe só acontece quando
-                     * a imagem está no zoom normal.
-                     */
                     if (
                         escala <=
                         escalaMinima + 0.001f &&
                         movimentoHorizontal &&
-                        kotlin.math.abs(deltaX) >=
+                        abs(deltaX) >=
                         distanciaMinimaSwipe &&
-                        kotlin.math.abs(deltaX) >
-                        kotlin.math.abs(deltaY)
+                        abs(deltaX) >
+                        abs(deltaY)
                     ) {
 
                         if (
@@ -2885,6 +2990,28 @@ class ZoomImageView(
             0f
 
         aplicarTransformacao()
+    }
+
+
+    /*
+     * Recalcula depois que o celular
+     * muda de retrato para paisagem
+     * ou vice-versa.
+     */
+
+    fun recalcularDepoisDaRotacao() {
+
+        if (
+            larguraImagem <= 0 ||
+            alturaImagem <= 0
+        ) {
+            return
+        }
+
+        post {
+
+            calcularEscalaInicial()
+        }
     }
 
 
