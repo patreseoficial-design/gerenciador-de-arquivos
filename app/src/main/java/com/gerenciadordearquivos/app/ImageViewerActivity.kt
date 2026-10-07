@@ -3,11 +3,13 @@ package com.gerenciadordearquivos.app
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.view.Gravity
@@ -25,6 +27,7 @@ import android.widget.ListView
 import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -34,48 +37,168 @@ import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
 
+
 class ImageViewerActivity : Activity() {
 
     private lateinit var imageView: ZoomImageView
     private lateinit var arquivoAtual: File
 
     private var menuButton: ImageButton? = null
+    private var favoritoButton: ImageButton? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    /*
+     * Lista de imagens recebida pela MainActivity.
+     *
+     * Quando a MainActivity enviar várias imagens,
+     * o usuário poderá deslizar entre elas.
+     */
+    private val arquivos =
+        ArrayList<File>()
+
+    private var posicaoAtual = 0
+
+    private lateinit var contadorText: TextView
+    private lateinit var nomeArquivoText: TextView
+
+    private var carregandoImagem = false
+
+
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
+
         super.onCreate(savedInstanceState)
 
-        val caminho = intent.getStringExtra("arquivo")
+        /*
+         * Arquivo atual
+         */
+        val caminho =
+            intent.getStringExtra("arquivo")
 
         if (caminho.isNullOrBlank()) {
+
             Toast.makeText(
                 this,
                 "Imagem não encontrada",
                 Toast.LENGTH_LONG
             ).show()
+
             finish()
             return
         }
 
-        arquivoAtual = File(caminho)
+        arquivoAtual =
+            File(caminho)
 
-        if (!arquivoAtual.exists() || !arquivoAtual.isFile) {
+        if (
+            !arquivoAtual.exists() ||
+            !arquivoAtual.isFile
+        ) {
+
             Toast.makeText(
                 this,
                 "Arquivo não encontrado",
                 Toast.LENGTH_LONG
             ).show()
+
             finish()
             return
         }
 
+        /*
+         * Recebe a lista enviada pela MainActivity.
+         */
+        val listaRecebida =
+            intent.getStringArrayListExtra(
+                "arquivos"
+            )
+
+        if (
+            listaRecebida != null &&
+            listaRecebida.isNotEmpty()
+        ) {
+
+            for (
+                caminhoArquivo
+                in listaRecebida
+            ) {
+
+                val arquivo =
+                    File(caminhoArquivo)
+
+                if (
+                    arquivo.exists() &&
+                    arquivo.isFile
+                ) {
+
+                    arquivos.add(
+                        arquivo
+                    )
+                }
+            }
+        }
+
+        /*
+         * Se a lista não foi enviada,
+         * trabalha normalmente com uma imagem.
+         */
+        if (arquivos.isEmpty()) {
+
+            arquivos.add(
+                arquivoAtual
+            )
+        }
+
+        /*
+         * Descobre a posição.
+         */
+        val posicaoRecebida =
+            intent.getIntExtra(
+                "posicao",
+                -1
+            )
+
+        posicaoAtual =
+            if (
+                posicaoRecebida >= 0 &&
+                posicaoRecebida < arquivos.size
+            ) {
+
+                posicaoRecebida
+
+            } else {
+
+                arquivos.indexOfFirst {
+                    it.absolutePath ==
+                        arquivoAtual.absolutePath
+                }.coerceAtLeast(0)
+            }
+
+        arquivoAtual =
+            arquivos[posicaoAtual]
+
         configurarTelaCheia()
+
         criarInterface()
+
+        atualizarInformacoesDaTela()
     }
+
+
+    /*
+     * =========================================================
+     * TELA CHEIA
+     * =========================================================
+     */
 
     private fun configurarTelaCheia() {
 
         try {
-            requestWindowFeature(Window.FEATURE_NO_TITLE)
+
+            requestWindowFeature(
+                Window.FEATURE_NO_TITLE
+            )
+
         } catch (_: Exception) {
         }
 
@@ -88,21 +211,30 @@ class ImageViewerActivity : Activity() {
             View.SYSTEM_UI_FLAG_LAYOUT_STABLE
     }
 
+
+    /*
+     * =========================================================
+     * INTERFACE
+     * =========================================================
+     */
+
     private fun criarInterface() {
 
-        /*
-         * RAIZ
-         *
-         * A imagem ocupa absolutamente toda a tela.
-         */
-        val raiz = FrameLayoutCompat(this)
+        val raiz =
+            FrameLayoutCompat(this)
 
-        raiz.setBackgroundColor(Color.BLACK)
+        raiz.setBackgroundColor(
+            Color.BLACK
+        )
 
         /*
-         * VISUALIZADOR
+         * =====================================================
+         * IMAGEM
+         * =====================================================
          */
-        imageView = ZoomImageView(this)
+
+        imageView =
+            ZoomImageView(this)
 
         raiz.addView(
             imageView,
@@ -113,53 +245,333 @@ class ImageViewerActivity : Activity() {
         )
 
         /*
-         * BOTÃO DOS 3 PONTINHOS
-         *
-         * Fica por cima da imagem.
+         * =====================================================
+         * TOPO
+         * =====================================================
          */
-        val menu = ImageButton(this)
 
-        menuButton = menu
+        val topo =
+            LinearLayout(this)
+
+        topo.orientation =
+            LinearLayout.HORIZONTAL
+
+        topo.gravity =
+            Gravity.CENTER_VERTICAL
+
+        topo.setPadding(
+            dp(8),
+            dp(8),
+            dp(8),
+            dp(4)
+        )
+
+        /*
+         * Fundo levemente transparente.
+         */
+        topo.setBackgroundColor(
+            Color.argb(
+                170,
+                0,
+                0,
+                0
+            )
+        )
+
+        /*
+         * Botão voltar
+         */
+        val voltar =
+            ImageButton(this)
+
+        voltar.setImageResource(
+            android.R.drawable.ic_menu_revert
+        )
+
+        voltar.setColorFilter(
+            Color.WHITE
+        )
+
+        voltar.setBackgroundColor(
+            Color.TRANSPARENT
+        )
+
+        voltar.contentDescription =
+            "Voltar"
+
+        topo.addView(
+            voltar,
+            LinearLayout.LayoutParams(
+                dp(48),
+                dp(48)
+            )
+        )
+
+        voltar.setOnClickListener {
+            finish()
+        }
+
+        /*
+         * Nome + contador
+         */
+        val textos =
+            LinearLayout(this)
+
+        textos.orientation =
+            LinearLayout.VERTICAL
+
+        textos.gravity =
+            Gravity.CENTER_VERTICAL
+
+        textos.setPadding(
+            dp(8),
+            0,
+            dp(8),
+            0
+        )
+
+        nomeArquivoText =
+            TextView(this)
+
+        nomeArquivoText.textSize =
+            15f
+
+        nomeArquivoText.setTextColor(
+            Color.WHITE
+        )
+
+        nomeArquivoText.maxLines = 1
+
+        nomeArquivoText.ellipsize =
+            android.text.TextUtils.TruncateAt.MIDDLE
+
+        textos.addView(
+            nomeArquivoText,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(28)
+            )
+        )
+
+        contadorText =
+            TextView(this)
+
+        contadorText.textSize =
+            13f
+
+        contadorText.setTextColor(
+            Color.LTGRAY
+        )
+
+        textos.addView(
+            contadorText,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(22)
+            )
+        )
+
+        topo.addView(
+            textos,
+            LinearLayout.LayoutParams(
+                0,
+                dp(52),
+                1f
+            )
+        )
+
+        /*
+         * Favorito
+         */
+        favoritoButton =
+            ImageButton(this)
+
+        favoritoButton!!.setBackgroundColor(
+            Color.TRANSPARENT
+        )
+
+        favoritoButton!!.setColorFilter(
+            Color.WHITE
+        )
+
+        favoritoButton!!.contentDescription =
+            "Favorito"
+
+        topo.addView(
+            favoritoButton,
+            LinearLayout.LayoutParams(
+                dp(48),
+                dp(48)
+            )
+        )
+
+        favoritoButton!!.setOnClickListener {
+            alternarFavorito()
+        }
+
+        /*
+         * 3 pontinhos
+         */
+        val menu =
+            ImageButton(this)
+
+        menuButton =
+            menu
 
         menu.setImageResource(
             android.R.drawable.ic_menu_more
         )
 
-        menu.setColorFilter(Color.WHITE)
-
-        menu.setBackgroundColor(Color.TRANSPARENT)
-
-        menu.contentDescription = "Mais opções"
-
-        /*
-         * Área maior para facilitar o toque.
-         */
-        val menuParams =
-            FrameLayoutCompat.LayoutParams(
-                56,
-                56
-            )
-
-        menuParams.gravity =
-            Gravity.TOP or Gravity.END
-
-        /*
-         * Não fica colado na borda.
-         */
-        menuParams.setMargins(
-            0,
-            12,
-            10,
-            0
+        menu.setColorFilter(
+            Color.WHITE
         )
 
-        raiz.addView(
+        menu.setBackgroundColor(
+            Color.TRANSPARENT
+        )
+
+        menu.contentDescription =
+            "Mais opções"
+
+        topo.addView(
             menu,
-            menuParams
+            LinearLayout.LayoutParams(
+                dp(48),
+                dp(48)
+            )
         )
 
         menu.setOnClickListener {
             mostrarMenu(menu)
+        }
+
+        /*
+         * Coloca o topo sobre a imagem.
+         */
+        val topoParams =
+            FrameLayoutCompat.LayoutParams(
+                FrameLayoutCompat.MATCH_PARENT,
+                dp(64)
+            )
+
+        topoParams.gravity =
+            Gravity.TOP
+
+        raiz.addView(
+            topo,
+            topoParams
+        )
+
+        /*
+         * =====================================================
+         * BARRA INFERIOR
+         * =====================================================
+         */
+
+        val inferior =
+            LinearLayout(this)
+
+        inferior.orientation =
+            LinearLayout.HORIZONTAL
+
+        inferior.gravity =
+            Gravity.CENTER
+
+        inferior.setPadding(
+            dp(8),
+            dp(4),
+            dp(8),
+            dp(8)
+        )
+
+        inferior.setBackgroundColor(
+            Color.argb(
+                185,
+                0,
+                0,
+                0
+            )
+        )
+
+        /*
+         * Compartilhar
+         */
+        adicionarBotaoInferior(
+            inferior,
+            "↗",
+            "Compartilhar"
+        ) {
+
+            compartilharArquivo()
+        }
+
+        /*
+         * Copiar
+         */
+        adicionarBotaoInferior(
+            inferior,
+            "⧉",
+            "Copiar"
+        ) {
+
+            mostrarEscolhaDePastaParaCopiar()
+        }
+
+        /*
+         * Mover
+         */
+        adicionarBotaoInferior(
+            inferior,
+            "➜",
+            "Mover"
+        ) {
+
+            abrirSeletorDePasta(
+                arquivoAtual.parentFile
+                    ?: Environment.getExternalStorageDirectory()
+            )
+        }
+
+        /*
+         * Mais
+         */
+        adicionarBotaoInferior(
+            inferior,
+            "⋮",
+            "Mais"
+        ) {
+
+            mostrarMenuInferior()
+        }
+
+        val inferiorParams =
+            FrameLayoutCompat.LayoutParams(
+                FrameLayoutCompat.MATCH_PARENT,
+                dp(78)
+            )
+
+        inferiorParams.gravity =
+            Gravity.BOTTOM
+
+        raiz.addView(
+            inferior,
+            inferiorParams
+        )
+
+        /*
+         * =====================================================
+         * SWIPE
+         * =====================================================
+         */
+
+        imageView.onSwipeLeft = {
+
+            abrirProximaImagem()
+        }
+
+        imageView.onSwipeRight = {
+
+            abrirImagemAnterior()
         }
 
         setContentView(raiz)
@@ -167,7 +579,145 @@ class ImageViewerActivity : Activity() {
         carregarImagem()
     }
 
+
+    private fun adicionarBotaoInferior(
+        layout: LinearLayout,
+        icone: String,
+        texto: String,
+        acao: () -> Unit
+    ) {
+
+        val coluna =
+            LinearLayout(this)
+
+        coluna.orientation =
+            LinearLayout.VERTICAL
+
+        coluna.gravity =
+            Gravity.CENTER
+
+        coluna.setPadding(
+            dp(8),
+            0,
+            dp(8),
+            0
+        )
+
+        val iconeView =
+            TextView(this)
+
+        iconeView.text =
+            icone
+
+        iconeView.textSize =
+            24f
+
+        iconeView.gravity =
+            Gravity.CENTER
+
+        iconeView.setTextColor(
+            Color.WHITE
+        )
+
+        coluna.addView(
+            iconeView,
+            LinearLayout.LayoutParams(
+                dp(42),
+                dp(36)
+            )
+        )
+
+        val textoView =
+            TextView(this)
+
+        textoView.text =
+            texto
+
+        textoView.textSize =
+            11f
+
+        textoView.gravity =
+            Gravity.CENTER
+
+        textoView.setTextColor(
+            Color.WHITE
+        )
+
+        coluna.addView(
+            textoView,
+            LinearLayout.LayoutParams(
+                dp(70),
+                dp(25)
+            )
+        )
+
+        coluna.setOnClickListener {
+            acao()
+        }
+
+        layout.addView(
+            coluna,
+            LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                1f
+            )
+        )
+    }
+
+
+    /*
+     * =========================================================
+     * ATUALIZAÇÕES
+     * =========================================================
+     */
+
+    private fun atualizarInformacoesDaTela() {
+
+        nomeArquivoText.text =
+            arquivoAtual.name
+
+        contadorText.text =
+            "${posicaoAtual + 1} / ${arquivos.size}"
+
+        atualizarIconeFavorito()
+    }
+
+
+    private fun atualizarIconeFavorito() {
+
+        val favorito =
+            isFavorito()
+
+        favoritoButton?.setImageResource(
+            if (favorito) {
+                android.R.drawable.btn_star_big_on
+            } else {
+                android.R.drawable.btn_star_big_off
+            }
+        )
+
+        favoritoButton?.setColorFilter(
+            if (favorito) {
+                Color.YELLOW
+            } else {
+                Color.WHITE
+            }
+        )
+    }
+
+
+    /*
+     * =========================================================
+     * CARREGAR IMAGEM
+     * =========================================================
+     */
+
     private fun carregarImagem() {
+
+        carregandoImagem = true
+
+        imageView.resetarZoom()
 
         Thread {
 
@@ -176,7 +726,8 @@ class ImageViewerActivity : Activity() {
                 val bounds =
                     BitmapFactory.Options()
 
-                bounds.inJustDecodeBounds = true
+                bounds.inJustDecodeBounds =
+                    true
 
                 BitmapFactory.decodeFile(
                     arquivoAtual.absolutePath,
@@ -189,6 +740,9 @@ class ImageViewerActivity : Activity() {
                 ) {
 
                     runOnUiThread {
+
+                        carregandoImagem =
+                            false
 
                         Toast.makeText(
                             this,
@@ -215,7 +769,8 @@ class ImageViewerActivity : Activity() {
                 val options =
                     BitmapFactory.Options()
 
-                options.inSampleSize = sample
+                options.inSampleSize =
+                    sample
 
                 options.inPreferredConfig =
                     Bitmap.Config.ARGB_8888
@@ -229,6 +784,9 @@ class ImageViewerActivity : Activity() {
                 if (bitmap == null) {
 
                     runOnUiThread {
+
+                        carregandoImagem =
+                            false
 
                         Toast.makeText(
                             this,
@@ -250,12 +808,22 @@ class ImageViewerActivity : Activity() {
                         imageView.setImageBitmap(
                             bitmap
                         )
+
+                        carregandoImagem =
+                            false
+
+                        atualizarInformacoesDaTela()
                     }
                 }
 
-            } catch (e: OutOfMemoryError) {
+            } catch (
+                e: OutOfMemoryError
+            ) {
 
                 runOnUiThread {
+
+                    carregandoImagem =
+                        false
 
                     Toast.makeText(
                         this,
@@ -264,9 +832,14 @@ class ImageViewerActivity : Activity() {
                     ).show()
                 }
 
-            } catch (e: Exception) {
+            } catch (
+                e: Exception
+            ) {
 
                 runOnUiThread {
+
+                    carregandoImagem =
+                        false
 
                     Toast.makeText(
                         this,
@@ -279,9 +852,127 @@ class ImageViewerActivity : Activity() {
         }.start()
     }
 
+
     /*
      * =========================================================
-     * MENU DOS 3 PONTINHOS
+     * ANTERIOR / PRÓXIMA
+     * =========================================================
+     */
+
+    private fun abrirProximaImagem() {
+
+        if (carregandoImagem) {
+            return
+        }
+
+        if (
+            posicaoAtual >=
+            arquivos.size - 1
+        ) {
+
+            Toast.makeText(
+                this,
+                "Última imagem",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        posicaoAtual++
+
+        arquivoAtual =
+            arquivos[posicaoAtual]
+
+        atualizarInformacoesDaTela()
+
+        carregarImagem()
+    }
+
+
+    private fun abrirImagemAnterior() {
+
+        if (carregandoImagem) {
+            return
+        }
+
+        if (
+            posicaoAtual <= 0
+        ) {
+
+            Toast.makeText(
+                this,
+                "Primeira imagem",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        posicaoAtual--
+
+        arquivoAtual =
+            arquivos[posicaoAtual]
+
+        atualizarInformacoesDaTela()
+
+        carregarImagem()
+    }
+
+
+    /*
+     * =========================================================
+     * FAVORITOS
+     * =========================================================
+     */
+
+    private fun preferenciasFavoritos() =
+        getSharedPreferences(
+            "favoritos_imagens",
+            Context.MODE_PRIVATE
+        )
+
+
+    private fun isFavorito(): Boolean {
+
+        return preferenciasFavoritos()
+            .getBoolean(
+                arquivoAtual.absolutePath,
+                false
+            )
+    }
+
+
+    private fun alternarFavorito() {
+
+        val novoValor =
+            !isFavorito()
+
+        preferenciasFavoritos()
+            .edit()
+            .putBoolean(
+                arquivoAtual.absolutePath,
+                novoValor
+            )
+            .apply()
+
+        atualizarIconeFavorito()
+
+        Toast.makeText(
+            this,
+            if (novoValor) {
+                "Imagem adicionada aos favoritos"
+            } else {
+                "Imagem removida dos favoritos"
+            },
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+
+    /*
+     * =========================================================
+     * MENU SUPERIOR
      * =========================================================
      */
 
@@ -297,9 +988,9 @@ class ImageViewerActivity : Activity() {
 
         layout.setPadding(
             0,
-            8,
+            dp(8),
             0,
-            8
+            dp(8)
         )
 
         layout.setBackgroundColor(
@@ -318,13 +1009,23 @@ class ImageViewerActivity : Activity() {
             ColorDrawable(Color.WHITE)
         )
 
-        popup.isOutsideTouchable = true
+        popup.isOutsideTouchable =
+            true
 
-        popup.elevation = 16f
+        popup.elevation =
+            16f
 
-        /*
-         * Informações
-         */
+        adicionarOpcao(
+            layout,
+            "↗",
+            "Abrir com"
+        ) {
+
+            popup.dismiss()
+
+            abrirComAplicativo()
+        }
+
         adicionarOpcao(
             layout,
             "ℹ",
@@ -336,9 +1037,6 @@ class ImageViewerActivity : Activity() {
             mostrarInformacoes()
         }
 
-        /*
-         * Renomear
-         */
         adicionarOpcao(
             layout,
             "✎",
@@ -350,26 +1048,17 @@ class ImageViewerActivity : Activity() {
             renomearArquivo()
         }
 
-        /*
-         * Mover
-         */
         adicionarOpcao(
             layout,
-            "➜",
-            "Mover para"
+            "⧉",
+            "Criar cópia"
         ) {
 
             popup.dismiss()
 
-            abrirSeletorDePasta(
-                arquivoAtual.parentFile
-                    ?: Environment.getExternalStorageDirectory()
-            )
+            mostrarEscolhaDePastaParaCopiar()
         }
 
-        /*
-         * Criar pasta
-         */
         adicionarOpcao(
             layout,
             "＋",
@@ -384,9 +1073,6 @@ class ImageViewerActivity : Activity() {
             )
         }
 
-        /*
-         * Lixeira
-         */
         adicionarOpcao(
             layout,
             "🗑",
@@ -398,11 +1084,6 @@ class ImageViewerActivity : Activity() {
             moverParaLixeira()
         }
 
-        /*
-         * Calcula posição usando o próprio botão.
-         *
-         * Assim o menu não fica preso em 64dp.
-         */
         ancora.post {
 
             val location =
@@ -433,6 +1114,55 @@ class ImageViewerActivity : Activity() {
             )
         }
     }
+
+
+    private fun mostrarMenuInferior() {
+
+        val opcoes =
+            arrayOf(
+                "Abrir com",
+                "Informações",
+                "Renomear",
+                "Criar cópia",
+                "Criar pasta",
+                "Mover para lixeira"
+            )
+
+        AlertDialog.Builder(this)
+            .setTitle(
+                "Mais opções"
+            )
+            .setItems(
+                opcoes
+            ) { _, qual ->
+
+                when (qual) {
+
+                    0 ->
+                        abrirComAplicativo()
+
+                    1 ->
+                        mostrarInformacoes()
+
+                    2 ->
+                        renomearArquivo()
+
+                    3 ->
+                        mostrarEscolhaDePastaParaCopiar()
+
+                    4 ->
+                        criarPasta(
+                            arquivoAtual.parentFile
+                                ?: Environment.getExternalStorageDirectory()
+                        )
+
+                    5 ->
+                        moverParaLixeira()
+                }
+            }
+            .show()
+    }
+
 
     private fun adicionarOpcao(
         layout: LinearLayout,
@@ -524,7 +1254,8 @@ class ImageViewerActivity : Activity() {
             textoParams
         )
 
-        linha.isClickable = true
+        linha.isClickable =
+            true
 
         linha.setOnClickListener {
             acao()
@@ -535,13 +1266,144 @@ class ImageViewerActivity : Activity() {
         )
     }
 
-    private fun dp(valor: Int): Int {
 
-        return (
-            valor *
-                resources.displayMetrics.density
-            ).toInt()
+    /*
+     * =========================================================
+     * COMPARTILHAR
+     * =========================================================
+     */
+
+    private fun compartilharArquivo() {
+
+        try {
+
+            val uri =
+                FileProvider.getUriForFile(
+                    this,
+                    "${packageName}.fileprovider",
+                    arquivoAtual
+                )
+
+            val intent =
+                Intent(
+                    Intent.ACTION_SEND
+                )
+
+            intent.type =
+                obterMimeType()
+
+            intent.putExtra(
+                Intent.EXTRA_STREAM,
+                uri
+            )
+
+            intent.addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+
+            startActivity(
+                Intent.createChooser(
+                    intent,
+                    "Compartilhar imagem"
+                )
+            )
+
+        } catch (e: Exception) {
+
+            Toast.makeText(
+                this,
+                "Não foi possível compartilhar",
+                Toast.LENGTH_LONG
+            ).show()
+        }
     }
+
+
+    private fun obterMimeType(): String {
+
+        return when (
+            arquivoAtual.extension
+                .lowercase(
+                    Locale.getDefault()
+                )
+        ) {
+
+            "jpg",
+            "jpeg" ->
+                "image/jpeg"
+
+            "png" ->
+                "image/png"
+
+            "webp" ->
+                "image/webp"
+
+            "gif" ->
+                "image/gif"
+
+            "bmp" ->
+                "image/bmp"
+
+            "heic" ->
+                "image/heic"
+
+            "heif" ->
+                "image/heif"
+
+            else ->
+                "image/*"
+        }
+    }
+
+
+    /*
+     * =========================================================
+     * ABRIR COM
+     * =========================================================
+     */
+
+    private fun abrirComAplicativo() {
+
+        try {
+
+            val uri =
+                FileProvider.getUriForFile(
+                    this,
+                    "${packageName}.fileprovider",
+                    arquivoAtual
+                )
+
+            val intent =
+                Intent(
+                    Intent.ACTION_VIEW
+                )
+
+            intent.setDataAndType(
+                uri,
+                obterMimeType()
+            )
+
+            intent.addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+
+            startActivity(
+                Intent.createChooser(
+                    intent,
+                    "Abrir imagem com"
+                )
+            )
+
+        } catch (e: Exception) {
+
+            Toast.makeText(
+                this,
+                "Nenhum aplicativo compatível encontrado",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
 
     /*
      * =========================================================
@@ -554,7 +1416,8 @@ class ImageViewerActivity : Activity() {
         val bounds =
             BitmapFactory.Options()
 
-        bounds.inJustDecodeBounds = true
+        bounds.inJustDecodeBounds =
+            true
 
         BitmapFactory.decodeFile(
             arquivoAtual.absolutePath,
@@ -625,6 +1488,7 @@ class ImageViewerActivity : Activity() {
             .show()
     }
 
+
     private fun formatarTamanho(
         bytes: Long
     ): String {
@@ -670,6 +1534,7 @@ class ImageViewerActivity : Activity() {
         )
     }
 
+
     /*
      * =========================================================
      * RENOMEAR
@@ -691,7 +1556,9 @@ class ImageViewerActivity : Activity() {
             .setTitle(
                 "Renomear imagem"
             )
-            .setView(campo)
+            .setView(
+                campo
+            )
             .setNegativeButton(
                 "Cancelar",
                 null
@@ -760,6 +1627,12 @@ class ImageViewerActivity : Activity() {
                         )
                     ) {
 
+                        /*
+                         * Atualiza também a lista.
+                         */
+                        arquivos[posicaoAtual] =
+                            novoArquivo
+
                         arquivoAtual =
                             novoArquivo
 
@@ -769,7 +1642,7 @@ class ImageViewerActivity : Activity() {
                             Toast.LENGTH_SHORT
                         ).show()
 
-                        recreate()
+                        atualizarInformacoesDaTela()
 
                     } else {
 
@@ -792,6 +1665,23 @@ class ImageViewerActivity : Activity() {
             .show()
     }
 
+
+    /*
+     * =========================================================
+     * COPIAR
+     * =========================================================
+     */
+
+    private fun mostrarEscolhaDePastaParaCopiar() {
+
+        abrirSeletorDePasta(
+            arquivoAtual.parentFile
+                ?: Environment.getExternalStorageDirectory(),
+            somenteCopiar = true
+        )
+    }
+
+
     /*
      * =========================================================
      * SELETOR DE PASTAS
@@ -799,7 +1689,8 @@ class ImageViewerActivity : Activity() {
      */
 
     private fun abrirSeletorDePasta(
-        pastaInicial: File
+        pastaInicial: File,
+        somenteCopiar: Boolean = false
     ) {
 
         val raiz =
@@ -819,13 +1710,16 @@ class ImageViewerActivity : Activity() {
 
         mostrarNavegador(
             pasta,
-            raiz
+            raiz,
+            somenteCopiar
         )
     }
 
+
     private fun mostrarNavegador(
         pastaAtual: File,
-        raiz: File
+        raiz: File,
+        somenteCopiar: Boolean
     ) {
 
         val dialog =
@@ -896,11 +1790,15 @@ class ImageViewerActivity : Activity() {
         cancelar.text =
             "Cancelar"
 
-        val mover =
+        val acao =
             Button(this)
 
-        mover.text =
-            "Mover aqui"
+        acao.text =
+            if (somenteCopiar) {
+                "Copiar aqui"
+            } else {
+                "Mover aqui"
+            }
 
         botoes.addView(
             criar,
@@ -921,7 +1819,7 @@ class ImageViewerActivity : Activity() {
         )
 
         botoes.addView(
-            mover,
+            acao,
             LinearLayout.LayoutParams(
                 0,
                 dp(55),
@@ -934,7 +1832,11 @@ class ImageViewerActivity : Activity() {
         )
 
         dialog.setTitle(
-            "Escolher pasta"
+            if (somenteCopiar) {
+                "Escolher pasta para copiar"
+            } else {
+                "Escolher pasta"
+            }
         )
 
         dialog.setView(
@@ -971,12 +1873,22 @@ class ImageViewerActivity : Activity() {
                 dialog.dismiss()
             }
 
-            mover.setOnClickListener {
+            acao.setOnClickListener {
 
-                moverArquivo(
-                    pastaAtual,
-                    dialog
-                )
+                if (somenteCopiar) {
+
+                    copiarArquivo(
+                        pastaAtual,
+                        dialog
+                    )
+
+                } else {
+
+                    moverArquivo(
+                        pastaAtual,
+                        dialog
+                    )
+                }
             }
         }
 
@@ -986,13 +1898,14 @@ class ImageViewerActivity : Activity() {
             (
                 resources.displayMetrics.widthPixels *
                     0.94
-                ).toInt(),
+            ).toInt(),
             (
                 resources.displayMetrics.heightPixels *
                     0.80
-                ).toInt()
+            ).toInt()
         )
     }
+
 
     private fun atualizarPastas(
         lista: ListView,
@@ -1035,7 +1948,7 @@ class ImageViewerActivity : Activity() {
             pasta.listFiles()
                 ?.filter {
                     it.isDirectory &&
-                    !it.isHidden
+                        !it.isHidden
                 }
                 ?.sortedBy {
                     it.name.lowercase(
@@ -1108,6 +2021,7 @@ class ImageViewerActivity : Activity() {
         }
     }
 
+
     /*
      * =========================================================
      * CRIAR PASTA
@@ -1129,7 +2043,9 @@ class ImageViewerActivity : Activity() {
             .setTitle(
                 "Criar pasta"
             )
-            .setView(campo)
+            .setView(
+                campo
+            )
             .setNegativeButton(
                 "Cancelar",
                 null
@@ -1210,6 +2126,134 @@ class ImageViewerActivity : Activity() {
             .show()
     }
 
+
+    /*
+     * =========================================================
+     * COPIAR ARQUIVO
+     * =========================================================
+     */
+
+    private fun copiarArquivo(
+        destino: File,
+        dialog: AlertDialog
+    ) {
+
+        val arquivoDestino =
+            if (
+                File(
+                    destino,
+                    arquivoAtual.name
+                ).exists()
+            ) {
+
+                criarNomeUnico(
+                    destino,
+                    arquivoAtual.name
+                )
+
+            } else {
+
+                File(
+                    destino,
+                    arquivoAtual.name
+                )
+            }
+
+        Thread {
+
+            try {
+
+                copiarArquivoFisicamente(
+                    arquivoAtual,
+                    arquivoDestino
+                )
+
+                runOnUiThread {
+
+                    dialog.dismiss()
+
+                    Toast.makeText(
+                        this,
+                        "Imagem copiada com sucesso",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+
+                try {
+                    arquivoDestino.delete()
+                } catch (_: Exception) {
+                }
+
+                runOnUiThread {
+
+                    Toast.makeText(
+                        this,
+                        "Erro ao copiar imagem",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+
+        }.start()
+    }
+
+
+    private fun copiarArquivoFisicamente(
+        origem: File,
+        destino: File
+    ) {
+
+        FileInputStream(
+            origem
+        ).use { entrada ->
+
+            FileOutputStream(
+                destino
+            ).use { saida ->
+
+                val buffer =
+                    ByteArray(
+                        64 * 1024
+                    )
+
+                while (true) {
+
+                    val lidos =
+                        entrada.read(
+                            buffer
+                        )
+
+                    if (
+                        lidos <= 0
+                    ) {
+                        break
+                    }
+
+                    saida.write(
+                        buffer,
+                        0,
+                        lidos
+                    )
+                }
+            }
+        }
+
+        if (
+            !destino.exists() ||
+            destino.length() != origem.length()
+        ) {
+
+            destino.delete()
+
+            throw Exception(
+                "Falha na cópia"
+            )
+        }
+    }
+
+
     /*
      * =========================================================
      * MOVER
@@ -1259,6 +2303,7 @@ class ImageViewerActivity : Activity() {
         )
     }
 
+
     private fun criarNomeUnico(
         pasta: File,
         nomeOriginal: String
@@ -1307,6 +2352,7 @@ class ImageViewerActivity : Activity() {
         }
     }
 
+
     private fun executarMovimento(
         destino: File,
         dialog: AlertDialog
@@ -1323,6 +2369,9 @@ class ImageViewerActivity : Activity() {
                 arquivoAtual =
                     destino
 
+                arquivos[posicaoAtual] =
+                    destino
+
                 dialog.dismiss()
 
                 Toast.makeText(
@@ -1331,7 +2380,7 @@ class ImageViewerActivity : Activity() {
                     Toast.LENGTH_SHORT
                 ).show()
 
-                finish()
+                atualizarInformacoesDaTela()
 
             } else {
 
@@ -1352,6 +2401,7 @@ class ImageViewerActivity : Activity() {
         }
     }
 
+
     private fun copiarEApagar(
         origem: File,
         destino: File,
@@ -1360,77 +2410,42 @@ class ImageViewerActivity : Activity() {
 
         try {
 
-            FileInputStream(
-                origem
-            ).use { entrada ->
-
-                FileOutputStream(
-                    destino
-                ).use { saida ->
-
-                    val buffer =
-                        ByteArray(
-                            64 * 1024
-                        )
-
-                    while (true) {
-
-                        val lidos =
-                            entrada.read(
-                                buffer
-                            )
-
-                        if (
-                            lidos <= 0
-                        ) {
-                            break
-                        }
-
-                        saida.write(
-                            buffer,
-                            0,
-                            lidos
-                        )
-                    }
-                }
-            }
+            copiarArquivoFisicamente(
+                origem,
+                destino
+            )
 
             if (
-                destino.exists() &&
-                destino.length() ==
-                origem.length()
+                origem.delete()
             ) {
 
+                arquivoAtual =
+                    destino
+
                 if (
-                    origem.delete()
+                    posicaoAtual <
+                    arquivos.size
                 ) {
 
-                    dialog?.dismiss()
-
-                    Toast.makeText(
-                        this,
-                        "Imagem movida com sucesso",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    finish()
-
-                } else {
-
-                    Toast.makeText(
-                        this,
-                        "Imagem copiada, mas a original não pôde ser removida",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    arquivos[posicaoAtual] =
+                        destino
                 }
 
-            } else {
-
-                destino.delete()
+                dialog?.dismiss()
 
                 Toast.makeText(
                     this,
-                    "Falha ao copiar imagem",
+                    "Imagem movida com sucesso",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                atualizarInformacoesDaTela()
+
+            } else {
+
+                Toast.makeText(
+                    this,
+                    "Imagem copiada, mas a original não pôde ser removida",
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -1449,6 +2464,7 @@ class ImageViewerActivity : Activity() {
             ).show()
         }
     }
+
 
     /*
      * =========================================================
@@ -1543,6 +2559,24 @@ class ImageViewerActivity : Activity() {
         }
     }
 
+
+    /*
+     * =========================================================
+     * UTILITÁRIO
+     * =========================================================
+     */
+
+    private fun dp(
+        valor: Int
+    ): Int {
+
+        return (
+            valor *
+                resources.displayMetrics.density
+            ).toInt()
+    }
+
+
     override fun onWindowFocusChanged(
         hasFocus: Boolean
     ) {
@@ -1560,11 +2594,8 @@ class ImageViewerActivity : Activity() {
 
 /*
  * =============================================================
- * FRAME LAYOUT SIMPLES
+ * FRAME LAYOUT
  * =============================================================
- *
- * Usamos um FrameLayout próprio para manter o arquivo
- * independente de XML.
  */
 
 class FrameLayoutCompat(
@@ -1572,6 +2603,7 @@ class FrameLayoutCompat(
 ) : android.widget.FrameLayout(context) {
 
     companion object {
+
         const val MATCH_PARENT =
             android.view.ViewGroup.LayoutParams.MATCH_PARENT
     }
@@ -1588,7 +2620,7 @@ class FrameLayoutCompat(
 
 /*
  * =============================================================
- * IMAGE VIEW COM ZOOM
+ * IMAGE VIEW COM ZOOM + SWIPE
  * =============================================================
  */
 
@@ -1612,10 +2644,26 @@ class ZoomImageView(
     private var ultimoX = 0f
     private var ultimoY = 0f
 
+    private var inicioX = 0f
+    private var inicioY = 0f
+
     private var arrastando = false
 
     private var larguraImagem = 0
     private var alturaImagem = 0
+
+    private var movimentoHorizontal =
+        false
+
+    private var distanciaMinimaSwipe =
+        120f
+
+    var onSwipeLeft:
+        (() -> Unit)? = null
+
+    var onSwipeRight:
+        (() -> Unit)? = null
+
 
     init {
 
@@ -1626,9 +2674,16 @@ class ZoomImageView(
         scaleType =
             ImageView.ScaleType.MATRIX
 
-        isClickable = true
+        isClickable =
+            true
 
-        setOnTouchListener { _, evento ->
+        distanciaMinimaSwipe =
+            100f *
+                resources.displayMetrics.density
+
+        setOnTouchListener {
+                _,
+                evento ->
 
             escalaDetector.onTouchEvent(
                 evento
@@ -1640,23 +2695,71 @@ class ZoomImageView(
 
                 MotionEvent.ACTION_DOWN -> {
 
+                    inicioX =
+                        evento.x
+
+                    inicioY =
+                        evento.y
+
                     ultimoX =
                         evento.x
 
                     ultimoY =
                         evento.y
 
-                    arrastando = true
+                    arrastando =
+                        true
+
+                    movimentoHorizontal =
+                        false
 
                     true
                 }
 
+
                 MotionEvent.ACTION_MOVE -> {
 
+                    val deltaX =
+                        evento.x -
+                            inicioX
+
+                    val deltaY =
+                        evento.y -
+                            inicioY
+
+                    /*
+                     * Se estiver no zoom mínimo,
+                     * podemos interpretar um movimento
+                     * horizontal como troca de imagem.
+                     */
+                    if (
+                        escala <=
+                        escalaMinima + 0.001f &&
+                        evento.pointerCount == 1
+                    ) {
+
+                        if (
+                            kotlin.math.abs(deltaX) >
+                            kotlin.math.abs(deltaY) &&
+                            kotlin.math.abs(deltaX) >
+                            30f
+                        ) {
+
+                            movimentoHorizontal =
+                                true
+                        }
+                    }
+
+                    /*
+                     * Só arrasta a imagem quando
+                     * estiver ampliada.
+                     */
                     if (
                         arrastando &&
                         evento.pointerCount == 1 &&
-                        !escalaDetector.isInProgress
+                        !escalaDetector.isInProgress &&
+                        escala >
+                        escalaMinima + 0.001f
                     ) {
 
                         deslocamentoX +=
@@ -1680,18 +2783,70 @@ class ZoomImageView(
                     true
                 }
 
-                MotionEvent.ACTION_UP,
-                MotionEvent.ACTION_CANCEL -> {
 
-                    arrastando = false
+                MotionEvent.ACTION_UP -> {
+
+                    val deltaX =
+                        evento.x -
+                            inicioX
+
+                    val deltaY =
+                        evento.y -
+                            inicioY
+
+                    /*
+                     * Swipe só acontece quando
+                     * a imagem está no zoom normal.
+                     */
+                    if (
+                        escala <=
+                        escalaMinima + 0.001f &&
+                        movimentoHorizontal &&
+                        kotlin.math.abs(deltaX) >=
+                        distanciaMinimaSwipe &&
+                        kotlin.math.abs(deltaX) >
+                        kotlin.math.abs(deltaY)
+                    ) {
+
+                        if (
+                            deltaX < 0
+                        ) {
+
+                            onSwipeLeft?.invoke()
+
+                        } else {
+
+                            onSwipeRight?.invoke()
+                        }
+                    }
+
+                    arrastando =
+                        false
+
+                    movimentoHorizontal =
+                        false
 
                     true
                 }
 
-                else -> true
+
+                MotionEvent.ACTION_CANCEL -> {
+
+                    arrastando =
+                        false
+
+                    movimentoHorizontal =
+                        false
+
+                    true
+                }
+
+                else ->
+                    true
             }
         }
     }
+
 
     override fun setImageBitmap(
         bitmap: Bitmap?
@@ -1717,6 +2872,22 @@ class ZoomImageView(
         }
     }
 
+
+    fun resetarZoom() {
+
+        escala =
+            escalaMinima
+
+        deslocamentoX =
+            0f
+
+        deslocamentoY =
+            0f
+
+        aplicarTransformacao()
+    }
+
+
     private fun calcularEscalaInicial() {
 
         if (
@@ -1725,6 +2896,7 @@ class ZoomImageView(
             width <= 0 ||
             height <= 0
         ) {
+
             return
         }
 
@@ -1745,7 +2917,9 @@ class ZoomImageView(
         if (
             escalaMinima <= 0f
         ) {
-            escalaMinima = 1f
+
+            escalaMinima =
+                1f
         }
 
         escalaMaxima =
@@ -1757,17 +2931,22 @@ class ZoomImageView(
         escala =
             escalaMinima
 
-        deslocamentoX = 0f
-        deslocamentoY = 0f
+        deslocamentoX =
+            0f
+
+        deslocamentoY =
+            0f
 
         aplicarTransformacao()
     }
+
 
     private fun aplicarTransformacao() {
 
         if (
             drawable == null
         ) {
+
             return
         }
 
@@ -1806,6 +2985,7 @@ class ZoomImageView(
             matriz
     }
 
+
     private fun limitarDeslocamento() {
 
         if (
@@ -1813,8 +2993,11 @@ class ZoomImageView(
             escalaMinima + 0.001f
         ) {
 
-            deslocamentoX = 0f
-            deslocamentoY = 0f
+            deslocamentoX =
+                0f
+
+            deslocamentoY =
+                0f
 
             return
         }
@@ -1852,6 +3035,7 @@ class ZoomImageView(
             )
     }
 
+
     private inner class EscalaListener :
         ScaleGestureDetector.SimpleOnScaleGestureListener() {
 
@@ -1862,27 +3046,32 @@ class ZoomImageView(
             escala =
                 (
                     escala *
-                    detector.scaleFactor
-                ).coerceIn(
-                    escalaMinima,
-                    escalaMaxima
-                )
+                        detector.scaleFactor
+                    ).coerceIn(
+                        escalaMinima,
+                        escalaMaxima
+                    )
 
             if (
                 escala <=
                 escalaMinima + 0.001f
             ) {
 
-                deslocamentoX = 0f
-                deslocamentoY = 0f
+                deslocamentoX =
+                    0f
+
+                deslocamentoY =
+                    0f
             }
 
             limitarDeslocamento()
+
             aplicarTransformacao()
 
             return true
         }
     }
+
 
     override fun onSizeChanged(
         largura: Int,
