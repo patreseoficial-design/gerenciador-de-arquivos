@@ -779,8 +779,9 @@ class MainActivity : AppCompatActivity() {
                         position < resultado.size
                     ) {
 
-                        abrirArquivo(
-                            resultado[position]
+                        abrirMidiaDaPasta(
+                            resultado,
+                            position
                         )
                     }
                 }
@@ -808,6 +809,151 @@ class MainActivity : AppCompatActivity() {
                         false
                     }
                 }
+            }
+        }
+    }
+
+    // ============================================================
+    // ABRIR MÍDIA DA PASTA
+    // ============================================================
+
+    private fun abrirMidiaDaPasta(
+        arquivos: ArrayList<File>,
+        posicao: Int
+    ) {
+
+        if (
+            posicao < 0 ||
+            posicao >= arquivos.size
+        ) {
+            return
+        }
+
+        val arquivo =
+            arquivos[posicao]
+
+        if (
+            !arquivo.exists() ||
+            !arquivo.isFile
+        ) {
+
+            Toast.makeText(
+                this,
+                "Arquivo não encontrado",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        val extensao =
+            arquivo.extension.lowercase(
+                Locale.getDefault()
+            )
+
+        val caminhos =
+            ArrayList<String>()
+
+        arquivos.forEach {
+
+            caminhos.add(
+                it.absolutePath
+            )
+        }
+
+        when {
+
+            TIPO_IMAGEM.contains(
+                extensao
+            ) -> {
+
+                try {
+
+                    val intent =
+                        Intent(
+                            this,
+                            ImageViewerActivity::class.java
+                        )
+
+                    intent.putExtra(
+                        "arquivo",
+                        arquivo.absolutePath
+                    )
+
+                    intent.putStringArrayListExtra(
+                        "arquivos",
+                        caminhos
+                    )
+
+                    intent.putExtra(
+                        "posicao",
+                        posicao
+                    )
+
+                    startActivity(
+                        intent
+                    )
+
+                } catch (
+                    e: Exception
+                ) {
+
+                    Toast.makeText(
+                        this,
+                        "Erro ao abrir imagem: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+
+            TIPO_VIDEO.contains(
+                extensao
+            ) -> {
+
+                try {
+
+                    val intent =
+                        Intent(
+                            this,
+                            VideoViewerActivity::class.java
+                        )
+
+                    intent.putExtra(
+                        "arquivo",
+                        arquivo.absolutePath
+                    )
+
+                    intent.putStringArrayListExtra(
+                        "arquivos",
+                        caminhos
+                    )
+
+                    intent.putExtra(
+                        "posicao",
+                        posicao
+                    )
+
+                    startActivity(
+                        intent
+                    )
+
+                } catch (
+                    e: Exception
+                ) {
+
+                    Toast.makeText(
+                        this,
+                        "Erro ao abrir vídeo: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+
+            else -> {
+
+                abrirArquivo(
+                    arquivo
+                )
             }
         }
     }
