@@ -20,19 +20,27 @@ import android.view.WindowManager
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.widget.MediaController
 import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
-import android.widget.VideoView
 import androidx.core.content.FileProvider
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultRenderersFactory
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import java.io.File
 import java.text.DecimalFormat
 import java.util.Locale
+import kotlin.math.abs
 
+@UnstableApi
 class VideoViewerActivity : Activity() {
 
-    private lateinit var videoView: GestureVideoView
+    private lateinit var playerView: GesturePlayerView
 
     private lateinit var nomePastaText: TextView
     private lateinit var nomeArquivoText: TextView
@@ -48,20 +56,27 @@ class VideoViewerActivity : Activity() {
 
     private lateinit var arquivoAtual: File
 
-    private var videoPreparado = false
-    private var videoEstavaReproduzindoAntesDaPausa = false
+    private var player: ExoPlayer? = null
+
+    private var playerPreparado = false
+
+    private var reproduzirAoRetornar = true
 
     private var popupAtual: PopupWindow? = null
 
-    private var videoUriAtual: Uri? = null
+    private var ultimaPosicao = 0L
 
-    private var carregandoVideo = false
+    private var ultimoIndicePlayer = 0
 
     private val pastaLixeira =
         File(
             Environment.getExternalStorageDirectory(),
             ".GerenciadorArquivos/.Lixeira"
         )
+
+    // =========================================================
+    // CICLO DE VIDA
+    // =========================================================
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,45 +98,51 @@ class VideoViewerActivity : Activity() {
 
         criarInterface()
 
-        carregarVideo()
+        restaurarEstado(savedInstanceState)
+
+        inicializarPlayer()
 
         configurarGestos()
     }
-
-    // =========================================================
-    // CICLO DE VIDA
-    // =========================================================
 
     override fun onResume() {
         super.onResume()
 
         configurarTelaCheia()
 
-        if (
-            ::videoView.isInitialized &&
-            videoPreparado &&
-            videoEstavaReproduzindoAntesDaPausa
-        ) {
-            try {
-                videoView.start()
-            } catch (_: Exception) {
+        if (::playerView.isInitialized) {
+            playerView.requestLayout()
+        }
+
+        player?.let {
+
+            if (
+                playerPreparado &&
+                reproduzirAoRetornar
+            ) {
+                try {
+                    it.play()
+                } catch (_: Exception) {
+                }
             }
         }
     }
 
     override fun onPause() {
 
-        if (::videoView.isInitialized) {
+        player?.let {
 
             try {
+                ultimaPosicao = it.currentPosition
+            } catch (_: Exception) {
+            }
 
-                videoEstavaReproduzindoAntesDaPausa =
-                    videoView.isPlaying
+            try {
+                reproduzirAoRetornar = it.isPlaying
 
-                if (videoView.isPlaying) {
-                    videoView.pause()
+                if (it.isPlaying) {
+                    it.pause()
                 }
-
             } catch (_: Exception) {
             }
         }
@@ -129,26 +150,40 @@ class VideoViewerActivity : Activity() {
         super.onPause()
     }
 
+    override fun onSaveInstanceState(
+        outState: Bundle
+    ) {
+
+        player?.let {
+
+            try {
+                outState.putLong(
+                    "posicao_video",
+                    it.currentPosition
+                )
+
+                outState.putInt(
+                    "indice_video",
+                    it.currentMediaItemIndex
+                )
+
+                outState.putBoolean(
+                    "reproduzindo",
+                    it.isPlaying
+                )
+            } catch (_: Exception) {
+            }
+        }
+
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onDestroy() {
 
         popupAtual?.dismiss()
         popupAtual = null
 
-        if (::videoView.isInitialized) {
-
-            try {
-                videoView.stopPlayback()
-            } catch (_: Exception) {
-            }
-
-            try {
-                videoView.setMediaController(null)
-            } catch (_: Exception) {
-            }
-        }
-
-        videoPreparado = false
-        videoUriAtual = null
+        liberarPlayer()
 
         super.onDestroy()
     }
@@ -170,9 +205,9 @@ class VideoViewerActivity : Activity() {
 
         configurarTelaCheia()
 
-        if (::videoView.isInitialized) {
-            videoView.requestLayout()
-            videoView.invalidate()
+        if (::playerView.isInitialized) {
+            playerView.requestLayout()
+            playerView.invalidate()
         }
 
         if (::barraSuperior.isInitialized) {
@@ -180,6 +215,45 @@ class VideoViewerActivity : Activity() {
                 ajustarTextos()
             }
         }
+    }
+
+    // =========================================================
+    // ESTADO
+    // =========================================================
+
+    private fun restaurarEstado(
+        savedInstanceState: Bundle?
+    ) {
+
+        if (savedInstanceState == null) {
+            return
+        }
+
+        val indice =
+            savedInstanceState.getInt(
+                "indice_video",
+                posicaoAtual
+            )
+
+        if (
+            indice >= 0 &&
+            indice < arquivos.size
+        ) {
+            posicaoAtual = indice
+            atualizarArquivoAtual()
+        }
+
+        ultimaPosicao =
+            savedInstanceState.getLong(
+                "posicao_video",
+                0L
+            )
+
+        reproduzirAoRetornar =
+            savedInstanceState.getBoolean(
+                "reproduzindo",
+                true
+            )
     }
 
     // =========================================================
@@ -235,7 +309,10 @@ class VideoViewerActivity : Activity() {
             arquivos.isEmpty() &&
             !caminhoRecebido.isNullOrBlank()
         ) {
-            arquivos.add(caminhoRecebido)
+
+            arquivos.add(
+                caminhoRecebido
+            )
         }
 
         if (arquivos.isEmpty()) {
@@ -309,8 +386,8 @@ class VideoViewerActivity : Activity() {
                 setBackgroundColor(Color.BLACK)
             }
 
-        videoView =
-            GestureVideoView(this).apply {
+        playerView =
+            GesturePlayerView(this).apply {
 
                 layoutParams =
                     FrameLayout.LayoutParams(
@@ -321,15 +398,32 @@ class VideoViewerActivity : Activity() {
                 setBackgroundColor(
                     Color.BLACK
                 )
+
+                useController = true
+
+                controllerShowTimeoutMs = 3000
+
+                controllerHideOnTouch = true
+
+                showBuffering =
+                    PlayerView.SHOW_BUFFERING_WHEN_PLAYING
+
+                keepScreenOn = true
             }
 
-        raiz.addView(videoView)
+        raiz.addView(playerView)
 
         criarBarraSuperior()
 
         criarBarraInferior()
 
         setContentView(raiz)
+
+        playerView.bringToFront()
+
+        barraSuperior.bringToFront()
+
+        barraInferior.bringToFront()
     }
 
     // =========================================================
@@ -783,12 +877,13 @@ class VideoViewerActivity : Activity() {
     }
 
     // =========================================================
-    // VÍDEO - CORRIGIDO
+    // MEDIA3 / EXOPLAYER
     // =========================================================
 
-    private fun carregarVideo() {
+    @androidx.media3.common.util.UnstableApi
+    private fun inicializarPlayer() {
 
-        if (!::videoView.isInitialized) {
+        if (!::arquivoAtual.isInitialized) {
             return
         }
 
@@ -825,166 +920,272 @@ class VideoViewerActivity : Activity() {
             return
         }
 
-        carregandoVideo = true
-        videoPreparado = false
+        liberarPlayer()
 
         try {
 
-            videoView.stopPlayback()
+            val renderersFactory =
+                DefaultRenderersFactory(this)
+                    .setEnableDecoderFallback(true)
 
-        } catch (_: Exception) {
-        }
+            val novoPlayer =
+                ExoPlayer.Builder(
+                    this,
+                    renderersFactory
+                ).build()
 
-        videoView.setMediaController(null)
+            player = novoPlayer
 
-        val controlador =
-            MediaController(this)
+            playerView.player =
+                novoPlayer
 
-        controlador.setAnchorView(
-            videoView
-        )
+            novoPlayer.addListener(
+                object : Player.Listener {
 
-        controlador.setMediaPlayer(
-            videoView
-        )
+                    override fun onPlaybackStateChanged(
+                        playbackState: Int
+                    ) {
 
-        videoView.setMediaController(
-            controlador
-        )
+                        when (playbackState) {
 
-        val uri = try {
+                            Player.STATE_READY -> {
 
-            FileProvider.getUriForFile(
-                this,
-                "${packageName}.fileprovider",
-                arquivoAtual
+                                playerPreparado = true
+
+                                if (
+                                    ultimaPosicao > 0
+                                ) {
+
+                                    try {
+
+                                        novoPlayer.seekTo(
+                                            ultimaPosicao
+                                        )
+
+                                    } catch (_: Exception) {
+                                    }
+
+                                    ultimaPosicao = 0L
+                                }
+
+                                if (
+                                    reproduzirAoRetornar
+                                ) {
+
+                                    try {
+                                        novoPlayer.play()
+                                    } catch (_: Exception) {
+                                    }
+                                }
+                            }
+
+                            Player.STATE_BUFFERING -> {
+                                playerPreparado = false
+                            }
+
+                            Player.STATE_IDLE -> {
+                                playerPreparado = false
+                            }
+
+                            Player.STATE_ENDED -> {
+
+                                playerPreparado = true
+
+                                reproduzirAoRetornar =
+                                    false
+                            }
+                        }
+                    }
+
+                    override fun onMediaItemTransition(
+                        mediaItem: MediaItem?,
+                        reason: Int
+                    ) {
+
+                        val indice =
+                            novoPlayer.currentMediaItemIndex
+
+                        if (
+                            indice >= 0 &&
+                            indice < arquivos.size
+                        ) {
+
+                            if (
+                                indice !=
+                                ultimoIndicePlayer
+                            ) {
+
+                                ultimoIndicePlayer =
+                                    indice
+
+                                posicaoAtual =
+                                    indice
+
+                                atualizarArquivoAtual()
+                                atualizarCabecalho()
+                            }
+                        }
+                    }
+
+                    override fun onPlayerError(
+                        error: PlaybackException
+                    ) {
+
+                        playerPreparado = false
+
+                        reproduzirAoRetornar =
+                            false
+
+                        mostrarErroReproducao(
+                            error
+                        )
+                    }
+                }
             )
 
-        } catch (e: Exception) {
+            val listaMediaItems =
+                ArrayList<MediaItem>()
 
-            carregandoVideo = false
+            arquivos.forEach { caminho ->
 
-            Toast.makeText(
-                this,
-                "Não foi possível acessar o vídeo",
-                Toast.LENGTH_LONG
-            ).show()
+                val arquivo =
+                    File(caminho)
 
-            return
-        }
+                if (
+                    arquivo.exists() &&
+                    arquivo.isFile &&
+                    arquivo.canRead()
+                ) {
 
-        videoUriAtual = uri
+                    try {
 
-        try {
+                        val uri =
+                            FileProvider.getUriForFile(
+                                this,
+                                "${packageName}.fileprovider",
+                                arquivo
+                            )
 
-            contentResolver
-                .takePersistableUriPermission(
-                    uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
+                        listaMediaItems.add(
+                            MediaItem.fromUri(uri)
+                        )
 
-        } catch (_: Exception) {
-            // FileProvider normalmente não permite
-            // persistência. Não é um problema.
-        }
+                    } catch (_: Exception) {
 
-        try {
-
-            videoView.setVideoURI(uri)
-
-        } catch (e: Exception) {
-
-            carregandoVideo = false
-            videoPreparado = false
-
-            Toast.makeText(
-                this,
-                "Não foi possível carregar este vídeo",
-                Toast.LENGTH_LONG
-            ).show()
-
-            return
-        }
-
-        videoView.setOnPreparedListener { mediaPlayer ->
-
-            carregandoVideo = false
-            videoPreparado = true
-
-            try {
-                mediaPlayer.isLooping = false
-            } catch (_: Exception) {
+                        // Se um arquivo não puder ser
+                        // transformado em URI, ele será
+                        // simplesmente ignorado.
+                    }
+                }
             }
 
-            try {
-
-                videoView.seekTo(1)
-
-            } catch (_: Exception) {
-            }
-
-            try {
-
-                videoView.start()
-
-                videoEstavaReproduzindoAntesDaPausa =
-                    true
-
-            } catch (_: Exception) {
-
-                videoEstavaReproduzindoAntesDaPausa =
-                    false
+            if (listaMediaItems.isEmpty()) {
 
                 Toast.makeText(
                     this,
-                    "Não foi possível iniciar o vídeo",
+                    "Não foi possível carregar o vídeo",
                     Toast.LENGTH_LONG
                 ).show()
+
+                return
             }
 
-            configurarTelaCheia()
+            var indiceInicial =
+                posicaoAtual
+
+            if (
+                indiceInicial < 0 ||
+                indiceInicial >=
+                listaMediaItems.size
+            ) {
+                indiceInicial = 0
+            }
+
+            ultimoIndicePlayer =
+                indiceInicial
+
+            novoPlayer.setMediaItems(
+                listaMediaItems,
+                indiceInicial,
+                C.TIME_UNSET
+            )
+
+            novoPlayer.prepare()
+
+            novoPlayer.playWhenReady =
+                reproduzirAoRetornar
+
+        } catch (e: Exception) {
+
+            playerPreparado = false
+
+            Toast.makeText(
+                this,
+                "Erro ao iniciar o vídeo",
+                Toast.LENGTH_LONG
+            ).show()
         }
+    }
 
-        videoView.setOnCompletionListener {
+    private fun liberarPlayer() {
 
-            videoEstavaReproduzindoAntesDaPausa =
-                false
+        player?.let {
 
             try {
-                controlador.show()
+                ultimaPosicao =
+                    it.currentPosition
+            } catch (_: Exception) {
+            }
+
+            try {
+                it.stop()
+            } catch (_: Exception) {
+            }
+
+            try {
+                it.release()
             } catch (_: Exception) {
             }
         }
 
-        videoView.setOnErrorListener { _, what, extra ->
+        player = null
+        playerView.player = null
+        playerPreparado = false
+    }
 
-            carregandoVideo = false
-            videoPreparado = false
+    private fun mostrarErroReproducao(
+        error: PlaybackException
+    ) {
 
-            videoEstavaReproduzindoAntesDaPausa =
-                false
+        val mensagem =
+            when (
+                error.errorCode
+            ) {
 
-            val mensagem =
-                when (what) {
+                PlaybackException.ERROR_CODE_DECODER_INIT_FAILED ->
+                    "O celular não conseguiu iniciar o decodificador deste vídeo."
 
-                    android.media.MediaPlayer.MEDIA_ERROR_UNKNOWN ->
-                        "Formato ou codec de vídeo não suportado"
+                PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED ->
+                    "O formato ou codec deste vídeo não é compatível."
 
-                    android.media.MediaPlayer.MEDIA_ERROR_SERVER_DIED ->
-                        "O mecanismo de reprodução parou"
+                PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ->
+                    "O arquivo de vídeo parece estar corrompido."
 
-                    else ->
-                        "Não foi possível reproduzir este vídeo"
-                }
+                PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND ->
+                    "O arquivo de vídeo não foi encontrado."
 
-            Toast.makeText(
-                this,
-                mensagem,
-                Toast.LENGTH_LONG
-            ).show()
+                PlaybackException.ERROR_CODE_IO_NO_PERMISSION ->
+                    "O aplicativo não tem permissão para acessar este vídeo."
 
-            false
-        }
+                else ->
+                    "Não foi possível reproduzir este vídeo."
+            }
+
+        Toast.makeText(
+            this,
+            mensagem,
+            Toast.LENGTH_LONG
+        ).show()
     }
 
     // =========================================================
@@ -993,11 +1194,11 @@ class VideoViewerActivity : Activity() {
 
     private fun configurarGestos() {
 
-        videoView.onSwipeLeft = {
+        playerView.onSwipeLeft = {
             abrirProximoVideo()
         }
 
-        videoView.onSwipeRight = {
+        playerView.onSwipeRight = {
             abrirVideoAnterior()
         }
     }
@@ -1022,9 +1223,12 @@ class VideoViewerActivity : Activity() {
             return
         }
 
-        posicaoAtual++
+        val novoIndice =
+            posicaoAtual + 1
 
-        trocarVideo()
+        trocarVideo(
+            novoIndice
+        )
     }
 
     private fun abrirVideoAnterior() {
@@ -1044,28 +1248,58 @@ class VideoViewerActivity : Activity() {
             return
         }
 
-        posicaoAtual--
+        val novoIndice =
+            posicaoAtual - 1
 
-        trocarVideo()
+        trocarVideo(
+            novoIndice
+        )
     }
 
-    private fun trocarVideo() {
+    private fun trocarVideo(
+        novoIndice: Int
+    ) {
 
-        try {
-
-            if (::videoView.isInitialized) {
-                videoView.stopPlayback()
-            }
-
-        } catch (_: Exception) {
+        if (
+            novoIndice < 0 ||
+            novoIndice >= arquivos.size
+        ) {
+            return
         }
+
+        posicaoAtual =
+            novoIndice
 
         atualizarArquivoAtual()
 
-        videoEstavaReproduzindoAntesDaPausa =
+        ultimaPosicao = 0L
+
+        reproduzirAoRetornar =
             true
 
-        carregarVideo()
+        player?.let {
+
+            try {
+
+                it.seekTo(
+                    novoIndice,
+                    0L
+                )
+
+                it.play()
+
+                ultimoIndicePlayer =
+                    novoIndice
+
+                atualizarCabecalho()
+
+                return
+
+            } catch (_: Exception) {
+            }
+        }
+
+        inicializarPlayer()
 
         atualizarCabecalho()
     }
@@ -1738,7 +1972,9 @@ class VideoViewerActivity : Activity() {
 
                     atualizarArquivoAtual()
 
-                    carregarVideo()
+                    ultimaPosicao = 0L
+
+                    inicializarPlayer()
 
                     Toast.makeText(
                         this,
@@ -2184,12 +2420,13 @@ class VideoViewerActivity : Activity() {
     }
 
     // =========================================================
-    // VIDEO VIEW COM GESTO
+    // PLAYER VIEW COM GESTOS
     // =========================================================
 
-    class GestureVideoView(
+    @UnstableApi
+    class GesturePlayerView(
         context: Context
-    ) : VideoView(context) {
+    ) : PlayerView(context) {
 
         var onSwipeLeft:
                 (() -> Unit)? = null
@@ -2235,16 +2472,10 @@ class VideoViewerActivity : Activity() {
                         event.y - toqueY
 
                     if (
-                        kotlin.math.abs(
-                            distanciaX
-                        ) >
+                        abs(distanciaX) >
                         distanciaMinima &&
-                        kotlin.math.abs(
-                            distanciaX
-                        ) >
-                        kotlin.math.abs(
-                            distanciaY
-                        )
+                        abs(distanciaX) >
+                        abs(distanciaY)
                     ) {
 
                         movimentoDetectado =
@@ -2261,16 +2492,10 @@ class VideoViewerActivity : Activity() {
                         event.y - toqueY
 
                     if (
-                        kotlin.math.abs(
-                            distanciaX
-                        ) >
+                        abs(distanciaX) >
                         distanciaMinima &&
-                        kotlin.math.abs(
-                            distanciaX
-                        ) >
-                        kotlin.math.abs(
-                            distanciaY
-                        )
+                        abs(distanciaX) >
+                        abs(distanciaY)
                     ) {
 
                         if (
@@ -2286,7 +2511,14 @@ class VideoViewerActivity : Activity() {
 
                         movimentoDetectado =
                             true
+
+                        return true
                     }
+                }
+
+                MotionEvent.ACTION_CANCEL -> {
+                    movimentoDetectado =
+                        false
                 }
             }
 
