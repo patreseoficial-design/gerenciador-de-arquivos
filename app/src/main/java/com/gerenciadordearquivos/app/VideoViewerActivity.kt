@@ -17,7 +17,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -54,6 +53,10 @@ class VideoViewerActivity : Activity() {
 
     private var popupAtual: PopupWindow? = null
 
+    private var videoUriAtual: Uri? = null
+
+    private var carregandoVideo = false
+
     private val pastaLixeira =
         File(
             Environment.getExternalStorageDirectory(),
@@ -74,6 +77,10 @@ class VideoViewerActivity : Activity() {
 
         carregarDadosIntent()
 
+        if (isFinishing) {
+            return
+        }
+
         criarInterface()
 
         carregarVideo()
@@ -91,10 +98,14 @@ class VideoViewerActivity : Activity() {
         configurarTelaCheia()
 
         if (
+            ::videoView.isInitialized &&
             videoPreparado &&
             videoEstavaReproduzindoAntesDaPausa
         ) {
-            videoView.start()
+            try {
+                videoView.start()
+            } catch (_: Exception) {
+            }
         }
     }
 
@@ -102,15 +113,44 @@ class VideoViewerActivity : Activity() {
 
         if (::videoView.isInitialized) {
 
-            videoEstavaReproduzindoAntesDaPausa =
-                videoView.isPlaying
+            try {
 
-            if (videoView.isPlaying) {
-                videoView.pause()
+                videoEstavaReproduzindoAntesDaPausa =
+                    videoView.isPlaying
+
+                if (videoView.isPlaying) {
+                    videoView.pause()
+                }
+
+            } catch (_: Exception) {
             }
         }
 
         super.onPause()
+    }
+
+    override fun onDestroy() {
+
+        popupAtual?.dismiss()
+        popupAtual = null
+
+        if (::videoView.isInitialized) {
+
+            try {
+                videoView.stopPlayback()
+            } catch (_: Exception) {
+            }
+
+            try {
+                videoView.setMediaController(null)
+            } catch (_: Exception) {
+            }
+        }
+
+        videoPreparado = false
+        videoUriAtual = null
+
+        super.onDestroy()
     }
 
     override fun onWindowFocusChanged(
@@ -135,8 +175,10 @@ class VideoViewerActivity : Activity() {
             videoView.invalidate()
         }
 
-        barraSuperior.post {
-            ajustarTextos()
+        if (::barraSuperior.isInitialized) {
+            barraSuperior.post {
+                ajustarTextos()
+            }
         }
     }
 
@@ -148,11 +190,11 @@ class VideoViewerActivity : Activity() {
 
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_FULLSCREEN or
-            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
     }
 
     // =========================================================
@@ -168,15 +210,26 @@ class VideoViewerActivity : Activity() {
             listaRecebida != null &&
             listaRecebida.isNotEmpty()
         ) {
+
             arquivos.clear()
-            arquivos.addAll(listaRecebida)
+
+            listaRecebida
+                .filter {
+                    it.isNotBlank()
+                }
+                .forEach {
+                    arquivos.add(it)
+                }
         }
 
         val caminhoRecebido =
             intent.getStringExtra("arquivo")
 
         val posicaoRecebida =
-            intent.getIntExtra("posicao", -1)
+            intent.getIntExtra(
+                "posicao",
+                -1
+            )
 
         if (
             arquivos.isEmpty() &&
@@ -186,6 +239,7 @@ class VideoViewerActivity : Activity() {
         }
 
         if (arquivos.isEmpty()) {
+
             Toast.makeText(
                 this,
                 "Nenhum vídeo encontrado",
@@ -198,10 +252,12 @@ class VideoViewerActivity : Activity() {
 
         posicaoAtual =
             when {
+
                 posicaoRecebida in arquivos.indices ->
                     posicaoRecebida
 
                 !caminhoRecebido.isNullOrBlank() -> {
+
                     val indice =
                         arquivos.indexOf(
                             caminhoRecebido
@@ -255,13 +311,16 @@ class VideoViewerActivity : Activity() {
 
         videoView =
             GestureVideoView(this).apply {
+
                 layoutParams =
                     FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
 
-                setBackgroundColor(Color.BLACK)
+                setBackgroundColor(
+                    Color.BLACK
+                )
             }
 
         raiz.addView(videoView)
@@ -336,7 +395,9 @@ class VideoViewerActivity : Activity() {
 
                 textSize = 38f
 
-                setTextColor(Color.WHITE)
+                setTextColor(
+                    Color.WHITE
+                )
 
                 gravity =
                     Gravity.CENTER
@@ -398,7 +459,9 @@ class VideoViewerActivity : Activity() {
 
                 textSize = 15f
 
-                setTextColor(Color.WHITE)
+                setTextColor(
+                    Color.WHITE
+                )
 
                 gravity =
                     Gravity.CENTER_VERTICAL
@@ -433,7 +496,9 @@ class VideoViewerActivity : Activity() {
 
                 textSize = 14f
 
-                setTextColor(Color.WHITE)
+                setTextColor(
+                    Color.WHITE
+                )
 
                 gravity =
                     Gravity.CENTER
@@ -461,7 +526,9 @@ class VideoViewerActivity : Activity() {
 
                 textSize = 30f
 
-                setTextColor(Color.WHITE)
+                setTextColor(
+                    Color.WHITE
+                )
 
                 gravity =
                     Gravity.CENTER
@@ -666,7 +733,9 @@ class VideoViewerActivity : Activity() {
 
                 textSize = 22f
 
-                setTextColor(Color.WHITE)
+                setTextColor(
+                    Color.WHITE
+                )
 
                 gravity =
                     Gravity.CENTER
@@ -714,10 +783,14 @@ class VideoViewerActivity : Activity() {
     }
 
     // =========================================================
-    // VÍDEO
+    // VÍDEO - CORRIGIDO
     // =========================================================
 
     private fun carregarVideo() {
+
+        if (!::videoView.isInitialized) {
+            return
+        }
 
         if (!arquivoAtual.exists()) {
 
@@ -727,11 +800,42 @@ class VideoViewerActivity : Activity() {
                 Toast.LENGTH_LONG
             ).show()
 
-            finish()
             return
         }
 
+        if (!arquivoAtual.isFile) {
+
+            Toast.makeText(
+                this,
+                "O arquivo selecionado não é um vídeo",
+                Toast.LENGTH_LONG
+            ).show()
+
+            return
+        }
+
+        if (!arquivoAtual.canRead()) {
+
+            Toast.makeText(
+                this,
+                "Não foi possível acessar este vídeo",
+                Toast.LENGTH_LONG
+            ).show()
+
+            return
+        }
+
+        carregandoVideo = true
         videoPreparado = false
+
+        try {
+
+            videoView.stopPlayback()
+
+        } catch (_: Exception) {
+        }
+
+        videoView.setMediaController(null)
 
         val controlador =
             MediaController(this)
@@ -740,40 +844,146 @@ class VideoViewerActivity : Activity() {
             videoView
         )
 
+        controlador.setMediaPlayer(
+            videoView
+        )
+
         videoView.setMediaController(
             controlador
         )
 
-        videoView.setVideoPath(
-            arquivoAtual.absolutePath
-        )
+        val uri = try {
 
-        videoView.setOnPreparedListener {
+            FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                arquivoAtual
+            )
 
+        } catch (e: Exception) {
+
+            carregandoVideo = false
+
+            Toast.makeText(
+                this,
+                "Não foi possível acessar o vídeo",
+                Toast.LENGTH_LONG
+            ).show()
+
+            return
+        }
+
+        videoUriAtual = uri
+
+        try {
+
+            contentResolver
+                .takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+
+        } catch (_: Exception) {
+            // FileProvider normalmente não permite
+            // persistência. Não é um problema.
+        }
+
+        try {
+
+            videoView.setVideoURI(uri)
+
+        } catch (e: Exception) {
+
+            carregandoVideo = false
+            videoPreparado = false
+
+            Toast.makeText(
+                this,
+                "Não foi possível carregar este vídeo",
+                Toast.LENGTH_LONG
+            ).show()
+
+            return
+        }
+
+        videoView.setOnPreparedListener { mediaPlayer ->
+
+            carregandoVideo = false
             videoPreparado = true
 
-            it.isLooping = false
+            try {
+                mediaPlayer.isLooping = false
+            } catch (_: Exception) {
+            }
 
-            videoView.start()
+            try {
+
+                videoView.seekTo(1)
+
+            } catch (_: Exception) {
+            }
+
+            try {
+
+                videoView.start()
+
+                videoEstavaReproduzindoAntesDaPausa =
+                    true
+
+            } catch (_: Exception) {
+
+                videoEstavaReproduzindoAntesDaPausa =
+                    false
+
+                Toast.makeText(
+                    this,
+                    "Não foi possível iniciar o vídeo",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
 
             configurarTelaCheia()
         }
 
         videoView.setOnCompletionListener {
 
-            controlador.show()
+            videoEstavaReproduzindoAntesDaPausa =
+                false
 
+            try {
+                controlador.show()
+            } catch (_: Exception) {
+            }
         }
 
-        videoView.setOnErrorListener { _, _, _ ->
+        videoView.setOnErrorListener { _, what, extra ->
+
+            carregandoVideo = false
+            videoPreparado = false
+
+            videoEstavaReproduzindoAntesDaPausa =
+                false
+
+            val mensagem =
+                when (what) {
+
+                    android.media.MediaPlayer.MEDIA_ERROR_UNKNOWN ->
+                        "Formato ou codec de vídeo não suportado"
+
+                    android.media.MediaPlayer.MEDIA_ERROR_SERVER_DIED ->
+                        "O mecanismo de reprodução parou"
+
+                    else ->
+                        "Não foi possível reproduzir este vídeo"
+                }
 
             Toast.makeText(
                 this,
-                "Não foi possível reproduzir este vídeo",
+                mensagem,
                 Toast.LENGTH_LONG
             ).show()
 
-            true
+            false
         }
     }
 
@@ -784,12 +994,10 @@ class VideoViewerActivity : Activity() {
     private fun configurarGestos() {
 
         videoView.onSwipeLeft = {
-
             abrirProximoVideo()
         }
 
         videoView.onSwipeRight = {
-
             abrirVideoAnterior()
         }
     }
@@ -842,6 +1050,15 @@ class VideoViewerActivity : Activity() {
     }
 
     private fun trocarVideo() {
+
+        try {
+
+            if (::videoView.isInitialized) {
+                videoView.stopPlayback()
+            }
+
+        } catch (_: Exception) {
+        }
 
         atualizarArquivoAtual()
 
@@ -964,7 +1181,8 @@ class VideoViewerActivity : Activity() {
                     )
                 )
 
-                elevation = dp(8).toFloat()
+                elevation =
+                    dp(8).toFloat()
 
                 isOutsideTouchable = true
 
@@ -990,7 +1208,9 @@ class VideoViewerActivity : Activity() {
 
                 textSize = 15f
 
-                setTextColor(Color.WHITE)
+                setTextColor(
+                    Color.WHITE
+                )
 
                 gravity =
                     Gravity.CENTER_VERTICAL
@@ -1061,7 +1281,7 @@ class VideoViewerActivity : Activity() {
                 )
             )
 
-        } catch (e: Exception) {
+        } catch (_: Exception) {
 
             Toast.makeText(
                 this,
@@ -1101,12 +1321,16 @@ class VideoViewerActivity : Activity() {
                     addFlags(
                         Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
+
+                    addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK
+                    )
                 }
 
             startActivity(intent)
 
         } catch (
-            e: ActivityNotFoundException
+            _: ActivityNotFoundException
         ) {
 
             Toast.makeText(
@@ -1115,7 +1339,7 @@ class VideoViewerActivity : Activity() {
                 Toast.LENGTH_LONG
             ).show()
 
-        } catch (e: Exception) {
+        } catch (_: Exception) {
 
             Toast.makeText(
                 this,
@@ -1249,7 +1473,10 @@ class VideoViewerActivity : Activity() {
         AlertDialog.Builder(this)
             .setTitle("Informações do vídeo")
             .setMessage(mensagem)
-            .setPositiveButton("OK", null)
+            .setPositiveButton(
+                "OK",
+                null
+            )
             .show()
     }
 
@@ -1419,10 +1646,10 @@ class VideoViewerActivity : Activity() {
                         destino.outputStream()
                             .use { saida ->
 
-                            entrada.copyTo(
-                                saida
-                            )
-                        }
+                                entrada.copyTo(
+                                    saida
+                                )
+                            }
                     }
 
                 Toast.makeText(
@@ -1496,6 +1723,7 @@ class VideoViewerActivity : Activity() {
                         ).show()
 
                         finish()
+
                         return@mostrarEscolhaPasta
                     }
 
@@ -1503,6 +1731,7 @@ class VideoViewerActivity : Activity() {
                         posicaoAtual >=
                         arquivos.size
                     ) {
+
                         posicaoAtual =
                             arquivos.size - 1
                     }
@@ -1673,7 +1902,11 @@ class VideoViewerActivity : Activity() {
                         destino =
                             File(
                                 pastaLixeira,
-                                "${nome}_$contador.$extensao"
+                                if (extensao.isNotBlank()) {
+                                    "${nome}_$contador.$extensao"
+                                } else {
+                                    "${nome}_$contador"
+                                }
                             )
 
                         contador++
@@ -1798,7 +2031,7 @@ class VideoViewerActivity : Activity() {
             filhos
                 ?.filter {
                     it.isDirectory &&
-                    !it.name.startsWith(".")
+                            !it.name.startsWith(".")
                 }
                 ?.sortedBy {
                     it.name.lowercase()
@@ -1945,9 +2178,9 @@ class VideoViewerActivity : Activity() {
     ): Int {
 
         return (
-            valor *
-                resources.displayMetrics.density
-            ).toInt()
+                valor *
+                        resources.displayMetrics.density
+                ).toInt()
     }
 
     // =========================================================
@@ -1959,10 +2192,10 @@ class VideoViewerActivity : Activity() {
     ) : VideoView(context) {
 
         var onSwipeLeft:
-            (() -> Unit)? = null
+                (() -> Unit)? = null
 
         var onSwipeRight:
-            (() -> Unit)? = null
+                (() -> Unit)? = null
 
         private var toqueX = 0f
         private var toqueY = 0f
