@@ -1,18 +1,20 @@
 package com.gerenciadordearquivos.app
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
+import android.view.Window
+import android.view.WindowManager
 import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileInputStream
@@ -23,7 +25,8 @@ import java.util.Locale
 import kotlin.concurrent.thread
 import kotlin.math.abs
 
-class VideoViewerActivity : AppCompatActivity() {
+
+class VideoViewerActivity : Activity() {
 
     private lateinit var videoView: VideoView
 
@@ -38,8 +41,6 @@ class VideoViewerActivity : AppCompatActivity() {
 
     private var posicaoAtual = 0
 
-    private var controlador: MediaController? = null
-
     private var toqueInicialX = 0f
     private var toqueInicialY = 0f
 
@@ -49,28 +50,33 @@ class VideoViewerActivity : AppCompatActivity() {
     override fun onCreate(
         savedInstanceState: Bundle?
     ) {
-        super.onCreate(savedInstanceState)
 
-        // ========================================================
-        // NÃO FORÇA NENHUMA ORIENTAÇÃO.
-        // O USUÁRIO DECIDE GIRANDO O CELULAR.
-        // ========================================================
+        super.onCreate(
+            savedInstanceState
+        )
 
+        /*
+         * =====================================================
+         * ORIENTAÇÃO
+         * =====================================================
+         *
+         * Não força retrato nem paisagem.
+         *
+         * O próprio usuário decide a posição do celular.
+         */
         requestedOrientation =
             ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
 
-        // ========================================================
-        // TELA CHEIA
-        // ========================================================
-
-        ativarTelaCheia()
+        configurarTelaCheia()
 
         carregarListaRecebida()
 
         if (arquivos.isEmpty()) {
 
             val caminho =
-                intent.getStringExtra("arquivo")
+                intent.getStringExtra(
+                    "arquivo"
+                )
 
             if (!caminho.isNullOrEmpty()) {
 
@@ -120,42 +126,44 @@ class VideoViewerActivity : AppCompatActivity() {
         carregarVideoAtual()
     }
 
-    // ============================================================
-    // TELA CHEIA / IMERSIVO
-    // ============================================================
 
-    private fun ativarTelaCheia() {
+    /*
+     * =========================================================
+     * TELA CHEIA
+     * =========================================================
+     */
+
+    private fun configurarTelaCheia() {
+
+        try {
+
+            requestWindowFeature(
+                Window.FEATURE_NO_TITLE
+            )
+
+        } catch (_: Exception) {
+        }
+
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
+        )
 
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
     }
 
-    // ============================================================
-    // QUANDO O CELULAR GIRA
-    // ============================================================
 
-    override fun onWindowFocusChanged(
-        hasFocus: Boolean
-    ) {
-
-        super.onWindowFocusChanged(
-            hasFocus
-        )
-
-        if (hasFocus) {
-
-            ativarTelaCheia()
-        }
-    }
-
-    // ============================================================
-    // RECEBER LISTA DE VÍDEOS
-    // ============================================================
+    /*
+     * =========================================================
+     * LISTA RECEBIDA
+     * =========================================================
+     */
 
     private fun carregarListaRecebida() {
 
@@ -189,9 +197,12 @@ class VideoViewerActivity : AppCompatActivity() {
         }
     }
 
-    // ============================================================
-    // INTERFACE
-    // ============================================================
+
+    /*
+     * =========================================================
+     * INTERFACE
+     * =========================================================
+     */
 
     private fun criarInterface() {
 
@@ -202,62 +213,70 @@ class VideoViewerActivity : AppCompatActivity() {
             Color.BLACK
         )
 
-        // ========================================================
-        // VÍDEO
-        // ========================================================
+        /*
+         * =====================================================
+         * VÍDEO
+         * =====================================================
+         */
 
         videoView =
             VideoView(this)
 
-        val parametrosVideo =
+        val videoParametros =
             FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
             )
 
-        parametrosVideo.gravity =
+        videoParametros.gravity =
             Gravity.CENTER
 
         raiz.addView(
             videoView,
-            parametrosVideo
+            videoParametros
         )
 
-        // ========================================================
-        // LOADING
-        // ========================================================
+        /*
+         * =====================================================
+         * LOADING
+         * =====================================================
+         */
 
         carregandoVideo =
             ProgressBar(this)
 
-        val parametrosProgresso =
+        val progressoParametros =
             FrameLayout.LayoutParams(
-                60.dp(),
-                60.dp()
+                dp(64),
+                dp(64)
             )
 
-        parametrosProgresso.gravity =
+        progressoParametros.gravity =
             Gravity.CENTER
 
         raiz.addView(
             carregandoVideo,
-            parametrosProgresso
+            progressoParametros
         )
 
         carregandoVideo.visibility =
             View.GONE
 
-        // ========================================================
-        // BARRA SUPERIOR
-        // ========================================================
+        /*
+         * =====================================================
+         * BARRA SUPERIOR
+         * =====================================================
+         */
 
         criarBarraSuperior(
             raiz
         )
 
-        // ========================================================
-        // BARRA INFERIOR
-        // ========================================================
+        /*
+         * =====================================================
+         * BARRA INFERIOR
+         * =====================================================
+         */
 
         criarBarraInferior(
             raiz
@@ -267,10 +286,9 @@ class VideoViewerActivity : AppCompatActivity() {
             raiz
         )
 
-        // ========================================================
-        // SWIPE
-        // ========================================================
-
+        /*
+         * Swipe.
+         */
         videoView.setOnTouchListener {
                 _,
                 evento ->
@@ -283,9 +301,12 @@ class VideoViewerActivity : AppCompatActivity() {
         }
     }
 
-    // ============================================================
-    // BARRA SUPERIOR
-    // ============================================================
+
+    /*
+     * =========================================================
+     * TOPO
+     * =========================================================
+     */
 
     private fun criarBarraSuperior(
         raiz: FrameLayout
@@ -301,10 +322,10 @@ class VideoViewerActivity : AppCompatActivity() {
             Gravity.CENTER_VERTICAL
 
         barra.setPadding(
-            8.dp(),
-            4.dp(),
-            8.dp(),
-            4.dp()
+            dp(6),
+            dp(4),
+            dp(6),
+            dp(4)
         )
 
         barra.setBackgroundColor(
@@ -318,8 +339,8 @@ class VideoViewerActivity : AppCompatActivity() {
 
         val parametros =
             FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                64.dp()
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                dp(82)
             )
 
         parametros.gravity =
@@ -330,9 +351,11 @@ class VideoViewerActivity : AppCompatActivity() {
             parametros
         )
 
-        // ========================================================
-        // VOLTAR
-        // ========================================================
+        /*
+         * =====================================================
+         * VOLTAR
+         * =====================================================
+         */
 
         val voltar =
             TextView(this)
@@ -350,6 +373,13 @@ class VideoViewerActivity : AppCompatActivity() {
         voltar.gravity =
             Gravity.CENTER
 
+        voltar.setPadding(
+            dp(4),
+            0,
+            dp(10),
+            0
+        )
+
         voltar.setOnClickListener {
 
             finish()
@@ -358,14 +388,16 @@ class VideoViewerActivity : AppCompatActivity() {
         barra.addView(
             voltar,
             LinearLayout.LayoutParams(
-                50.dp(),
-                ViewGroup.LayoutParams.MATCH_PARENT
+                dp(48),
+                LinearLayout.LayoutParams.MATCH_PARENT
             )
         )
 
-        // ========================================================
-        // BLOCO DOS NOMES
-        // ========================================================
+        /*
+         * =====================================================
+         * BLOCO DE NOMES
+         * =====================================================
+         */
 
         val bloco =
             LinearLayout(this)
@@ -376,38 +408,72 @@ class VideoViewerActivity : AppCompatActivity() {
         bloco.gravity =
             Gravity.CENTER_VERTICAL
 
-        barra.addView(
-            bloco,
+        val blocoParametros =
             LinearLayout.LayoutParams(
                 0,
-                ViewGroup.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
                 1f
             )
+
+        barra.addView(
+            bloco,
+            blocoParametros
         )
+
+        /*
+         * =====================================================
+         * PASTA
+         * =====================================================
+         */
 
         nomePastaText =
             TextView(this)
 
         nomePastaText.textSize =
-            11f
+            12f
 
         nomePastaText.setTextColor(
             Color.LTGRAY
         )
 
-        nomePastaText.maxLines =
-            1
+        nomePastaText.gravity =
+            Gravity.CENTER_VERTICAL
 
+        nomePastaText.singleLine =
+            true
+
+        /*
+         * NÃO corta o nome.
+         *
+         * Se for muito grande, ele desliza
+         * horizontalmente.
+         */
         nomePastaText.ellipsize =
-            android.text.TextUtils.TruncateAt.MIDDLE
+            android.text.TextUtils.TruncateAt.MARQUEE
+
+        nomePastaText.isSelected =
+            true
+
+        nomePastaText.marqueeRepeatLimit =
+            -1
+
+        nomePastaText.setHorizontallyScrolling(
+            true
+        )
 
         bloco.addView(
             nomePastaText,
             LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                21.dp()
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(28)
             )
         )
+
+        /*
+         * =====================================================
+         * NOME DO ARQUIVO
+         * =====================================================
+         */
 
         nomeArquivoText =
             TextView(this)
@@ -419,29 +485,44 @@ class VideoViewerActivity : AppCompatActivity() {
             Color.WHITE
         )
 
-        nomeArquivoText.maxLines =
-            1
+        nomeArquivoText.gravity =
+            Gravity.CENTER_VERTICAL
+
+        nomeArquivoText.singleLine =
+            true
 
         nomeArquivoText.ellipsize =
-            android.text.TextUtils.TruncateAt.MIDDLE
+            android.text.TextUtils.TruncateAt.MARQUEE
+
+        nomeArquivoText.isSelected =
+            true
+
+        nomeArquivoText.marqueeRepeatLimit =
+            -1
+
+        nomeArquivoText.setHorizontallyScrolling(
+            true
+        )
 
         bloco.addView(
             nomeArquivoText,
             LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                27.dp()
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(30)
             )
         )
 
-        // ========================================================
-        // CONTADOR
-        // ========================================================
+        /*
+         * =====================================================
+         * CONTADOR
+         * =====================================================
+         */
 
         contadorText =
             TextView(this)
 
         contadorText.textSize =
-            13f
+            12f
 
         contadorText.setTextColor(
             Color.WHITE
@@ -453,26 +534,35 @@ class VideoViewerActivity : AppCompatActivity() {
         barra.addView(
             contadorText,
             LinearLayout.LayoutParams(
-                55.dp(),
-                ViewGroup.LayoutParams.MATCH_PARENT
+                dp(55),
+                LinearLayout.LayoutParams.MATCH_PARENT
             )
         )
 
-        // ========================================================
-        // FAVORITO
-        // ========================================================
+        /*
+         * =====================================================
+         * FAVORITO
+         * =====================================================
+         */
 
         favoritoButton =
             TextView(this)
 
         favoritoButton.textSize =
-            25f
+            26f
+
+        favoritoButton.setTextColor(
+            Color.WHITE
+        )
 
         favoritoButton.gravity =
             Gravity.CENTER
 
-        favoritoButton.setTextColor(
-            Color.WHITE
+        favoritoButton.setPadding(
+            dp(4),
+            0,
+            dp(4),
+            0
         )
 
         favoritoButton.setOnClickListener {
@@ -483,14 +573,16 @@ class VideoViewerActivity : AppCompatActivity() {
         barra.addView(
             favoritoButton,
             LinearLayout.LayoutParams(
-                48.dp(),
-                ViewGroup.LayoutParams.MATCH_PARENT
+                dp(48),
+                LinearLayout.LayoutParams.MATCH_PARENT
             )
         )
 
-        // ========================================================
-        // MENU
-        // ========================================================
+        /*
+         * =====================================================
+         * MENU
+         * =====================================================
+         */
 
         val menu =
             TextView(this)
@@ -501,11 +593,18 @@ class VideoViewerActivity : AppCompatActivity() {
         menu.textSize =
             30f
 
+        menu.setTextColor(
+            Color.WHITE
+        )
+
         menu.gravity =
             Gravity.CENTER
 
-        menu.setTextColor(
-            Color.WHITE
+        menu.setPadding(
+            dp(4),
+            0,
+            dp(4),
+            0
         )
 
         menu.setOnClickListener {
@@ -516,15 +615,18 @@ class VideoViewerActivity : AppCompatActivity() {
         barra.addView(
             menu,
             LinearLayout.LayoutParams(
-                42.dp(),
-                ViewGroup.LayoutParams.MATCH_PARENT
+                dp(42),
+                LinearLayout.LayoutParams.MATCH_PARENT
             )
         )
     }
 
-    // ============================================================
-    // BARRA INFERIOR
-    // ============================================================
+
+    /*
+     * =========================================================
+     * BARRA INFERIOR
+     * =========================================================
+     */
 
     private fun criarBarraInferior(
         raiz: FrameLayout
@@ -550,8 +652,8 @@ class VideoViewerActivity : AppCompatActivity() {
 
         val parametros =
             FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                66.dp()
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                dp(76)
             )
 
         parametros.gravity =
@@ -573,7 +675,7 @@ class VideoViewerActivity : AppCompatActivity() {
 
         adicionarBotaoInferior(
             barra,
-            "▣",
+            "⧉",
             "Copiar"
         ) {
 
@@ -582,7 +684,7 @@ class VideoViewerActivity : AppCompatActivity() {
 
         adicionarBotaoInferior(
             barra,
-            "⇆",
+            "➜",
             "Mover"
         ) {
 
@@ -591,13 +693,14 @@ class VideoViewerActivity : AppCompatActivity() {
 
         adicionarBotaoInferior(
             barra,
-            "⋯",
+            "⋮",
             "Mais"
         ) {
 
             mostrarMenu()
         }
     }
+
 
     private fun adicionarBotaoInferior(
         barra: LinearLayout,
@@ -622,6 +725,13 @@ class VideoViewerActivity : AppCompatActivity() {
         botao.gravity =
             Gravity.CENTER
 
+        botao.setPadding(
+            dp(4),
+            0,
+            dp(4),
+            0
+        )
+
         botao.setOnClickListener {
 
             acao()
@@ -631,15 +741,18 @@ class VideoViewerActivity : AppCompatActivity() {
             botao,
             LinearLayout.LayoutParams(
                 0,
-                ViewGroup.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
                 1f
             )
         )
     }
 
-    // ============================================================
-    // CARREGAR VÍDEO
-    // ============================================================
+
+    /*
+     * =========================================================
+     * CARREGAR VÍDEO
+     * =========================================================
+     */
 
     private fun carregarVideoAtual() {
 
@@ -665,23 +778,52 @@ class VideoViewerActivity : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             ).show()
 
-            irParaProximoVideo()
-
             return
         }
+
+        /*
+         * =====================================================
+         * PASTA
+         * =====================================================
+         */
 
         val pasta =
             arquivo.parentFile?.name
                 ?.takeIf {
                     it.isNotBlank()
                 }
-                ?: "Armazenamento"
+                ?: "Armazenamento interno"
+
+        /*
+         * Coloca o caminho relativo para ajudar
+         * quando existem pastas com o mesmo nome.
+         */
+        val nomePastaCompleto =
+            arquivo.parentFile?.let {
+
+                obterCaminhoDaPasta(
+                    it
+                )
+
+            } ?: "Armazenamento interno"
 
         nomePastaText.text =
-            "📁 $pasta"
+            "📁 $nomePastaCompleto"
+
+        nomePastaText.isSelected =
+            true
+
+        /*
+         * =====================================================
+         * NOME DO ARQUIVO
+         * =====================================================
+         */
 
         nomeArquivoText.text =
             arquivo.name
+
+        nomeArquivoText.isSelected =
+            true
 
         contadorText.text =
             "${posicaoAtual + 1} / ${arquivos.size}"
@@ -693,18 +835,7 @@ class VideoViewerActivity : AppCompatActivity() {
 
         try {
 
-            controlador?.hide()
-
-            controlador =
-                MediaController(this)
-
-            controlador?.setAnchorView(
-                videoView
-            )
-
-            videoView.setMediaController(
-                controlador
-            )
+            videoView.stopPlayback()
 
             val uri =
                 FileProvider.getUriForFile(
@@ -713,27 +844,33 @@ class VideoViewerActivity : AppCompatActivity() {
                     arquivo
                 )
 
-            videoView.stopPlayback()
-
             videoView.setVideoURI(
                 uri
             )
 
-            videoView.setOnPreparedListener {
+            videoView.setOnPreparedListener { mediaPlayer ->
 
                 carregandoVideo.visibility =
                     View.GONE
 
-                videoView.start()
+                /*
+                 * O VideoView permanece preenchendo
+                 * toda a área disponível.
+                 *
+                 * O próprio Android mantém a proporção
+                 * do vídeo.
+                 */
+                mediaPlayer.isLooping =
+                    false
 
-                controlador?.show(
-                    3000
-                )
+                videoView.start()
             }
 
             videoView.setOnCompletionListener {
 
-                controlador?.show()
+                /*
+                 * Mantém os controles disponíveis.
+                 */
             }
 
             videoView.setOnErrorListener {
@@ -768,9 +905,62 @@ class VideoViewerActivity : AppCompatActivity() {
         }
     }
 
-    // ============================================================
-    // SWIPE
-    // ============================================================
+
+    /*
+     * =========================================================
+     * CAMINHO DA PASTA
+     * =========================================================
+     */
+
+    private fun obterCaminhoDaPasta(
+        pasta: File
+    ): String {
+
+        val raiz =
+            Environment.getExternalStorageDirectory()
+
+        val caminhoRaiz =
+            raiz.absolutePath
+
+        val caminho =
+            pasta.absolutePath
+
+        return if (
+            caminho.startsWith(
+                caminhoRaiz
+            )
+        ) {
+
+            val relativo =
+                caminho.removePrefix(
+                    caminhoRaiz
+                ).trimStart(
+                    File.separatorChar
+                )
+
+            if (
+                relativo.isBlank()
+            ) {
+
+                "Armazenamento interno"
+
+            } else {
+
+                relativo
+            }
+
+        } else {
+
+            pasta.name
+        }
+    }
+
+
+    /*
+     * =========================================================
+     * SWIPE
+     * =========================================================
+     */
 
     private fun tratarToque(
         evento: MotionEvent
@@ -793,14 +983,14 @@ class VideoViewerActivity : AppCompatActivity() {
 
                 val deslocamentoX =
                     evento.x -
-                            toqueInicialX
+                        toqueInicialX
 
                 val deslocamentoY =
                     evento.y -
-                            toqueInicialY
+                        toqueInicialY
 
                 if (
-                    abs(deslocamentoX) > 120 &&
+                    abs(deslocamentoX) > dp(100) &&
                     abs(deslocamentoX) >
                     abs(deslocamentoY) * 1.3f
                 ) {
@@ -820,11 +1010,21 @@ class VideoViewerActivity : AppCompatActivity() {
         }
     }
 
-    // ============================================================
-    // PRÓXIMO
-    // ============================================================
+
+    /*
+     * =========================================================
+     * PRÓXIMO / ANTERIOR
+     * =========================================================
+     */
 
     private fun irParaProximoVideo() {
+
+        if (
+            arquivos.size <= 1
+        ) {
+
+            return
+        }
 
         if (
             posicaoAtual <
@@ -845,11 +1045,15 @@ class VideoViewerActivity : AppCompatActivity() {
         }
     }
 
-    // ============================================================
-    // ANTERIOR
-    // ============================================================
 
     private fun irParaVideoAnterior() {
+
+        if (
+            arquivos.size <= 1
+        ) {
+
+            return
+        }
 
         if (
             posicaoAtual > 0
@@ -869,9 +1073,12 @@ class VideoViewerActivity : AppCompatActivity() {
         }
     }
 
-    // ============================================================
-    // FAVORITO
-    // ============================================================
+
+    /*
+     * =========================================================
+     * FAVORITO
+     * =========================================================
+     */
 
     private fun alternarFavorito() {
 
@@ -884,7 +1091,7 @@ class VideoViewerActivity : AppCompatActivity() {
                 MODE_PRIVATE
             )
 
-        val favorito =
+        val atual =
             preferencias.getBoolean(
                 arquivo.absolutePath,
                 false
@@ -893,18 +1100,28 @@ class VideoViewerActivity : AppCompatActivity() {
         preferencias.edit()
             .putBoolean(
                 arquivo.absolutePath,
-                !favorito
+                !atual
             )
             .apply()
 
         atualizarIconeFavorito()
+
+        Toast.makeText(
+            this,
+            if (!atual) {
+                "Adicionado aos favoritos"
+            } else {
+                "Removido dos favoritos"
+            },
+            Toast.LENGTH_SHORT
+        ).show()
     }
+
 
     private fun atualizarIconeFavorito() {
 
         if (
-            posicaoAtual < 0 ||
-            posicaoAtual >= arquivos.size
+            !::favoritoButton.isInitialized
         ) {
 
             return
@@ -913,14 +1130,11 @@ class VideoViewerActivity : AppCompatActivity() {
         val arquivo =
             arquivos[posicaoAtual]
 
-        val preferencias =
+        val favorito =
             getSharedPreferences(
                 preferenciasNome,
                 MODE_PRIVATE
-            )
-
-        val favorito =
-            preferencias.getBoolean(
+            ).getBoolean(
                 arquivo.absolutePath,
                 false
             )
@@ -931,11 +1145,22 @@ class VideoViewerActivity : AppCompatActivity() {
             } else {
                 "☆"
             }
+
+        favoritoButton.setTextColor(
+            if (favorito) {
+                Color.YELLOW
+            } else {
+                Color.WHITE
+            }
+        )
     }
 
-    // ============================================================
-    // COMPARTILHAR
-    // ============================================================
+
+    /*
+     * =========================================================
+     * COMPARTILHAR
+     * =========================================================
+     */
 
     private fun compartilharVideo() {
 
@@ -984,14 +1209,17 @@ class VideoViewerActivity : AppCompatActivity() {
             Toast.makeText(
                 this,
                 "Não foi possível compartilhar",
-                Toast.LENGTH_SHORT
+                Toast.LENGTH_LONG
             ).show()
         }
     }
 
-    // ============================================================
-    // ABRIR COM
-    // ============================================================
+
+    /*
+     * =========================================================
+     * ABRIR COM
+     * =========================================================
+     */
 
     private fun abrirComAplicativo() {
 
@@ -1042,9 +1270,12 @@ class VideoViewerActivity : AppCompatActivity() {
         }
     }
 
-    // ============================================================
-    // MENU
-    // ============================================================
+
+    /*
+     * =========================================================
+     * MENU
+     * =========================================================
+     */
 
     private fun mostrarMenu() {
 
@@ -1097,18 +1328,17 @@ class VideoViewerActivity : AppCompatActivity() {
             .show()
     }
 
-    // ============================================================
-    // INFORMAÇÕES
-    // ============================================================
+
+    /*
+     * =========================================================
+     * INFORMAÇÕES
+     * =========================================================
+     */
 
     private fun mostrarInformacoes() {
 
         val arquivo =
             arquivos[posicaoAtual]
-
-        val pasta =
-            arquivo.parentFile?.name
-                ?: "Armazenamento"
 
         val tamanho =
             formatarTamanho(
@@ -1124,6 +1354,10 @@ class VideoViewerActivity : AppCompatActivity() {
                     arquivo.lastModified()
                 )
             )
+
+        val pasta =
+            arquivo.parentFile?.absolutePath
+                ?: "Armazenamento interno"
 
         var duracao =
             "Não disponível"
@@ -1194,9 +1428,6 @@ class VideoViewerActivity : AppCompatActivity() {
             Nome:
             ${arquivo.name}
             
-            Local:
-            ${arquivo.parent ?: arquivo.absolutePath}
-            
             Tamanho:
             $tamanho
             
@@ -1229,9 +1460,12 @@ class VideoViewerActivity : AppCompatActivity() {
             .show()
     }
 
-    // ============================================================
-    // RENOMEAR
-    // ============================================================
+
+    /*
+     * =========================================================
+     * RENOMEAR
+     * =========================================================
+     */
 
     private fun renomearVideo() {
 
@@ -1277,7 +1511,19 @@ class VideoViewerActivity : AppCompatActivity() {
                         .trim()
 
                 if (
-                    novoNome.isEmpty() ||
+                    novoNome.isEmpty()
+                ) {
+
+                    Toast.makeText(
+                        this,
+                        "Digite um nome válido",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    return@setOnClickListener
+                }
+
+                if (
                     novoNome.contains("/")
                 ) {
 
@@ -1292,7 +1538,10 @@ class VideoViewerActivity : AppCompatActivity() {
 
                 val pai =
                     arquivo.parentFile
-                        ?: return@setOnClickListener
+
+                if (pai == null) {
+                    return@setOnClickListener
+                }
 
                 val novoArquivo =
                     File(
@@ -1313,11 +1562,21 @@ class VideoViewerActivity : AppCompatActivity() {
                     return@setOnClickListener
                 }
 
-                if (
-                    arquivo.renameTo(
-                        novoArquivo
-                    )
-                ) {
+                val sucesso =
+                    try {
+
+                        arquivo.renameTo(
+                            novoArquivo
+                        )
+
+                    } catch (
+                        _: Exception
+                    ) {
+
+                        false
+                    }
+
+                if (sucesso) {
 
                     arquivos[posicaoAtual] =
                         novoArquivo
@@ -1346,9 +1605,12 @@ class VideoViewerActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    // ============================================================
-    // COPIAR
-    // ============================================================
+
+    /*
+     * =========================================================
+     * COPIAR
+     * =========================================================
+     */
 
     private fun copiarVideo() {
 
@@ -1364,6 +1626,7 @@ class VideoViewerActivity : AppCompatActivity() {
             inicial
         )
     }
+
 
     private fun mostrarSeletorCopiar(
         arquivo: File,
@@ -1441,7 +1704,9 @@ class VideoViewerActivity : AppCompatActivity() {
 
             when {
 
-                escolhido.startsWith("⬆") -> {
+                escolhido.startsWith(
+                    "⬆"
+                ) -> {
 
                     pastaAtual.parentFile?.let {
 
@@ -1454,7 +1719,9 @@ class VideoViewerActivity : AppCompatActivity() {
                     }
                 }
 
-                escolhido.startsWith("📋") -> {
+                escolhido.startsWith(
+                    "📋"
+                ) -> {
 
                     dialog.dismiss()
 
@@ -1464,7 +1731,9 @@ class VideoViewerActivity : AppCompatActivity() {
                     )
                 }
 
-                escolhido.startsWith("＋") -> {
+                escolhido.startsWith(
+                    "＋"
+                ) -> {
 
                     dialog.dismiss()
 
@@ -1479,11 +1748,15 @@ class VideoViewerActivity : AppCompatActivity() {
                         if (
                             pastaAtual.absolutePath !=
                             raiz.absolutePath
-                        ) 3 else 2
+                        ) {
+                            3
+                        } else {
+                            2
+                        }
 
                     val indice =
                         position -
-                                deslocamento
+                            deslocamento
 
                     if (
                         indice >= 0 &&
@@ -1504,10 +1777,25 @@ class VideoViewerActivity : AppCompatActivity() {
         dialog.show()
     }
 
+
     private fun executarCopia(
         arquivo: File,
         destinoPasta: File
     ) {
+
+        if (
+            arquivo.parentFile?.absolutePath ==
+            destinoPasta.absolutePath
+        ) {
+
+            Toast.makeText(
+                this,
+                "O vídeo já está nessa pasta",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
 
         var destino =
             File(
@@ -1525,27 +1813,18 @@ class VideoViewerActivity : AppCompatActivity() {
             val extensao =
                 arquivo.extension
 
-            var numero =
-                1
+            var numero = 1
 
             do {
-
-                val nome =
-                    if (
-                        extensao.isEmpty()
-                    ) {
-
-                        "${base}_copia_$numero"
-
-                    } else {
-
-                        "${base}_copia_$numero.$extensao"
-                    }
 
                 destino =
                     File(
                         destinoPasta,
-                        nome
+                        if (extensao.isEmpty()) {
+                            "${base}_copia_$numero"
+                        } else {
+                            "${base}_copia_$numero.$extensao"
+                        }
                     )
 
                 numero++
@@ -1593,6 +1872,8 @@ class VideoViewerActivity : AppCompatActivity() {
                                         buffer
                                     )
                             }
+
+                            saida.flush()
                         }
                     }
 
@@ -1602,6 +1883,11 @@ class VideoViewerActivity : AppCompatActivity() {
                     _: Exception
                 ) {
 
+                    try {
+                        destino.delete()
+                    } catch (_: Exception) {
+                    }
+
                     false
                 }
 
@@ -1609,19 +1895,23 @@ class VideoViewerActivity : AppCompatActivity() {
 
                 Toast.makeText(
                     this,
-                    if (sucesso)
+                    if (sucesso) {
                         "Vídeo copiado com sucesso"
-                    else
-                        "Não foi possível copiar",
+                    } else {
+                        "Não foi possível copiar o vídeo"
+                    },
                     Toast.LENGTH_LONG
                 ).show()
             }
         }
     }
 
-    // ============================================================
-    // MOVER
-    // ============================================================
+
+    /*
+     * =========================================================
+     * MOVER
+     * =========================================================
+     */
 
     private fun moverVideo() {
 
@@ -1637,6 +1927,7 @@ class VideoViewerActivity : AppCompatActivity() {
             inicial
         )
     }
+
 
     private fun mostrarSeletorMover(
         arquivo: File,
@@ -1710,7 +2001,9 @@ class VideoViewerActivity : AppCompatActivity() {
 
             when {
 
-                escolhido.startsWith("⬆") -> {
+                escolhido.startsWith(
+                    "⬆"
+                ) -> {
 
                     pastaAtual.parentFile?.let {
 
@@ -1723,7 +2016,9 @@ class VideoViewerActivity : AppCompatActivity() {
                     }
                 }
 
-                escolhido.startsWith("＋") -> {
+                escolhido.startsWith(
+                    "＋"
+                ) -> {
 
                     dialog.dismiss()
 
@@ -1738,11 +2033,15 @@ class VideoViewerActivity : AppCompatActivity() {
                         if (
                             pastaAtual.absolutePath !=
                             raiz.absolutePath
-                        ) 2 else 1
+                        ) {
+                            2
+                        } else {
+                            1
+                        }
 
                     val indice =
                         position -
-                                deslocamento
+                            deslocamento
 
                     if (
                         indice >= 0 &&
@@ -1762,6 +2061,7 @@ class VideoViewerActivity : AppCompatActivity() {
 
         dialog.show()
     }
+
 
     private fun confirmarMover(
         arquivo: File,
@@ -1797,70 +2097,106 @@ class VideoViewerActivity : AppCompatActivity() {
                 "Mover"
             ) { _, _ ->
 
-                val destinoArquivo =
-                    File(
-                        destino,
-                        arquivo.name
-                    )
-
-                if (
-                    destinoArquivo.exists()
-                ) {
-
-                    Toast.makeText(
-                        this,
-                        "Já existe um vídeo com esse nome",
-                        Toast.LENGTH_LONG
-                    ).show()
-
-                    return@setPositiveButton
-                }
-
-                if (
-                    arquivo.renameTo(
-                        destinoArquivo
-                    )
-                ) {
-
-                    arquivos.removeAt(
-                        posicaoAtual
-                    )
-
-                    if (
-                        arquivos.isEmpty()
-                    ) {
-
-                        finish()
-
-                    } else {
-
-                        if (
-                            posicaoAtual >=
-                            arquivos.size
-                        ) {
-
-                            posicaoAtual =
-                                arquivos.size - 1
-                        }
-
-                        carregarVideoAtual()
-                    }
-
-                } else {
-
-                    Toast.makeText(
-                        this,
-                        "Não foi possível mover",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                executarMover(
+                    arquivo,
+                    destino
+                )
             }
             .show()
     }
 
-    // ============================================================
-    // CRIAR PASTA
-    // ============================================================
+
+    private fun executarMover(
+        arquivo: File,
+        destinoPasta: File
+    ) {
+
+        val destino =
+            File(
+                destinoPasta,
+                arquivo.name
+            )
+
+        if (
+            destino.exists()
+        ) {
+
+            Toast.makeText(
+                this,
+                "Já existe um vídeo com esse nome no destino",
+                Toast.LENGTH_LONG
+            ).show()
+
+            return
+        }
+
+        val sucesso =
+            try {
+
+                arquivo.renameTo(
+                    destino
+                )
+
+            } catch (
+                _: Exception
+            ) {
+
+                false
+            }
+
+        if (sucesso) {
+
+            arquivos.removeAt(
+                posicaoAtual
+            )
+
+            if (
+                arquivos.isEmpty()
+            ) {
+
+                Toast.makeText(
+                    this,
+                    "Vídeo movido",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                finish()
+                return
+            }
+
+            if (
+                posicaoAtual >=
+                arquivos.size
+            ) {
+
+                posicaoAtual =
+                    arquivos.size - 1
+            }
+
+            carregarVideoAtual()
+
+            Toast.makeText(
+                this,
+                "Vídeo movido com sucesso",
+                Toast.LENGTH_SHORT
+            ).show()
+
+        } else {
+
+            Toast.makeText(
+                this,
+                "Não foi possível mover o vídeo",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+
+    /*
+     * =========================================================
+     * CRIAR PASTA
+     * =========================================================
+     */
 
     private fun criarPasta(
         local: File
@@ -1894,7 +2230,10 @@ class VideoViewerActivity : AppCompatActivity() {
 
                 if (
                     nome.isEmpty()
-                ) return@setPositiveButton
+                ) {
+
+                    return@setPositiveButton
+                }
 
                 val pasta =
                     File(
@@ -1924,9 +2263,12 @@ class VideoViewerActivity : AppCompatActivity() {
             .show()
     }
 
-    // ============================================================
-    // LIXEIRA
-    // ============================================================
+
+    /*
+     * =========================================================
+     * LIXEIRA
+     * =========================================================
+     */
 
     private fun enviarParaLixeira() {
 
@@ -1954,6 +2296,7 @@ class VideoViewerActivity : AppCompatActivity() {
             }
             .show()
     }
+
 
     private fun executarLixeira(
         arquivo: File
@@ -1993,27 +2336,18 @@ class VideoViewerActivity : AppCompatActivity() {
                 val extensao =
                     arquivo.extension
 
-                var numero =
-                    1
+                var numero = 1
 
                 do {
-
-                    val novoNome =
-                        if (
-                            extensao.isEmpty()
-                        ) {
-
-                            "${base}_$numero"
-
-                        } else {
-
-                            "${base}_$numero.$extensao"
-                        }
 
                     destino =
                         File(
                             lixeira,
-                            novoNome
+                            if (extensao.isEmpty()) {
+                                "${base}_$numero"
+                            } else {
+                                "${base}_$numero.$extensao"
+                            }
                         )
 
                     numero++
@@ -2023,11 +2357,12 @@ class VideoViewerActivity : AppCompatActivity() {
                 )
             }
 
-            if (
+            val sucesso =
                 arquivo.renameTo(
                     destino
                 )
-            ) {
+
+            if (sucesso) {
 
                 arquivos.removeAt(
                     posicaoAtual
@@ -2037,8 +2372,13 @@ class VideoViewerActivity : AppCompatActivity() {
                     arquivos.isEmpty()
                 ) {
 
-                    finish()
+                    Toast.makeText(
+                        this,
+                        "Vídeo enviado para a lixeira",
+                        Toast.LENGTH_SHORT
+                    ).show()
 
+                    finish()
                     return
                 }
 
@@ -2080,9 +2420,12 @@ class VideoViewerActivity : AppCompatActivity() {
         }
     }
 
-    // ============================================================
-    // LISTAR PASTAS
-    // ============================================================
+
+    /*
+     * =========================================================
+     * PASTAS
+     * =========================================================
+     */
 
     private fun listarPastas(
         pasta: File
@@ -2093,7 +2436,7 @@ class VideoViewerActivity : AppCompatActivity() {
             pasta.listFiles()
                 ?.filter {
                     it.isDirectory &&
-                            !it.name.startsWith(".")
+                        !it.name.startsWith(".")
                 }
                 ?.sortedBy {
                     it.name.lowercase(
@@ -2110,9 +2453,12 @@ class VideoViewerActivity : AppCompatActivity() {
         }
     }
 
-    // ============================================================
-    // MIME
-    // ============================================================
+
+    /*
+     * =========================================================
+     * MIME
+     * =========================================================
+     */
 
     private fun obterMimeType(
         arquivo: File
@@ -2151,9 +2497,12 @@ class VideoViewerActivity : AppCompatActivity() {
         }
     }
 
-    // ============================================================
-    // TAMANHO
-    // ============================================================
+
+    /*
+     * =========================================================
+     * TAMANHO
+     * =========================================================
+     */
 
     private fun formatarTamanho(
         tamanho: Long
@@ -2161,7 +2510,10 @@ class VideoViewerActivity : AppCompatActivity() {
 
         if (
             tamanho <= 0
-        ) return "0 B"
+        ) {
+
+            return "0 B"
+        }
 
         val unidades =
             arrayOf(
@@ -2185,7 +2537,6 @@ class VideoViewerActivity : AppCompatActivity() {
         ) {
 
             valor /= 1024
-
             indice++
         }
 
@@ -2206,9 +2557,12 @@ class VideoViewerActivity : AppCompatActivity() {
         }
     }
 
-    // ============================================================
-    // DURAÇÃO
-    // ============================================================
+
+    /*
+     * =========================================================
+     * DURAÇÃO
+     * =========================================================
+     */
 
     private fun formatarDuracao(
         milissegundos: Long
@@ -2249,9 +2603,12 @@ class VideoViewerActivity : AppCompatActivity() {
         }
     }
 
-    // ============================================================
-    // PAUSE
-    // ============================================================
+
+    /*
+     * =========================================================
+     * PAUSA / RETORNO
+     * =========================================================
+     */
 
     override fun onPause() {
 
@@ -2260,25 +2617,27 @@ class VideoViewerActivity : AppCompatActivity() {
         ) {
 
             try {
-                videoView.pause()
-            } catch (
-                _: Exception
-            ) {
+
+                if (
+                    videoView.isPlaying
+                ) {
+
+                    videoView.pause()
+                }
+
+            } catch (_: Exception) {
             }
         }
 
         super.onPause()
     }
 
-    // ============================================================
-    // RESUME
-    // ============================================================
 
     override fun onResume() {
 
         super.onResume()
 
-        ativarTelaCheia()
+        configurarTelaCheia()
 
         if (
             ::videoView.isInitialized
@@ -2293,22 +2652,46 @@ class VideoViewerActivity : AppCompatActivity() {
                     videoView.start()
                 }
 
-            } catch (
-                _: Exception
-            ) {
+            } catch (_: Exception) {
             }
         }
     }
 
-    // ============================================================
-    // DP
-    // ============================================================
 
-    private fun Int.dp(): Int {
+    /*
+     * =========================================================
+     * MANTER TELA CHEIA AO GIRAR
+     * =========================================================
+     */
+
+    override fun onWindowFocusChanged(
+        hasFocus: Boolean
+    ) {
+
+        super.onWindowFocusChanged(
+            hasFocus
+        )
+
+        if (hasFocus) {
+
+            configurarTelaCheia()
+        }
+    }
+
+
+    /*
+     * =========================================================
+     * DP
+     * =========================================================
+     */
+
+    private fun dp(
+        valor: Int
+    ): Int {
 
         return (
-            this *
-                    resources.displayMetrics.density
+            valor *
+                resources.displayMetrics.density
             ).toInt()
     }
 }
