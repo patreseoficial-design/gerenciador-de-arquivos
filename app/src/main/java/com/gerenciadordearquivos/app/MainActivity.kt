@@ -3953,6 +3953,7 @@ class MainActivity : AppCompatActivity() {
 
     // ============================================================
     // ADAPTER DAS PASTAS DE MÍDIA
+    // CORRIGIDO PARA NÃO CORTAR A QUANTIDADE
     // ============================================================
 
     private inner class PastaMediaAdapter(
@@ -3978,6 +3979,39 @@ class MainActivity : AppCompatActivity() {
             parent: ViewGroup
         ): View {
 
+            /*
+             * IMPORTANTE:
+             *
+             * Pegamos a largura real da coluna do GridView.
+             * Isso evita depender somente da largura total
+             * da tela.
+             */
+            val larguraColuna =
+                if (parent.width > 0) {
+                    parent.width / 3
+                } else {
+                    resources.displayMetrics.widthPixels / 3
+                }
+
+            /*
+             * Espaçamento interno da célula.
+             */
+            val espaco =
+                8
+
+            val tamanhoImagem =
+                (
+                    larguraColuna -
+                            (espaco * 2) -
+                            6
+                    ).coerceAtLeast(1)
+
+            /*
+             * Container da célula.
+             *
+             * NÃO usamos MATCH_PARENT na altura.
+             * Isso era uma das causas do corte.
+             */
             val container =
                 FrameLayout(
                     this@MainActivity
@@ -3985,17 +4019,18 @@ class MainActivity : AppCompatActivity() {
 
             container.setPadding(
                 3,
+                4,
                 3,
-                3,
-                6
+                8
             )
 
-            val larguraTela =
-                resources.displayMetrics.widthPixels
-
-            val tamanho =
-                larguraTela / 3
-
+            /*
+             * Layout vertical:
+             *
+             * [ IMAGEM ]
+             * [ NOME   ]
+             * [ (123)  ]
+             */
             val layout =
                 LinearLayout(
                     this@MainActivity
@@ -4006,6 +4041,13 @@ class MainActivity : AppCompatActivity() {
 
             layout.gravity =
                 Gravity.CENTER_HORIZONTAL
+
+            layout.setPadding(
+                0,
+                0,
+                0,
+                0
+            )
 
             val imagem =
                 ImageView(
@@ -4080,7 +4122,7 @@ class MainActivity : AppCompatActivity() {
                         val thumb =
                             carregarMiniatura(
                                 exemplo,
-                                tamanho
+                                tamanhoImagem
                             )
 
                         if (thumb != null) {
@@ -4113,29 +4155,23 @@ class MainActivity : AppCompatActivity() {
             }
 
             /*
-             * MINIATURA:
+             * MINIATURA
              *
-             * Antes:
-             * tamanho - 40
-             *
-             * Agora deixamos um pouco menos de altura
-             * para reservar espaço real para nomes longos.
+             * Agora usamos WRAP_CONTENT no conjunto
+             * e deixamos espaço suficiente abaixo.
              */
             layout.addView(
                 imagem,
                 LinearLayout.LayoutParams(
-                    tamanho - 6,
-                    tamanho - 56
+                    tamanhoImagem,
+                    tamanhoImagem
                 )
             )
 
             /*
-             * NOME DA PASTA:
+             * NOME DA PASTA
              *
-             * Agora aceita até 2 linhas.
-             * Nomes longos aparecem corretamente e,
-             * caso ainda não caibam, recebem "..."
-             * no final.
+             * Duas linhas.
              */
             val nome =
                 TextView(
@@ -4146,7 +4182,7 @@ class MainActivity : AppCompatActivity() {
                 pasta.pasta.name
 
             nome.textSize =
-                14f
+                13f
 
             nome.setTextColor(
                 Color.DKGRAY
@@ -4172,6 +4208,14 @@ class MainActivity : AppCompatActivity() {
                 )
             )
 
+            /*
+             * QUANTIDADE
+             *
+             * Esta é a parte que estava sendo cortada.
+             *
+             * Agora possui altura própria de 26 px
+             * e fica sempre abaixo do nome.
+             */
             val quantidade =
                 TextView(
                     this@MainActivity
@@ -4190,21 +4234,54 @@ class MainActivity : AppCompatActivity() {
             quantidade.gravity =
                 Gravity.CENTER
 
+            quantidade.includeFontPadding =
+                true
+
+            quantidade.maxLines =
+                1
+
+            quantidade.ellipsize =
+                TextUtils.TruncateAt.END
+
             layout.addView(
                 quantidade,
                 LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
-                    20
+                    26
                 )
             )
 
+            /*
+             * AQUI ESTÁ A CORREÇÃO PRINCIPAL:
+             *
+             * Antes:
+             *
+             * MATCH_PARENT
+             *
+             * Agora:
+             *
+             * WRAP_CONTENT
+             *
+             * Assim o GridView calcula a altura necessária
+             * para imagem + nome + quantidade.
+             */
             container.addView(
                 layout,
                 FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
+                    ViewGroup.LayoutParams.WRAP_CONTENT
                 )
             )
+
+            /*
+             * Altura mínima para garantir que o GridView
+             * não comprima o conteúdo.
+             */
+            container.minimumHeight =
+                tamanhoImagem +
+                        42 +
+                        26 +
+                        12
 
             return container
         }
