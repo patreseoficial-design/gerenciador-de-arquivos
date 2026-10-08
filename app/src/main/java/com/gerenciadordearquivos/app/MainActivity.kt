@@ -2266,9 +2266,10 @@ class MainActivity : AppCompatActivity() {
     arquivo: File
 ): Int {
 
-    if (arquivo.isDirectory) {
-        return android.R.drawable.ic_menu_agenda
-    }
+    
+if (arquivo.isDirectory) {
+    return android.R.drawable.ic_menu_save
+}
 
     val extensao =
         arquivo.extension.lowercase(
