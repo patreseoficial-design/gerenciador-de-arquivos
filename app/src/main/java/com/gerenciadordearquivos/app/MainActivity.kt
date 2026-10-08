@@ -2241,60 +2241,35 @@ class MainActivity : AppCompatActivity() {
     // ============================================================
 
     private fun obterIconeArquivo(
-        arquivo: File
-    ): Int {
+    arquivo: File
+): Int {
 
-        if (arquivo.isDirectory) {
+    if (arquivo.isDirectory) {
+        return android.R.drawable.ic_menu_agenda
+    }
 
-            return android.R.drawable.ic_menu_agenda
-        }
+    val extensao =
+        arquivo.extension.lowercase(
+            Locale.getDefault()
+        )
 
-        return when (
-            arquivo.extension.lowercase(
-                Locale.getDefault()
-            )
-        ) {
+    return when {
 
-            "jpg",
-            "jpeg",
-            "png",
-            "webp",
-            "gif",
-            "bmp",
-            "heic",
-            "heif" ->
-                android.R.drawable.ic_menu_gallery
+        TIPO_IMAGEM.contains(extensao) ->
+            R.drawable.imagens
 
-            "mp4",
-            "mkv",
-            "avi",
-            "mov",
-            "3gp",
-            "webm",
-            "m4v" ->
-                android.R.drawable.ic_media_play
+        TIPO_VIDEO.contains(extensao) ->
+            R.drawable.videos
 
-            "mp3",
-            "wav",
-            "ogg",
-            "m4a",
-            "aac",
-            "flac",
-            "opus",
-            "amr" ->
-                android.R.drawable.ic_media_ff
+        TIPO_DOCUMENTO.contains(extensao) ->
+            R.drawable.documentos
 
-            "pdf" ->
-                android.R.drawable.ic_menu_save
+        extensao == "apk" ->
+            R.drawable.aplicativos
 
-            "zip",
-            "rar",
-            "7z" ->
-                android.R.drawable.ic_menu_sort_by_size
-
-            else ->
-                android.R.drawable.ic_menu_edit
-        }
+        else ->
+            android.R.drawable.ic_menu_edit
+    }
     }
 
     // ============================================================
