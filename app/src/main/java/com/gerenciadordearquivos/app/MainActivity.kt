@@ -8,7 +8,14 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Shader
+import android.graphics.LinearGradient
+import android.graphics.Path
+import android.graphics.PathEffect
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
@@ -2197,14 +2204,6 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        /*
-         * ALTERAÇÃO:
-         *
-         * Não sobe mais pasta por pasta.
-         * Qualquer tela de arquivos aberta volta
-         * diretamente para a tela inicial.
-         */
-
         fileScreen.visibility =
             View.GONE
 
@@ -2295,6 +2294,233 @@ class MainActivity : AppCompatActivity() {
 
             else ->
                 android.R.drawable.ic_menu_edit
+        }
+    }
+
+    // ============================================================
+    // NOVO ÍCONE DE ÁUDIO
+    // ============================================================
+
+    private fun criarIconeAudio():
+            android.graphics.drawable.Drawable {
+
+        return object :
+            android.graphics.drawable.Drawable() {
+
+            private val paint =
+                Paint(
+                    Paint.ANTI_ALIAS_FLAG
+                )
+
+            override fun draw(
+                canvas: Canvas
+            ) {
+
+                val esquerda =
+                    bounds.left.toFloat()
+
+                val topo =
+                    bounds.top.toFloat()
+
+                val direita =
+                    bounds.right.toFloat()
+
+                val baixo =
+                    bounds.bottom.toFloat()
+
+                val largura =
+                    direita - esquerda
+
+                val altura =
+                    baixo - topo
+
+                val lado =
+                    minOf(
+                        largura,
+                        altura
+                    )
+
+                val cx =
+                    esquerda +
+                            largura / 2f
+
+                val cy =
+                    topo +
+                            altura / 2f
+
+                val margem =
+                    lado * 0.08f
+
+                val rect =
+                    RectF(
+                        esquerda + margem,
+                        topo + margem,
+                        direita - margem,
+                        baixo - margem
+                    )
+
+                // Fundo arredondado azul/roxo
+                paint.style =
+                    Paint.Style.FILL
+
+                paint.shader =
+                    LinearGradient(
+                        rect.left,
+                        rect.top,
+                        rect.right,
+                        rect.bottom,
+                        Color.rgb(
+                            35,
+                            113,
+                            255
+                        ),
+                        Color.rgb(
+                            124,
+                            67,
+                            220
+                        ),
+                        Shader.TileMode.CLAMP
+                    )
+
+                canvas.drawRoundRect(
+                    rect,
+                    lado * 0.22f,
+                    lado * 0.22f,
+                    paint
+                )
+
+                paint.shader =
+                    null
+
+                // Arco principal do fone
+                paint.style =
+                    Paint.Style.STROKE
+
+                paint.strokeWidth =
+                    lado * 0.075f
+
+                paint.strokeCap =
+                    Paint.Cap.ROUND
+
+                paint.strokeJoin =
+                    Paint.Join.ROUND
+
+                paint.color =
+                    Color.WHITE
+
+                val arco =
+                    RectF(
+                        cx - lado * 0.285f,
+                        cy - lado * 0.285f,
+                        cx + lado * 0.285f,
+                        cy + lado * 0.285f
+                    )
+
+                canvas.drawArc(
+                    arco,
+                    205f,
+                    130f,
+                    false,
+                    paint
+                )
+
+                // Almofada esquerda
+                paint.style =
+                    Paint.Style.FILL
+
+                val esquerdaFone =
+                    RectF(
+                        cx - lado * 0.335f,
+                        cy - lado * 0.015f,
+                        cx - lado * 0.205f,
+                        cy + lado * 0.285f
+                    )
+
+                canvas.drawRoundRect(
+                    esquerdaFone,
+                    lado * 0.055f,
+                    lado * 0.055f,
+                    paint
+                )
+
+                // Almofada direita
+                val direitaFone =
+                    RectF(
+                        cx + lado * 0.205f,
+                        cy - lado * 0.015f,
+                        cx + lado * 0.335f,
+                        cy + lado * 0.285f
+                    )
+
+                canvas.drawRoundRect(
+                    direitaFone,
+                    lado * 0.055f,
+                    lado * 0.055f,
+                    paint
+                )
+
+                // Pequenos detalhes inferiores
+                paint.color =
+                    Color.argb(
+                        210,
+                        255,
+                        255,
+                        255
+                    )
+
+                val detalheEsquerdo =
+                    RectF(
+                        cx - lado * 0.17f,
+                        cy + lado * 0.23f,
+                        cx - lado * 0.03f,
+                        cy + lado * 0.30f
+                    )
+
+                canvas.drawRoundRect(
+                    detalheEsquerdo,
+                    lado * 0.03f,
+                    lado * 0.03f,
+                    paint
+                )
+
+                val detalheDireito =
+                    RectF(
+                        cx + lado * 0.03f,
+                        cy + lado * 0.23f,
+                        cx + lado * 0.17f,
+                        cy + lado * 0.30f
+                    )
+
+                canvas.drawRoundRect(
+                    detalheDireito,
+                    lado * 0.03f,
+                    lado * 0.03f,
+                    paint
+                )
+            }
+
+            override fun setAlpha(
+                alpha: Int
+            ) {
+                paint.alpha =
+                    alpha
+            }
+
+            override fun setColorFilter(
+                colorFilter:
+                    android.graphics.ColorFilter?
+            ) {
+                paint.colorFilter =
+                    colorFilter
+            }
+
+            @Deprecated(
+                "Deprecated in Android SDK"
+            )
+            override fun getOpacity(): Int {
+
+                return android.graphics.PixelFormat.TRANSLUCENT
+            }
         }
     }
 
@@ -3898,6 +4124,9 @@ class MainActivity : AppCompatActivity() {
             parent: ViewGroup
         ): View {
 
+            val arquivo =
+                arquivos[position]
+
             val linha =
                 LinearLayout(
                     this@MainActivity
@@ -3921,11 +4150,31 @@ class MainActivity : AppCompatActivity() {
                     this@MainActivity
                 )
 
-            icone.setImageResource(
-                obterIconeArquivo(
-                    arquivos[position]
+            val extensao =
+                arquivo.extension
+                    .lowercase(
+                        Locale.getDefault()
+                    )
+
+            if (
+                !arquivo.isDirectory &&
+                TIPO_AUDIO.contains(
+                    extensao
                 )
-            )
+            ) {
+
+                icone.setImageDrawable(
+                    criarIconeAudio()
+                )
+
+            } else {
+
+                icone.setImageResource(
+                    obterIconeArquivo(
+                        arquivo
+                    )
+                )
+            }
 
             linha.addView(
                 icone,
@@ -3956,7 +4205,7 @@ class MainActivity : AppCompatActivity() {
                 )
 
             nome.text =
-                arquivos[position].name
+                arquivo.name
 
             nome.textSize =
                 15f
@@ -3986,7 +4235,7 @@ class MainActivity : AppCompatActivity() {
 
             info.text =
                 if (
-                    arquivos[position].isDirectory
+                    arquivo.isDirectory
                 ) {
 
                     "Pasta"
@@ -3994,7 +4243,7 @@ class MainActivity : AppCompatActivity() {
                 } else {
 
                     formatarBytes(
-                        arquivos[position].length()
+                        arquivo.length()
                     )
                 }
 
@@ -4459,11 +4708,24 @@ class MainActivity : AppCompatActivity() {
 
             } else {
 
-                imagem.setImageResource(
-                    obterIconeArquivo(
-                        arquivo
+                if (
+                    TIPO_AUDIO.contains(
+                        extensao
                     )
-                )
+                ) {
+
+                    imagem.setImageDrawable(
+                        criarIconeAudio()
+                    )
+
+                } else {
+
+                    imagem.setImageResource(
+                        obterIconeArquivo(
+                            arquivo
+                        )
+                    )
+                }
             }
 
             return container
