@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -1159,7 +1160,7 @@ class MainActivity : AppCompatActivity() {
             "Aplicativos"
 
         currentPath.text =
-            "Aplicativos instalados"
+            "Carregando aplicativos instalados..."
 
         mediaGrid.visibility =
             View.GONE
@@ -1173,38 +1174,50 @@ class MainActivity : AppCompatActivity() {
                 packageManager
 
             val aplicativos =
-                pm.getInstalledApplications(
-                    PackageManager.GET_META_DATA
-                )
-                    .filter {
-                        pm.getLaunchIntentForPackage(
-                            it.packageName
-                        ) != null
-                    }
-                    .sortedBy {
-                        pm.getApplicationLabel(
-                            it
-                        )
-                            .toString()
-                            .lowercase(
+                try {
+
+                    pm.getInstalledApplications(
+                        PackageManager.GET_META_DATA
+                    )
+                        .filter { aplicativo ->
+
+                            pm.getLaunchIntentForPackage(
+                                aplicativo.packageName
+                            ) != null
+                        }
+                        .map { aplicativo ->
+
+                            AppInfoItem(
+                                aplicativo,
+                                pm.getApplicationLabel(
+                                    aplicativo
+                                ).toString()
+                            )
+                        }
+                        .distinctBy {
+                            it.info.packageName
+                        }
+                        .sortedBy {
+                            it.nome.lowercase(
                                 Locale.getDefault()
                             )
-                    }
+                        }
+
+                } catch (
+                    _: Exception
+                ) {
+
+                    emptyList()
+                }
 
             runOnUiThread {
 
-                val nomes =
-                    aplicativos.map {
-                        pm.getApplicationLabel(
-                            it
-                        ).toString()
-                    }
+                currentPath.text =
+                    "${aplicativos.size} aplicativos instalados"
 
                 fileList.adapter =
-                    ArrayAdapter(
-                        this,
-                        android.R.layout.simple_list_item_1,
-                        nomes
+                    AppListAdapter(
+                        aplicativos
                     )
 
                 fileList.setOnItemClickListener {
@@ -1220,18 +1233,151 @@ class MainActivity : AppCompatActivity() {
                         return@setOnItemClickListener
                     }
 
-                    val intent =
-                        pm.getLaunchIntentForPackage(
-                            aplicativos[position]
-                                .packageName
+                    abrirAplicativo(
+                        aplicativos[position]
+                    )
+                }
+
+                fileList.setOnItemLongClickListener {
+                        _,
+                        view,
+                        position,
+                        _ ->
+
+                    if (
+                        position >= 0 &&
+                        position < aplicativos.size
+                    ) {
+
+                        mostrarMenuAplicativo(
+                            aplicativos[position],
+                            view
                         )
 
-                    if (intent != null) {
-                        startActivity(intent)
+                        true
+
+                    } else {
+
+                        false
                     }
                 }
             }
         }
+    }
+
+    private fun abrirAplicativo(
+        aplicativo: AppInfoItem
+    ) {
+
+        try {
+
+            val intent =
+                packageManager.getLaunchIntentForPackage(
+                    aplicativo.info.packageName
+                )
+
+            if (intent != null) {
+
+                intent.addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK
+                )
+
+                startActivity(
+                    intent
+                )
+
+            } else {
+
+                Toast.makeText(
+                    this,
+                    "Não foi possível abrir o aplicativo",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+        } catch (
+            e: Exception
+        ) {
+
+            Toast.makeText(
+                this,
+                "Erro ao abrir aplicativo: ${e.message}",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun mostrarMenuAplicativo(
+        aplicativo: AppInfoItem,
+        ancora: View
+    ) {
+
+        val menu =
+            LinearLayout(this)
+
+        menu.orientation =
+            LinearLayout.VERTICAL
+
+        menu.setBackgroundColor(
+            Color.WHITE
+        )
+
+        menu.setPadding(
+            0,
+            6,
+            0,
+            6
+        )
+
+        adicionarOpcaoMenu(
+            menu,
+            "↗",
+            "Abrir"
+        ) {
+
+            abrirAplicativo(
+                aplicativo
+            )
+        }
+
+        adicionarOpcaoMenu(
+            menu,
+            "ⓘ",
+            "Informações"
+        ) {
+
+            try {
+
+                val intent =
+                    Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                    )
+
+                intent.data =
+                    Uri.parse(
+                        "package:${aplicativo.info.packageName}"
+                    )
+
+                startActivity(
+                    intent
+                )
+
+            } catch (
+                _: Exception
+            ) {
+
+                Toast.makeText(
+                    this,
+                    "Não foi possível abrir as informações",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        mostrarPopup(
+            menu,
+            ancora
+        )
     }
 
     // ============================================================
@@ -2051,104 +2197,13 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        if (
-            pastaDeMidiaAtual != null
-        ) {
-
-            val pasta =
-                pastaDeMidiaAtual!!
-
-            val pai =
-                pasta.parentFile
-
-            if (
-                pai != null &&
-                pai.absolutePath.startsWith(
-                    rootPath.absolutePath
-                )
-            ) {
-
-                val diretoriosRaiz =
-                    if (
-                        tipoDeMidiaAtual == TIPO_VIDEO
-                    ) {
-
-                        listOf(
-                            Environment.getExternalStoragePublicDirectory(
-                                Environment.DIRECTORY_DCIM
-                            ),
-                            Environment.getExternalStoragePublicDirectory(
-                                Environment.DIRECTORY_MOVIES
-                            )
-                        )
-
-                    } else {
-
-                        listOf(
-                            Environment.getExternalStoragePublicDirectory(
-                                Environment.DIRECTORY_DCIM
-                            ),
-                            Environment.getExternalStoragePublicDirectory(
-                                Environment.DIRECTORY_PICTURES
-                            )
-                        )
-                    }
-
-                if (
-                    diretoriosRaiz.any {
-                        it.absolutePath ==
-                                pai.absolutePath
-                    }
-                ) {
-
-                    abrirCategoriaDeMidia(
-                        categoriaMidiaAtual,
-                        tipoDeMidiaAtual,
-                        diretoriosRaiz
-                    )
-
-                } else {
-
-                    abrirPastaDeMidia(
-                        pai
-                    )
-                }
-
-                return
-            }
-
-            pastaDeMidiaAtual = null
-        }
-
-        if (
-            currentDirectory != rootPath &&
-            currentDirectory.parentFile != null
-        ) {
-
-            val pai =
-                currentDirectory.parentFile
-
-            if (
-                pai != null &&
-                pai.absolutePath.startsWith(
-                    rootPath.absolutePath
-                )
-            ) {
-
-                abrirPasta(
-                    pai,
-                    if (
-                        pai == rootPath
-                    ) {
-                        "Armazenamento"
-                    } else {
-                        pai.name
-                    }
-                )
-
-                return
-            }
-        }
+        /*
+         * ALTERAÇÃO:
+         *
+         * Não sobe mais pasta por pasta.
+         * Qualquer tela de arquivos aberta volta
+         * diretamente para a tela inicial.
+         */
 
         fileScreen.visibility =
             View.GONE
@@ -2156,10 +2211,30 @@ class MainActivity : AppCompatActivity() {
         homeScroll.visibility =
             View.VISIBLE
 
+        mediaGrid.visibility =
+            View.GONE
+
+        fileList.visibility =
+            View.VISIBLE
+
         currentDirectory =
             rootPath
 
+        pastaDeMidiaAtual =
+            null
+
+        telaDePastasDeMidia =
+            false
+
+        tipoDeMidiaAtual =
+            TIPO_IMAGEM
+
+        categoriaMidiaAtual =
+            ""
+
         searchEdit.setText("")
+
+        atualizarArmazenamento()
     }
 
     // ============================================================
@@ -3979,13 +4054,6 @@ class MainActivity : AppCompatActivity() {
             parent: ViewGroup
         ): View {
 
-            /*
-             * IMPORTANTE:
-             *
-             * Pegamos a largura real da coluna do GridView.
-             * Isso evita depender somente da largura total
-             * da tela.
-             */
             val larguraColuna =
                 if (parent.width > 0) {
                     parent.width / 3
@@ -3993,9 +4061,6 @@ class MainActivity : AppCompatActivity() {
                     resources.displayMetrics.widthPixels / 3
                 }
 
-            /*
-             * Espaçamento interno da célula.
-             */
             val espaco =
                 8
 
@@ -4006,12 +4071,6 @@ class MainActivity : AppCompatActivity() {
                             6
                     ).coerceAtLeast(1)
 
-            /*
-             * Container da célula.
-             *
-             * NÃO usamos MATCH_PARENT na altura.
-             * Isso era uma das causas do corte.
-             */
             val container =
                 FrameLayout(
                     this@MainActivity
@@ -4024,13 +4083,6 @@ class MainActivity : AppCompatActivity() {
                 8
             )
 
-            /*
-             * Layout vertical:
-             *
-             * [ IMAGEM ]
-             * [ NOME   ]
-             * [ (123)  ]
-             */
             val layout =
                 LinearLayout(
                     this@MainActivity
@@ -4154,12 +4206,6 @@ class MainActivity : AppCompatActivity() {
                 )
             }
 
-            /*
-             * MINIATURA
-             *
-             * Agora usamos WRAP_CONTENT no conjunto
-             * e deixamos espaço suficiente abaixo.
-             */
             layout.addView(
                 imagem,
                 LinearLayout.LayoutParams(
@@ -4168,11 +4214,6 @@ class MainActivity : AppCompatActivity() {
                 )
             )
 
-            /*
-             * NOME DA PASTA
-             *
-             * Duas linhas.
-             */
             val nome =
                 TextView(
                     this@MainActivity
@@ -4208,14 +4249,6 @@ class MainActivity : AppCompatActivity() {
                 )
             )
 
-            /*
-             * QUANTIDADE
-             *
-             * Esta é a parte que estava sendo cortada.
-             *
-             * Agora possui altura própria de 26 px
-             * e fica sempre abaixo do nome.
-             */
             val quantidade =
                 TextView(
                     this@MainActivity
@@ -4251,20 +4284,6 @@ class MainActivity : AppCompatActivity() {
                 )
             )
 
-            /*
-             * AQUI ESTÁ A CORREÇÃO PRINCIPAL:
-             *
-             * Antes:
-             *
-             * MATCH_PARENT
-             *
-             * Agora:
-             *
-             * WRAP_CONTENT
-             *
-             * Assim o GridView calcula a altura necessária
-             * para imagem + nome + quantidade.
-             */
             container.addView(
                 layout,
                 FrameLayout.LayoutParams(
@@ -4273,10 +4292,6 @@ class MainActivity : AppCompatActivity() {
                 )
             )
 
-            /*
-             * Altura mínima para garantir que o GridView
-             * não comprima o conteúdo.
-             */
             container.minimumHeight =
                 tamanhoImagem +
                         42 +
@@ -4456,6 +4471,173 @@ class MainActivity : AppCompatActivity() {
     }
 
     // ============================================================
+    // ADAPTER DOS APLICATIVOS
+    // ============================================================
+
+    private inner class AppListAdapter(
+        private val aplicativos: List<AppInfoItem>
+    ) : BaseAdapter() {
+
+        override fun getCount(): Int =
+            aplicativos.size
+
+        override fun getItem(
+            position: Int
+        ): AppInfoItem =
+            aplicativos[position]
+
+        override fun getItemId(
+            position: Int
+        ): Long =
+            position.toLong()
+
+        override fun getView(
+            position: Int,
+            convertView: View?,
+            parent: ViewGroup
+        ): View {
+
+            val aplicativo =
+                aplicativos[position]
+
+            val linha =
+                LinearLayout(
+                    this@MainActivity
+                )
+
+            linha.orientation =
+                LinearLayout.HORIZONTAL
+
+            linha.gravity =
+                Gravity.CENTER_VERTICAL
+
+            linha.setPadding(
+                14,
+                10,
+                14,
+                10
+            )
+
+            val icone =
+                ImageView(
+                    this@MainActivity
+                )
+
+            try {
+
+                icone.setImageDrawable(
+                    aplicativo.info.loadIcon(
+                        packageManager
+                    )
+                )
+
+            } catch (
+                _: Exception
+            ) {
+
+                icone.setImageResource(
+                    android.R.drawable.sym_def_app_icon
+                )
+            }
+
+            linha.addView(
+                icone,
+                LinearLayout.LayoutParams(
+                    52,
+                    52
+                )
+            )
+
+            val textos =
+                LinearLayout(
+                    this@MainActivity
+                )
+
+            textos.orientation =
+                LinearLayout.VERTICAL
+
+            textos.gravity =
+                Gravity.CENTER_VERTICAL
+
+            textos.setPadding(
+                14,
+                0,
+                0,
+                0
+            )
+
+            val nome =
+                TextView(
+                    this@MainActivity
+                )
+
+            nome.text =
+                aplicativo.nome
+
+            nome.textSize =
+                16f
+
+            nome.setTextColor(
+                Color.DKGRAY
+            )
+
+            nome.maxLines =
+                1
+
+            nome.ellipsize =
+                TextUtils.TruncateAt.END
+
+            textos.addView(
+                nome,
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            )
+
+            val pacote =
+                TextView(
+                    this@MainActivity
+                )
+
+            pacote.text =
+                aplicativo.info.packageName
+
+            pacote.textSize =
+                11f
+
+            pacote.setTextColor(
+                Color.GRAY
+            )
+
+            pacote.maxLines =
+                1
+
+            pacote.ellipsize =
+                TextUtils.TruncateAt.END
+
+            textos.addView(
+                pacote,
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            )
+
+            linha.addView(
+                textos,
+                LinearLayout.LayoutParams(
+                    0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    1f
+                )
+            )
+
+            return linha
+        }
+    }
+
+    // ============================================================
     // MINIATURAS
     // ============================================================
 
@@ -4621,6 +4803,11 @@ class MainActivity : AppCompatActivity() {
     private data class PastaMedia(
         val pasta: File,
         val arquivos: ArrayList<File>
+    )
+
+    private data class AppInfoItem(
+        val info: ApplicationInfo,
+        val nome: String
     )
 
     // ============================================================
