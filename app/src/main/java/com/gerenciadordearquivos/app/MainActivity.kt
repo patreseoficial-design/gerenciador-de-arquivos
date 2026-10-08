@@ -1567,6 +1567,28 @@ class MainActivity : AppCompatActivity() {
                 )
 
         when {
+                        TIPO_AUDIO.contains(extensao) -> {
+                try {
+                    val intent = Intent(
+                        this,
+                        AudioViewerActivity::class.java
+                    )
+
+                    intent.putExtra(
+                        "filePath",
+                        arquivo.absolutePath
+                    )
+
+                    startActivity(intent)
+
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        this,
+                        "Erro ao reproduzir áudio: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
 
             TIPO_IMAGEM.contains(extensao) -> {
 
