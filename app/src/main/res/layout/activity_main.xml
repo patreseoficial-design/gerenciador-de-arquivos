@@ -58,7 +58,6 @@
 
     </FrameLayout>
 
-
     <!-- HOME -->
     <ScrollView
         android:id="@+id/homeScroll"
@@ -106,13 +105,11 @@
 
             </LinearLayout>
 
-
             <Space
                 android:layout_width="match_parent"
                 android:layout_height="14dp"/>
 
-
-            <!-- ARMAZENAMENTO -->
+            <!-- ARMAZENAMENTO PRINCIPAL -->
             <LinearLayout
                 android:id="@+id/categoryStorage"
                 android:layout_width="match_parent"
@@ -169,11 +166,9 @@
 
             </LinearLayout>
 
-
             <Space
                 android:layout_width="match_parent"
                 android:layout_height="14dp"/>
-
 
             <!-- LINHA 1 -->
             <LinearLayout
@@ -210,7 +205,6 @@
 
                 </LinearLayout>
 
-
                 <!-- ANÁLISE -->
                 <LinearLayout
                     android:id="@+id/categoryAnalysis"
@@ -239,7 +233,6 @@
                         android:textSize="14sp"/>
 
                 </LinearLayout>
-
 
                 <!-- IMAGENS -->
                 <LinearLayout
@@ -272,7 +265,6 @@
 
             </LinearLayout>
 
-
             <!-- LINHA 2 -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -292,6 +284,7 @@
                     android:clickable="true"
                     android:focusable="true">
 
+                    <!-- ÍCONE EXISTENTE: FONE DE OUVIDO -->
                     <ImageView
                         android:layout_width="95dp"
                         android:layout_height="80dp"
@@ -307,7 +300,6 @@
                         android:textSize="14sp"/>
 
                 </LinearLayout>
-
 
                 <!-- VÍDEOS -->
                 <LinearLayout
@@ -337,7 +329,6 @@
                         android:textSize="14sp"/>
 
                 </LinearLayout>
-
 
                 <!-- DOCUMENTOS -->
                 <LinearLayout
@@ -369,7 +360,6 @@
                 </LinearLayout>
 
             </LinearLayout>
-
 
             <!-- LINHA 3 -->
             <LinearLayout
@@ -406,7 +396,6 @@
 
                 </LinearLayout>
 
-
                 <!-- LIXEIRA -->
                 <LinearLayout
                     android:id="@+id/categoryTrash"
@@ -435,7 +424,6 @@
                         android:textSize="14sp"/>
 
                 </LinearLayout>
-
 
                 <!-- CARTÃO DE MEMÓRIA -->
                 <LinearLayout
@@ -471,7 +459,6 @@
         </LinearLayout>
 
     </ScrollView>
-
 
     <!-- TELA DE ARQUIVOS -->
     <LinearLayout
@@ -521,7 +508,6 @@
 
         </LinearLayout>
 
-
         <!-- CAMINHO -->
         <TextView
             android:id="@+id/currentPath"
@@ -536,7 +522,6 @@
             android:textSize="14sp"
             android:background="#F5F5F5"/>
 
-
         <!-- LISTA NORMAL -->
         <ListView
             android:id="@+id/fileList"
@@ -545,7 +530,6 @@
             android:layout_weight="1"
             android:dividerHeight="1dp"
             android:background="#FFFFFF"/>
-
 
         <!-- GRADE DE IMAGENS/VÍDEOS -->
         <GridView
