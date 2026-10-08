@@ -2,8 +2,13 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Acesso completo ao armazenamento -->
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
+    <!-- Permite consultar todos os aplicativos instalados -->
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES" />
 
     <application
         android:allowBackup="true"
