@@ -2187,7 +2187,7 @@ class MainActivity : AppCompatActivity() {
             findViewById<LinearLayout>(R.id.homeGrid) ?: return
 
         val blocos =
-            ordemDaGrade.mapNotNull { id ->
+            ordemDaGrade.toList().mapNotNull { id ->
                 findViewById<View>(id)
             }
 
