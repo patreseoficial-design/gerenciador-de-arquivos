@@ -30,7 +30,7 @@ A partir daí, cada build no GitHub Actions gera também o artefato **`app-relea
 
 ## 3. Criar o app no Play Console
 
-- **Nome do app na loja:** `Gerenciador de Arquivos Pro` (27 caracteres). Traz as palavras mais buscadas ("gerenciador de arquivos"). No celular, embaixo do ícone, aparece **Arquivos Pro**.
+- **Nome do app na loja (título):** `Gerenciador de Arquivos Pro` (27 caracteres). A frase exata "gerenciador de arquivos" no título ajuda a aparecer nessa busca. **"Limpa celular"** fica no começo da descrição curta, para aparecer também nessa busca. No celular, embaixo do ícone, aparece **Arquivos Pro**. O título pode ser trocado depois a qualquer momento.
 - **Idioma padrão:** Português (Brasil)
 - **App ou jogo:** App
 - **Gratuito**
@@ -41,13 +41,13 @@ A partir daí, cada build no GitHub Actions gera também o artefato **`app-relea
 **Descrição curta** (até 80 caracteres):
 
 ```
-Limpar celular, WhatsApp e fotos repetidas. Gerenciador de arquivos fácil!
+Limpa celular: WhatsApp, fotos repetidas e arquivos grandes. Fácil e rápido!
 ```
 
 **Descrição completa:**
 
 ```
-Celular cheio? O Arquivos Pro limpa, organiza e protege seus arquivos de um jeito simples e todo em português.
+Celular cheio? O Gerenciador de Arquivos Pro limpa o celular, organiza e protege seus arquivos de um jeito simples e todo em português.
 
 🧹 LIMPEZA DO WHATSAPP
 • Veja quanto ocupam fotos, vídeos, áudios, figurinhas e documentos do WhatsApp
