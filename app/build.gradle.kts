@@ -93,4 +93,10 @@ dependencies {
     // Anúncios (AdMob) e tela de consentimento de privacidade
     implementation("com.google.android.gms:play-services-ads:24.5.0")
     implementation("com.google.android.ump:user-messaging-platform:3.2.0")
+
+    // Aviso diário de celular quase cheio
+    implementation("androidx.work:work-runtime:2.10.0")
+
+    // Manter data/local das fotos ao comprimir
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
 }

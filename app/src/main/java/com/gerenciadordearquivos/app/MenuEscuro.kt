@@ -75,6 +75,18 @@ object MenuEscuro {
             t.contains("informaç") ->
                 R.drawable.ic_acao_informacoes
 
+            t.startsWith("letras grandes") ->
+                R.drawable.ic_acao_letras
+
+            t.startsWith("avisar celular") ->
+                R.drawable.ic_acao_aviso
+
+            t.contains("premium") ->
+                R.drawable.ic_acao_estrela
+
+            t.contains("privacidade") ->
+                R.drawable.ic_acao_informacoes
+
             t == "mais" ->
                 R.drawable.ic_acao_mais
 

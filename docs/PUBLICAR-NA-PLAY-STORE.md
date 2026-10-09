@@ -67,6 +67,19 @@ Celular cheio? O Faxina limpa, organiza e protege seus arquivos de um jeito simp
 🔒 COFRE
 • Esconda fotos e arquivos pessoais com PIN
 
+🗜️ COMPRIMIR FOTOS
+• Deixe as fotos até 4 vezes menores, mantendo a qualidade, a data e o local
+
+💻 PASSAR PARA O COMPUTADOR
+• Baixe e envie arquivos entre o celular e o PC pelo Wi-Fi, sem cabo
+
+🔔 AVISO DE CELULAR CHEIO E WIDGET
+• Receba um aviso quando o espaço estiver acabando
+• Widget com o espaço livre na tela inicial
+
+🔠 LETRAS GRANDES
+• Modo com letras maiores, ótimo para quem enxerga pouco
+
 📁 TUDO ORGANIZADO
 • Imagens, Vídeos, Áudios, Documentos, Downloads e Aplicativos
 • Ícones para cada tipo de arquivo (PDF, Word, Excel, músicas, vídeos, APKs...)
@@ -74,7 +87,7 @@ Celular cheio? O Faxina limpa, organiza e protege seus arquivos de um jeito simp
 • Cartão de memória: veja o espaço e mova arquivos entre o celular e o cartão
 
 ⭐ PREMIUM (compra única, sem assinatura)
-• Cofre, apagar duplicadas com 1 toque e sem anúncios
+• Cofre, apagar duplicadas com 1 toque, comprimir fotos e sem anúncios
 
 Seus arquivos nunca saem do seu celular.
 ```

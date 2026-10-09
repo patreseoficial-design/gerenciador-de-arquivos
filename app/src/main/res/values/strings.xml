@@ -3,4 +3,6 @@
 
     <string name="app_name">Faxina</string>
 
+    <string name="widget_descricao">Mostra o espaço livre do celular</string>
+
 </resources>

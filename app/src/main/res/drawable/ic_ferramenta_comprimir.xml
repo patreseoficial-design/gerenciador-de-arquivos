@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Foto com setas para dentro (comprimir) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#7E57C2"
+        android:pathData="M8,6H40C41.1,6 42,6.9 42,8V40C42,41.1 41.1,42 40,42H8C6.9,42 6,41.1 6,40V8C6,6.9 6.9,6 8,6Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,12H20L17,15L21,19L19,21L15,17L12,20Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,36H28L31,33L27,29L29,27L33,31L36,28Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,12V20L33,17L29,21L27,19L31,15L28,12Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,36V28L15,31L19,27L21,29L17,33L20,36Z"/>
+</vector>
