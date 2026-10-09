@@ -107,6 +107,12 @@ https://github.com/patreseoficial-design/gerenciador-de-arquivos/blob/main/docs/
 
 ---
 
+## 3.1 Outros idiomas e países
+
+O app já vem traduzido para inglês, espanhol, francês, alemão, italiano e indonésio. Os textos da loja nesses idiomas estão em [LOJA-EM-OUTROS-IDIOMAS.md](LOJA-EM-OUTROS-IDIOMAS.md), junto com o passo a passo para liberar todos os países.
+
+---
+
 ## 4. Formulários do "Conteúdo do app"
 
 ### Segurança dos dados (com anúncios do AdMob)
