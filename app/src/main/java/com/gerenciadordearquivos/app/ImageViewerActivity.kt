@@ -45,6 +45,9 @@ import kotlin.math.min
 
 class ImageViewerActivity : Activity() {
 
+    // Altura da barra de navegação do celular (px)
+    private var espacoBaixoSistema = 0
+
     private lateinit var imageView: ZoomImageView
     private lateinit var arquivoAtual: File
 
@@ -214,13 +217,14 @@ class ImageViewerActivity : Activity() {
         requestedOrientation =
             ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
 
-        window.decorView.systemUiVisibility =
-            View.SYSTEM_UI_FLAG_FULLSCREEN or
-            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        /*
+         * Esconde só a barra de status. A barra de navegação
+         * do celular fica visível e as barras do app ficam
+         * acima dela (veja criarInterface).
+         */
+        BarrasDoSistema.configurarTelaCheia(
+            this
+        )
     }
 
 
@@ -627,6 +631,43 @@ class ImageViewerActivity : Activity() {
             abrirImagemAnterior()
         }
 
+        /*
+         * Afasta as barras do app dos botões/gestos do celular
+         */
+        BarrasDoSistema.aoMudarEspacos(
+            raiz
+        ) { esquerda, topoSistema, direita, baixo ->
+
+            topo.setPadding(
+                dp(8) + esquerda,
+                dp(6) + topoSistema,
+                dp(8) + direita,
+                dp(4)
+            )
+
+            topoParams.height =
+                dp(76) + topoSistema
+
+            topo.layoutParams =
+                topoParams
+
+            inferior.setPadding(
+                dp(8) + esquerda,
+                dp(4),
+                dp(8) + direita,
+                dp(8) + baixo
+            )
+
+            inferiorParams.height =
+                dp(78) + baixo
+
+            espacoBaixoSistema =
+                baixo
+
+            inferior.layoutParams =
+                inferiorParams
+        }
+
         setContentView(raiz)
 
         carregarImagem()
@@ -902,13 +943,31 @@ class ImageViewerActivity : Activity() {
                     return@Thread
                 }
 
+                /*
+                 * Abre a foto na resolução original do arquivo.
+                 * Só reduz quando ela passa do que a tela/memória
+                 * do aparelho consegue desenhar (fotos enormes).
+                 */
                 var sample = 1
 
-                val limite = 4096
+                val limiteLado =
+                    if (
+                        android.os.Build.VERSION.SDK_INT >=
+                        android.os.Build.VERSION_CODES.P
+                    ) 8192 else 4096
+
+                val limiteBytes =
+                    minOf(
+                        90L * 1024 * 1024,
+                        Runtime.getRuntime().maxMemory() / 3
+                    )
 
                 while (
-                    bounds.outWidth / sample > limite ||
-                    bounds.outHeight / sample > limite
+                    bounds.outWidth / sample > limiteLado ||
+                    bounds.outHeight / sample > limiteLado ||
+                    (bounds.outWidth / sample).toLong() *
+                        (bounds.outHeight / sample).toLong() *
+                        4L > limiteBytes
                 ) {
 
                     sample *= 2
@@ -1235,7 +1294,7 @@ class ImageViewerActivity : Activity() {
                 window.decorView,
                 Gravity.BOTTOM or Gravity.END,
                 dp(8),
-                dp(86)
+                dp(86) + espacoBaixoSistema
             )
 
             return

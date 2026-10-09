@@ -417,8 +417,8 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    // Downloads (e suas subpastas) aparece do mais recente
-    // para o mais antigo, como na pasta de downloads do celular
+    // Em Downloads (e suas subpastas) as pastas vêm primeiro e
+    // tudo aparece do mais recente para o mais antigo
     private fun estaEmDownloads(
         pasta: File
     ): Boolean {
@@ -461,9 +461,10 @@ class MainActivity : AppCompatActivity() {
                     if (
                         estaEmDownloads(pasta)
                     ) {
-                        lista.sortedByDescending {
-                            it.lastModified()
-                        }
+                        lista.sortedWith(
+                            compareBy<File> { !it.isDirectory }
+                                .thenByDescending { it.lastModified() }
+                        )
                     } else {
                         lista.sortedWith(
                             compareBy<File> { !it.isDirectory }
@@ -2422,10 +2423,9 @@ class MainActivity : AppCompatActivity() {
     arquivo: File
 ): Int {
 
-    
-if (arquivo.isDirectory) {
-    return android.R.drawable.ic_menu_save
-}
+    if (arquivo.isDirectory) {
+        return R.drawable.ic_folder
+    }
 
     val extensao =
         arquivo.extension.lowercase(
@@ -4250,11 +4250,15 @@ if (arquivo.isDirectory) {
                 )
             }
 
+            val tamanhoIcone =
+                (40 * resources.displayMetrics.density)
+                    .toInt()
+
             linha.addView(
                 icone,
                 LinearLayout.LayoutParams(
-                    48,
-                    48
+                    tamanhoIcone,
+                    tamanhoIcone
                 )
             )
 

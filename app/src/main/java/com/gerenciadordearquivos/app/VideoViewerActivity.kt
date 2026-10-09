@@ -163,13 +163,11 @@ class VideoViewerActivity : Activity() {
         super.onWindowFocusChanged(hasFocus)
 
         if (hasFocus) {
-            window.decorView.systemUiVisibility =
-                View.SYSTEM_UI_FLAG_FULLSCREEN or
-                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            // Barra de navegação do celular fica visível e
+            // as barras do player ficam afastadas dela
+            BarrasDoSistema.configurarTelaCheia(
+                this
+            )
         }
     }
 
@@ -409,6 +407,18 @@ class VideoViewerActivity : Activity() {
         )
 
         criarBarraInferior(principal)
+
+        BarrasDoSistema.aoMudarEspacos(
+            raiz
+        ) { esquerda, topo, direita, baixo ->
+
+            principal.setPadding(
+                esquerda,
+                topo,
+                direita,
+                baixo
+            )
+        }
 
         setContentView(raiz)
 
