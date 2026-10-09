@@ -380,39 +380,36 @@ class MainActivity : AppCompatActivity() {
 
         thread {
 
+            val arquivos =
+                try {
+                    val lista =
+                        pasta.listFiles()?.toList()
+                            ?: emptyList()
 
-val arquivos =
-    try {
-        val lista =
-            pasta.listFiles()?.toList()
-                ?: emptyList()
-
-        if (
-            pasta.absoluteFile ==
-            Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS
-            ).absoluteFile
-        ) {
-            lista.sortedWith(
-                compareBy<File> { !it.isDirectory }
-                    .thenByDescending { it.lastModified() }
-            )
-        } else {
-            lista.sortedWith(
-                compareBy<File> { !it.isDirectory }
-                    .thenBy {
-                        it.name.lowercase(
-                            Locale.getDefault()
+                    if (
+                        pasta.absoluteFile ==
+                        Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_DOWNLOADS
+                        ).absoluteFile
+                    ) {
+                        lista.sortedWith(
+                            compareBy<File> { !it.isDirectory }
+                                .thenByDescending { it.lastModified() }
+                        )
+                    } else {
+                        lista.sortedWith(
+                            compareBy<File> { !it.isDirectory }
+                                .thenBy {
+                                    it.name.lowercase(
+                                        Locale.getDefault()
+                                    )
+                                }
                         )
                     }
-            )
-        }
-    } catch (
-        _: Exception
-    ) {
-        emptyList()
-    }
-emptyList()
+                } catch (
+                    _: Exception
+                ) {
+                    emptyList()
                 }
 
             runOnUiThread {
@@ -5122,4 +5119,4 @@ if (arquivo.isDirectory) {
             super.onBackPressed()
         }
     }
-
+}
