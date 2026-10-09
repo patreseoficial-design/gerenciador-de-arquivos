@@ -186,6 +186,7 @@ class MainActivity : AppCompatActivity() {
 
         inicializarViews()
         configurarBotoes()
+        montarGradeInicial()
         configurarPesquisa()
 
         atualizarArmazenamento()
@@ -284,6 +285,10 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         atualizarCartaoNaHome()
+
+        if (homeScroll.visibility == View.VISIBLE) {
+            atualizarInfosHome()
+        }
 
         // Volta da tela de desinstalar: atualiza a lista
         if (
@@ -2126,12 +2131,226 @@ class MainActivity : AppCompatActivity() {
                 R.id.categoryMemoryCard
             ) ?: return
 
-        botao.visibility =
-            if (Armazenamento.raizCartao(this) != null) {
-                View.VISIBLE
-            } else {
-                View.INVISIBLE
+        val cartao =
+            Armazenamento.raizCartao(this)
+
+        val visivel =
+            if (cartao != null) View.VISIBLE else View.GONE
+
+        if (botao.visibility != visivel || !gradeMontada) {
+
+            botao.visibility = visivel
+
+            // Sem cartão o bloco some e os outros sobem na grade
+            montarGradeInicial()
+        }
+
+        if (cartao != null) {
+            Armazenamento.espaco(cartao)?.let {
+                findViewById<TextView>(R.id.infoCartao)?.text =
+                    "${formatarBytes(it.usado)} / ${formatarBytes(it.total)}"
             }
+        }
+    }
+
+    // ============================================================
+    // GRADE DA TELA INICIAL
+    // ============================================================
+
+    private var gradeMontada = false
+
+    private val ordemDaGrade =
+        intArrayOf(
+            R.id.categoryStorage,
+            R.id.categoryDownloads,
+            R.id.categoryAnalysis,
+            R.id.categoryImages,
+            R.id.categoryAudio,
+            R.id.categoryVideos,
+            R.id.categoryDocuments,
+            R.id.categoryApps,
+            R.id.categoryTrash,
+            R.id.categoryMemoryCard,
+            R.id.toolWhatsApp,
+            R.id.toolDuplicadas,
+            R.id.toolCofre,
+            R.id.toolComprimir,
+            R.id.toolWifi,
+            R.id.toolPremium
+        )
+
+    // Coloca os blocos visíveis em linhas de 3, sem buracos no
+    // meio; o que sobrar na última linha fica em branco
+    private fun montarGradeInicial() {
+
+        val grade =
+            findViewById<LinearLayout>(R.id.homeGrid) ?: return
+
+        val blocos =
+            ordemDaGrade.toList().mapNotNull { id ->
+                findViewById<View>(id)
+            }
+
+        blocos.forEach { bloco ->
+            (bloco.parent as? ViewGroup)?.removeView(bloco)
+        }
+
+        grade.removeAllViews()
+
+        blocos
+            .filter { it.visibility != View.GONE }
+            .chunked(3)
+            .forEach { daLinha ->
+
+                val linha =
+                    LinearLayout(this)
+
+                linha.orientation =
+                    LinearLayout.HORIZONTAL
+
+                daLinha.forEach { bloco ->
+                    linha.addView(
+                        bloco,
+                        LinearLayout.LayoutParams(
+                            0,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            1f
+                        )
+                    )
+                }
+
+                repeat(3 - daLinha.size) {
+                    linha.addView(
+                        Space(this),
+                        LinearLayout.LayoutParams(0, 0, 1f)
+                    )
+                }
+
+                grade.addView(
+                    linha,
+                    LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                )
+            }
+
+        gradeMontada = true
+    }
+
+    // Tamanho e quantidade embaixo de cada bloco (ex.: "1,7 GB (2043)")
+    private var ultimaContagemHome = 0L
+
+    private fun atualizarInfosHome() {
+
+        val agora =
+            System.currentTimeMillis()
+
+        if (agora - ultimaContagemHome < 30_000) {
+            return
+        }
+
+        ultimaContagemHome = agora
+
+        findViewById<TextView>(R.id.infoPremium)?.text =
+            if (Premium.ativo(this)) tr("Ativo") else Premium.preco()
+
+        findViewById<TextView>(R.id.infoWifi)?.text =
+            "Wi-Fi"
+
+        thread {
+
+            class Soma {
+                var bytes = 0L
+                var quantidade = 0
+                fun add(arquivo: File) {
+                    bytes += arquivo.length()
+                    quantidade++
+                }
+                fun texto(): String =
+                    if (quantidade == 0) " "
+                    else "${formatarBytes(bytes)} ($quantidade)"
+            }
+
+            val imagens = Soma()
+            val audios = Soma()
+            val videos = Soma()
+            val documentos = Soma()
+
+            percorrerArquivos(rootPath) { arquivo ->
+                when (arquivo.extension.lowercase(Locale.getDefault())) {
+                    in TIPO_IMAGEM -> imagens.add(arquivo)
+                    in TIPO_AUDIO -> audios.add(arquivo)
+                    in TIPO_VIDEO -> videos.add(arquivo)
+                    in TIPO_DOCUMENTO -> documentos.add(arquivo)
+                }
+            }
+
+            val downloads = Soma()
+
+            Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS
+            ).walkTopDown()
+                .filter { it.isFile }
+                .forEach { downloads.add(it) }
+
+            val lixeira = Soma()
+
+            Armazenamento.pastaLixeira
+                .walkTopDown()
+                .filter { it.isFile }
+                .forEach { lixeira.add(it) }
+
+            val whatsapp = Soma()
+
+            listOf(
+                "Android/media/com.whatsapp/WhatsApp/Media",
+                "WhatsApp/Media"
+            ).map { File(rootPath, it) }
+                .filter { it.isDirectory }
+                .forEach { pasta ->
+                    pasta.walkTopDown()
+                        .filter { it.isFile && it.name != ".nomedia" }
+                        .forEach { whatsapp.add(it) }
+                }
+
+            val quantidadeApps =
+                try {
+                    packageManager.queryIntentActivities(
+                        Intent(Intent.ACTION_MAIN)
+                            .addCategory(Intent.CATEGORY_LAUNCHER),
+                        0
+                    ).map { it.activityInfo.packageName }
+                        .distinct()
+                        .size
+                } catch (
+                    _: Exception
+                ) {
+                    0
+                }
+
+            val itensCofre =
+                Cofre.itens().size
+
+            runOnUiThread {
+
+                if (isFinishing) return@runOnUiThread
+
+                fun mostrar(id: Int, texto: String) {
+                    findViewById<TextView>(id)?.text = texto
+                }
+
+                mostrar(R.id.infoImagens, imagens.texto())
+                mostrar(R.id.infoAudio, audios.texto())
+                mostrar(R.id.infoVideos, videos.texto())
+                mostrar(R.id.infoDocumentos, documentos.texto())
+                mostrar(R.id.infoDownloads, downloads.texto())
+                mostrar(R.id.infoLixeira, if (lixeira.quantidade == 0) tr("Vazia") else formatarBytes(lixeira.bytes))
+                mostrar(R.id.infoWhatsApp, if (whatsapp.quantidade == 0) " " else formatarBytes(whatsapp.bytes))
+                mostrar(R.id.infoApps, tr("{0} apps", quantidadeApps))
+                mostrar(R.id.infoCofre, if (itensCofre == 0) " " else tr("{0} item(ns)", itensCofre))
+            }
+        }
     }
 
     private fun abrirCartao() {
@@ -3356,7 +3575,10 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
 
                     storageInfo.text =
-                        tr("{0} usados de {1}", formatarBytes(usado), formatarBytes(total))
+                        "${formatarBytes(usado)} / ${formatarBytes(total)}"
+
+                    findViewById<TextView>(R.id.infoAnalise)?.text =
+                        tr("{0}% em uso", percentual)
 
                     storageProgress.max =
                         100
@@ -4449,6 +4671,8 @@ class MainActivity : AppCompatActivity() {
         searchEdit.setText("")
 
         atualizarArmazenamento()
+
+        atualizarInfosHome()
     }
 
     // ============================================================
