@@ -203,22 +203,21 @@ Para testar sem pagar: em **Configurações → Teste de licença**, adicione o 
 
 ### Ligar os anúncios de verdade (AdMob)
 
-Por enquanto o app usa os **anúncios de teste do Google**: eles aparecem, mas **não geram dinheiro**. Para ganhar:
+Os IDs reais da conta AdMob já estão no `app/build.gradle.kts`:
 
-1. Entre em https://admob.google.com com a mesma conta Google.
-2. **Apps → Adicionar app → Android** (depois de publicado, ligue o app à Play Store).
-3. Copie o **ID do app** (formato `ca-app-pub-XXXX~YYYY`).
-4. Crie 2 **blocos de anúncios**:
-   - **Banner** → copie o ID (formato `ca-app-pub-XXXX/ZZZZ`)
-   - **Intersticial** → copie o ID
-5. No GitHub, em **Settings → Secrets and variables → Actions**, crie:
-   - `ADMOB_APP_ID` = ID do app
-   - `ADMOB_BANNER_ID` = ID do banner
-   - `ADMOB_INTERSTICIAL_ID` = ID do intersticial
-6. Rode o build de novo: o próximo AAB já sai com os anúncios de verdade.
-7. Em **AdMob → Privacidade e mensagens**, crie a mensagem de consentimento (GDPR) para a Europa. O app já mostra essa mensagem quando for necessário.
+- ID do app: `ca-app-pub-9393930095097786~3410674038`
+- Banner (tela inicial): `ca-app-pub-9393930095097786/8494645609`
+- Intersticial (depois das limpezas): `ca-app-pub-9393930095097786/8223182860`
 
-> ⚠️ Nunca clique nos seus próprios anúncios de verdade: o AdMob bloqueia a conta. Para testar, use a versão de teste (sem os Secrets) ou adicione seu celular como "dispositivo de teste" no AdMob.
+A **versão da Play Store** (`app-release-playstore`) usa esses anúncios de verdade. A **versão de teste** (`app-debug`) continua com os anúncios de teste do Google.
+
+Para trocar algum ID sem mexer no código, crie os Secrets `ADMOB_APP_ID`, `ADMOB_BANNER_ID` ou `ADMOB_INTERSTICIAL_ID` no GitHub. Eles têm prioridade.
+
+Ainda no AdMob:
+1. Em **Privacidade e mensagens**, crie a mensagem de consentimento (GDPR) para a Europa. O app já mostra essa mensagem quando for necessário.
+2. Depois de publicado, ligue o app à Play Store (**Apps → Configurações do app**).
+
+> ⚠️ Nunca clique nos seus próprios anúncios de verdade: o AdMob bloqueia a conta. Para testar, use a versão de teste (`app-debug`) ou adicione seu celular como "dispositivo de teste" no AdMob.
 
 ### Como os anúncios aparecem (para não irritar o usuário)
 

@@ -9,8 +9,8 @@ plugins {
 val arquivoChave = System.getenv("KEYSTORE_FILE")
 val temChave = !arquivoChave.isNullOrBlank() && file(arquivoChave).exists()
 
-fun idAdMob(nome: String, teste: String): String =
-    System.getenv(nome)?.takeIf { it.isNotBlank() } ?: teste
+fun idAdMob(nome: String, padrao: String): String =
+    System.getenv(nome)?.takeIf { it.isNotBlank() } ?: padrao
 
 android {
     namespace = "com.gerenciadordearquivos.app"
@@ -25,25 +25,6 @@ android {
         // usa o número da execução do GitHub Actions
         versionCode = System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1
         versionName = "1.0.${System.getenv("VERSION_CODE") ?: "0"}"
-
-        // IDs do AdMob: vêm dos Secrets do GitHub. Sem eles, usa os
-        // IDs de TESTE do Google (mostram anúncios de exemplo e não
-        // geram dinheiro). Veja docs/PUBLICAR-NA-PLAY-STORE.md.
-        resValue(
-            "string",
-            "admob_app_id",
-            idAdMob("ADMOB_APP_ID", "ca-app-pub-3940256099942544~3347511713")
-        )
-        resValue(
-            "string",
-            "admob_banner_id",
-            idAdMob("ADMOB_BANNER_ID", "ca-app-pub-3940256099942544/9214589741")
-        )
-        resValue(
-            "string",
-            "admob_intersticial_id",
-            idAdMob("ADMOB_INTERSTICIAL_ID", "ca-app-pub-3940256099942544/1033173712")
-        )
     }
 
     buildFeatures {
@@ -62,7 +43,19 @@ android {
     }
 
     buildTypes {
+        // Versão de teste (debug): anúncios de TESTE do Google, para
+        // ninguém clicar por engano em anúncio de verdade
+        debug {
+            resValue("string", "admob_app_id", "ca-app-pub-3940256099942544~3347511713")
+            resValue("string", "admob_banner_id", "ca-app-pub-3940256099942544/9214589741")
+            resValue("string", "admob_intersticial_id", "ca-app-pub-3940256099942544/1033173712")
+        }
+
+        // Versão da Play Store: anúncios de verdade da conta AdMob
         release {
+            resValue("string", "admob_app_id", idAdMob("ADMOB_APP_ID", "ca-app-pub-9393930095097786~3410674038"))
+            resValue("string", "admob_banner_id", idAdMob("ADMOB_BANNER_ID", "ca-app-pub-9393930095097786/8494645609"))
+            resValue("string", "admob_intersticial_id", idAdMob("ADMOB_INTERSTICIAL_ID", "ca-app-pub-9393930095097786/8223182860"))
             isMinifyEnabled = false
             if (temChave) {
                 signingConfig = signingConfigs.getByName("release")
