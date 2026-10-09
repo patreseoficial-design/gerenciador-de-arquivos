@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Documento (excel): folha com canto dobrado e faixa colorida -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#1E8E3E"
+        android:pathData="M12,4H29L38,13V41C38,42.66 36.66,44 35,44H12C10.34,44 9,42.66 9,41V7C9,5.34 10.34,4 12,4Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.45"
+        android:pathData="M29,4V11C29,12.1 29.9,13 31,13H38Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M14,21H18.2L23.5,28.2L28.8,21H33L25.7,29.5L33,38H28.8L23.5,30.8L18.2,38H14L21.3,29.5Z"/>
+</vector>

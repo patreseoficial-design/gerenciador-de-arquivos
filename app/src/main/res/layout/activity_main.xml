@@ -557,6 +557,19 @@
 
         </LinearLayout>
 
+        <!-- BARRA DE AÇÕES (lixeira, cartão de memória, análise) -->
+        <LinearLayout
+            android:id="@+id/barraAcoes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:background="#FFFFFF"
+            android:visibility="gone"/>
+
         <!-- LISTA NORMAL -->
         <ListView
             android:id="@+id/fileList"

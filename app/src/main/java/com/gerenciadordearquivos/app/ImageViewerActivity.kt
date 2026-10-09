@@ -80,7 +80,7 @@ class ImageViewerActivity : Activity() {
          * paisagem = celular de lado
          */
         requestedOrientation =
-            ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+            ActivityInfo.SCREEN_ORIENTATION_FULL_USER
 
         /*
          * Evita que a tela desligue enquanto
@@ -211,11 +211,11 @@ class ImageViewerActivity : Activity() {
         }
 
         /*
-         * Garante novamente que o aparelho
-         * possa girar livremente.
+         * Gira junto com o celular, como na galeria:
+         * respeita a "rotação automática" do sistema.
          */
         requestedOrientation =
-            ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+            ActivityInfo.SCREEN_ORIENTATION_FULL_USER
 
         /*
          * Esconde só a barra de status. A barra de navegação
@@ -902,6 +902,37 @@ class ImageViewerActivity : Activity() {
      * =========================================================
      */
 
+    @android.annotation.TargetApi(28)
+    private fun decodificarComImageDecoder(
+        arquivo: File,
+        amostra: Int
+    ): Bitmap? {
+
+        return try {
+
+            android.graphics.ImageDecoder.decodeBitmap(
+                android.graphics.ImageDecoder.createSource(arquivo)
+            ) { decoder, _, _ ->
+
+                decoder.setTargetSampleSize(amostra)
+
+                // Software: permite o mipmap (foto lisa ao reduzir)
+                decoder.allocator =
+                    android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE
+            }
+
+        } catch (
+            _: Exception
+        ) {
+            null
+        } catch (
+            _: OutOfMemoryError
+        ) {
+            null
+        }
+    }
+
+
     private fun carregarImagem() {
 
         carregandoImagem = true
@@ -982,11 +1013,24 @@ class ImageViewerActivity : Activity() {
                 options.inPreferredConfig =
                     Bitmap.Config.ARGB_8888
 
+                // No Android 9+ usa o mesmo decodificador da galeria:
+                // foto na posição certa (EXIF), cores fiéis e HEIC
                 val bitmap =
-                    BitmapFactory.decodeFile(
-                        arquivoAtual.absolutePath,
-                        options
-                    )
+                    (if (
+                        android.os.Build.VERSION.SDK_INT >=
+                        android.os.Build.VERSION_CODES.P
+                    ) {
+                        decodificarComImageDecoder(
+                            arquivoAtual,
+                            sample
+                        )
+                    } else {
+                        null
+                    })
+                        ?: BitmapFactory.decodeFile(
+                            arquivoAtual.absolutePath,
+                            options
+                        )
 
                 if (bitmap == null) {
 
@@ -2624,11 +2668,21 @@ class ImageViewerActivity : Activity() {
                     "Mover"
                 ) { _, _ ->
 
+                    val origem =
+                        arquivoAtual
+
                     if (
-                        arquivoAtual.renameTo(
+                        Armazenamento.mover(
+                            origem,
                             destino
                         )
                     ) {
+
+                        Armazenamento.registrarNaLixeira(
+                            this,
+                            destino,
+                            origem
+                        )
 
                         Toast.makeText(
                             this,

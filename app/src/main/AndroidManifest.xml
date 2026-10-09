@@ -10,6 +10,10 @@
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES" />
 
+    <!-- Permite pedir a desinstalação de aplicativos -->
+    <uses-permission
+        android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
@@ -27,7 +31,7 @@
         <!-- VISUALIZADOR DE IMAGENS -->
         <activity
             android:name=".ImageViewerActivity"
-            android:screenOrientation="portrait"
+            android:screenOrientation="fullUser"
             android:exported="false" />
 
         <!-- VISUALIZADOR / EXTRATOR DE ZIP -->
@@ -39,7 +43,7 @@
         <!-- VISUALIZADOR DE VÍDEOS -->
         <activity
             android:name=".VideoViewerActivity"
-            android:screenOrientation="landscape"
+            android:screenOrientation="fullUser"
             android:exported="false" />
 
         <!-- REPRODUTOR INTERNO DE ÁUDIO -->

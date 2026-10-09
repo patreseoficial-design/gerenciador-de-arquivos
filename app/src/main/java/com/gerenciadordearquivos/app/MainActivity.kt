@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fileList: ListView
     private lateinit var mediaGrid: GridView
     private lateinit var appTabs: LinearLayout
+    private lateinit var barraAcoes: LinearLayout
     private lateinit var tabAppsNativos: TextView
     private lateinit var tabAppsBaixados: TextView
 
@@ -169,6 +170,22 @@ class MainActivity : AppCompatActivity() {
         verificarPermissao()
     }
 
+    override fun onResume() {
+
+        super.onResume()
+
+        atualizarCartaoNaHome()
+
+        // Volta da tela de desinstalar: atualiza a lista
+        if (
+            ::fileScreen.isInitialized &&
+            fileScreen.visibility == View.VISIBLE &&
+            fileScreenTitle.text.toString() == "Aplicativos"
+        ) {
+            abrirAplicativos()
+        }
+    }
+
     private fun calcularTamanhoCache(): Int {
 
         val memoria =
@@ -202,6 +219,9 @@ class MainActivity : AppCompatActivity() {
 
         appTabs =
             findViewById(R.id.appTabs)
+
+        barraAcoes =
+            findViewById(R.id.barraAcoes)
 
         tabAppsNativos =
             findViewById(R.id.tabAppsNativos)
@@ -295,6 +315,13 @@ class MainActivity : AppCompatActivity() {
             pastaDeMidiaAtual = null
 
             abrirLixeira()
+        }
+
+        findViewById<View>(
+            R.id.categoryMemoryCard
+        ).setOnClickListener {
+
+            abrirCartao()
         }
 
         findViewById<View>(
@@ -400,6 +427,9 @@ class MainActivity : AppCompatActivity() {
         appTabs.visibility =
             View.GONE
 
+        barraAcoes.visibility =
+            View.GONE
+
         fileScreenTitle.text =
             titulo
 
@@ -493,7 +523,7 @@ class MainActivity : AppCompatActivity() {
 
                 fileList.setOnItemClickListener {
                         _,
-                        _,
+                        view,
                         position,
                         _ ->
 
@@ -508,6 +538,15 @@ class MainActivity : AppCompatActivity() {
                         arquivos[position]
 
                     if (
+                        Armazenamento.estaNaLixeira(arquivo)
+                    ) {
+
+                        mostrarMenuLixeira(
+                            arquivo,
+                            view
+                        )
+
+                    } else if (
                         arquivo.isDirectory
                     ) {
 
@@ -522,6 +561,37 @@ class MainActivity : AppCompatActivity() {
                             arquivo
                         )
                     }
+                }
+
+                fileList.setOnItemLongClickListener {
+                        _,
+                        view,
+                        position,
+                        _ ->
+
+                    if (
+                        position < 0 ||
+                        position >= arquivos.size
+                    ) {
+                        return@setOnItemLongClickListener false
+                    }
+
+                    val arquivo =
+                        arquivos[position]
+
+                    when {
+
+                        Armazenamento.estaNaLixeira(arquivo) ->
+                            mostrarMenuLixeira(arquivo, view)
+
+                        arquivo.isDirectory ->
+                            mostrarMenuPasta(arquivo, view)
+
+                        else ->
+                            mostrarMenuMidia(arquivo, view)
+                    }
+
+                    true
                 }
             }
         }
@@ -588,6 +658,9 @@ class MainActivity : AppCompatActivity() {
         appTabs.visibility =
             View.GONE
 
+        barraAcoes.visibility =
+            View.GONE
+
         fileScreenTitle.text =
             titulo
 
@@ -621,6 +694,9 @@ class MainActivity : AppCompatActivity() {
             View.VISIBLE
 
         appTabs.visibility =
+            View.GONE
+
+        barraAcoes.visibility =
             View.GONE
 
         fileScreenTitle.text =
@@ -1119,6 +1195,9 @@ class MainActivity : AppCompatActivity() {
         appTabs.visibility =
             View.GONE
 
+        barraAcoes.visibility =
+            View.GONE
+
         fileScreenTitle.text =
             titulo
 
@@ -1232,6 +1311,30 @@ class MainActivity : AppCompatActivity() {
                         )
                     }
                 }
+
+                fileList.setOnItemLongClickListener {
+                        _,
+                        view,
+                        position,
+                        _ ->
+
+                    if (
+                        position >= 0 &&
+                        position < resultado.size
+                    ) {
+
+                        mostrarMenuMidia(
+                            resultado[position],
+                            view
+                        )
+
+                        true
+
+                    } else {
+
+                        false
+                    }
+                }
             }
         }
     }
@@ -1252,6 +1355,9 @@ class MainActivity : AppCompatActivity() {
             View.VISIBLE
 
         appTabs.visibility =
+            View.GONE
+
+        barraAcoes.visibility =
             View.GONE
 
         fileScreenTitle.text =
@@ -1529,6 +1635,39 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Apps que vêm com o celular não podem ser desinstalados
+        if (!ehAplicativoNativo(aplicativo.info)) {
+
+            adicionarOpcaoMenu(
+                menu,
+                "🗑",
+                "Desinstalar"
+            ) {
+
+                try {
+
+                    startActivity(
+                        Intent(
+                            Intent.ACTION_DELETE,
+                            Uri.parse(
+                                "package:${aplicativo.info.packageName}"
+                            )
+                        )
+                    )
+
+                } catch (
+                    _: Exception
+                ) {
+
+                    Toast.makeText(
+                        this,
+                        "Não foi possível desinstalar",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+
         mostrarPopup(
             menu,
             ancora
@@ -1542,10 +1681,7 @@ class MainActivity : AppCompatActivity() {
     private fun abrirLixeira() {
 
         val pasta =
-            File(
-                rootPath,
-                ".GerenciadorArquivos/.Lixeira"
-            )
+            Armazenamento.pastaLixeira
 
         if (!pasta.exists()) {
             pasta.mkdirs()
@@ -1555,7 +1691,755 @@ class MainActivity : AppCompatActivity() {
             pasta,
             "Lixeira"
         )
+
+        mostrarBarraLixeira()
     }
+
+    private fun mostrarBarraLixeira() {
+
+        barraAcoes.removeAllViews()
+
+        barraAcoes.visibility =
+            View.VISIBLE
+
+        barraAcoes.addView(
+            criarTextoAjuda(
+                "Toque em um item para restaurar ou excluir de vez."
+            )
+        )
+
+        val botoes =
+            LinearLayout(this)
+
+        botoes.orientation =
+            LinearLayout.HORIZONTAL
+
+        botoes.addView(
+            criarBotaoAcao(
+                "Restaurar tudo",
+                R.drawable.ic_acao_restaurar,
+                Color.rgb(30, 136, 229)
+            ) {
+                confirmarRestaurarTudo()
+            },
+            LinearLayout.LayoutParams(0, dp(46), 1f).apply {
+                marginEnd = dp(6)
+            }
+        )
+
+        botoes.addView(
+            criarBotaoAcao(
+                "Esvaziar lixeira",
+                R.drawable.ic_acao_lixeira,
+                Color.rgb(229, 57, 53)
+            ) {
+                confirmarEsvaziarLixeira()
+            },
+            LinearLayout.LayoutParams(0, dp(46), 1f).apply {
+                marginStart = dp(6)
+            }
+        )
+
+        barraAcoes.addView(
+            botoes,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(8)
+            }
+        )
+    }
+
+    private fun confirmarEsvaziarLixeira() {
+
+        val itens =
+            Armazenamento.itensDaLixeira()
+
+        if (itens.isEmpty()) {
+
+            Toast.makeText(
+                this,
+                "A lixeira já está vazia",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Esvaziar lixeira?")
+            .setMessage(
+                "${itens.size} item(ns) serão apagados para sempre. " +
+                    "Isso não pode ser desfeito."
+            )
+            .setNegativeButton("Cancelar", null)
+            .setPositiveButton("Esvaziar") { _, _ ->
+
+                thread {
+
+                    val apagados =
+                        Armazenamento.esvaziarLixeira(this)
+
+                    runOnUiThread {
+
+                        Toast.makeText(
+                            this,
+                            "$apagados item(ns) apagados",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        abrirLixeira()
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun confirmarRestaurarTudo() {
+
+        val itens =
+            Armazenamento.itensDaLixeira()
+
+        if (itens.isEmpty()) {
+
+            Toast.makeText(
+                this,
+                "A lixeira está vazia",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Restaurar tudo?")
+            .setMessage(
+                "${itens.size} item(ns) voltarão para as pastas de origem."
+            )
+            .setNegativeButton("Cancelar", null)
+            .setPositiveButton("Restaurar") { _, _ ->
+
+                thread {
+
+                    val restaurados =
+                        itens.count {
+                            Armazenamento.restaurar(this, it) != null
+                        }
+
+                    runOnUiThread {
+
+                        Toast.makeText(
+                            this,
+                            "$restaurados item(ns) restaurados",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        abrirLixeira()
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun mostrarMenuLixeira(
+        arquivo: File,
+        ancora: View
+    ) {
+
+        val menu =
+            LinearLayout(this)
+
+        MenuEscuro.prepararMenu(
+            menu
+        )
+
+        adicionarOpcaoMenu(
+            menu,
+            "↺",
+            "Restaurar"
+        ) {
+
+            val destino =
+                Armazenamento.restaurar(
+                    this,
+                    arquivo
+                )
+
+            Toast.makeText(
+                this,
+                if (destino != null) {
+                    "Restaurado em ${destino.parentFile?.name ?: ""}"
+                } else {
+                    "Não foi possível restaurar"
+                },
+                Toast.LENGTH_SHORT
+            ).show()
+
+            abrirLixeira()
+        }
+
+        adicionarOpcaoMenu(
+            menu,
+            "ⓘ",
+            "Informações"
+        ) {
+
+            mostrarInformacoes(
+                arquivo
+            )
+        }
+
+        adicionarOpcaoMenu(
+            menu,
+            "🗑",
+            "Excluir definitivamente"
+        ) {
+
+            AlertDialog.Builder(this)
+                .setTitle("Excluir definitivamente?")
+                .setMessage(
+                    "\"${arquivo.name}\" será apagado para sempre."
+                )
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Excluir") { _, _ ->
+
+                    if (
+                        Armazenamento.excluirDefinitivamente(
+                            this,
+                            arquivo
+                        )
+                    ) {
+
+                        Toast.makeText(
+                            this,
+                            "Excluído",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                    } else {
+
+                        Toast.makeText(
+                            this,
+                            "Não foi possível excluir",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    abrirLixeira()
+                }
+                .show()
+        }
+
+        mostrarPopup(
+            menu,
+            ancora
+        )
+    }
+
+    // ============================================================
+    // CARTÃO DE MEMÓRIA
+    // ============================================================
+
+    // O cartão só aparece na tela inicial se estiver no celular
+    private fun atualizarCartaoNaHome() {
+
+        val botao =
+            findViewById<View>(
+                R.id.categoryMemoryCard
+            ) ?: return
+
+        botao.visibility =
+            if (Armazenamento.raizCartao(this) != null) {
+                View.VISIBLE
+            } else {
+                View.INVISIBLE
+            }
+    }
+
+    private fun abrirCartao() {
+
+        val cartao =
+            Armazenamento.raizCartao(this)
+
+        if (cartao == null) {
+
+            Toast.makeText(
+                this,
+                "Nenhum cartão de memória encontrado",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            atualizarCartaoNaHome()
+
+            return
+        }
+
+        telaDePastasDeMidia = false
+        pastaDeMidiaAtual = null
+
+        abrirPasta(
+            cartao,
+            "Cartão de memória"
+        )
+
+        mostrarBarraCartao(
+            cartao
+        )
+    }
+
+    private fun mostrarBarraCartao(
+        cartao: File
+    ) {
+
+        barraAcoes.removeAllViews()
+
+        barraAcoes.visibility =
+            View.VISIBLE
+
+        val espaco =
+            Armazenamento.espaco(cartao)
+
+        val titulo =
+            TextView(this)
+
+        titulo.textSize =
+            16f
+
+        titulo.setTextColor(
+            COR_TEXTO_PRINCIPAL
+        )
+
+        titulo.typeface =
+            android.graphics.Typeface.DEFAULT_BOLD
+
+        titulo.text =
+            if (espaco != null) {
+                "${formatarBytes(espaco.usado)} usados de " +
+                    "${formatarBytes(espaco.total)} • " +
+                    "${formatarBytes(espaco.livre)} livres"
+            } else {
+                "Espaço não disponível"
+            }
+
+        barraAcoes.addView(titulo)
+
+        val barra =
+            ProgressBar(
+                this,
+                null,
+                android.R.attr.progressBarStyleHorizontal
+            )
+
+        barra.max = 100
+
+        barra.progress =
+            if (espaco != null && espaco.total > 0) {
+                (espaco.usado * 100 / espaco.total).toInt()
+            } else {
+                0
+            }
+
+        barraAcoes.addView(
+            barra,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(8)
+            ).apply {
+                topMargin = dp(6)
+            }
+        )
+
+        // Quanto cada tipo ocupa no cartão (calculado em segundo plano)
+        val detalhes =
+            criarTextoAjuda(
+                "Calculando o que tem no cartão..."
+            )
+
+        barraAcoes.addView(detalhes)
+
+        thread {
+
+            val porTipo =
+                tamanhosPorCategoria(cartao)
+
+            runOnUiThread {
+
+                detalhes.text =
+                    porTipo
+                        .filter { it.value > 0 }
+                        .entries
+                        .joinToString("   •   ") {
+                            "${it.key}: ${formatarBytes(it.value)}"
+                        }
+                        .ifEmpty { "Cartão vazio" }
+            }
+        }
+
+        barraAcoes.addView(
+            criarBotaoAcao(
+                "Formatar cartão",
+                R.drawable.ic_acao_lixeira,
+                Color.rgb(229, 57, 53)
+            ) {
+                mostrarOpcoesFormatar(cartao)
+            },
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(46)
+            ).apply {
+                topMargin = dp(8)
+            }
+        )
+
+        barraAcoes.addView(
+            criarTextoAjuda(
+                "Segure um arquivo ou pasta para mover entre o cartão e o celular."
+            )
+        )
+    }
+
+    /*
+     * Formatar de verdade (escolher FAT32/exFAT) só o Android
+     * pode fazer. Por isso:
+     *  - "Formatar (apagar tudo)": o app apaga todos os arquivos
+     *  - "Formatar FAT32 pelo sistema": abre a tela do Android.
+     *    O Android usa FAT32 em cartões de até 32 GB e exFAT nos
+     *    maiores.
+     */
+    private fun mostrarOpcoesFormatar(
+        cartao: File
+    ) {
+
+        AlertDialog.Builder(this)
+            .setTitle("Formatar cartão de memória")
+            .setItems(
+                arrayOf(
+                    "Formatar normal (apagar tudo do cartão)",
+                    "Formatar FAT32 pelo sistema do Android"
+                )
+            ) { _, qual ->
+
+                when (qual) {
+
+                    0 ->
+                        confirmarApagarCartao(cartao)
+
+                    1 ->
+                        abrirConfiguracoesDoCartao()
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun confirmarApagarCartao(
+        cartao: File
+    ) {
+
+        AlertDialog.Builder(this)
+            .setTitle("Apagar TUDO do cartão?")
+            .setMessage(
+                "Todas as fotos, vídeos, músicas e arquivos do cartão " +
+                    "serão apagados para sempre. Isso não pode ser desfeito."
+            )
+            .setNegativeButton("Cancelar", null)
+            .setPositiveButton("Continuar") { _, _ ->
+
+                AlertDialog.Builder(this)
+                    .setTitle("Tem certeza?")
+                    .setMessage(
+                        "Última confirmação: apagar tudo do cartão de memória."
+                    )
+                    .setNegativeButton("Não", null)
+                    .setPositiveButton("Sim, apagar tudo") { _, _ ->
+
+                        Toast.makeText(
+                            this,
+                            "Formatando o cartão...",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        thread {
+
+                            var falhas = 0
+
+                            cartao.listFiles()?.forEach { item ->
+
+                                // A pasta Android do cartão é do sistema
+                                if (item.name == "Android") {
+                                    return@forEach
+                                }
+
+                                if (!item.deleteRecursively()) {
+                                    falhas++
+                                }
+                            }
+
+                            runOnUiThread {
+
+                                Toast.makeText(
+                                    this,
+                                    if (falhas == 0) {
+                                        "Cartão formatado"
+                                    } else {
+                                        "Alguns itens não puderam ser apagados ($falhas)"
+                                    },
+                                    Toast.LENGTH_LONG
+                                ).show()
+
+                                abrirCartao()
+                            }
+                        }
+                    }
+                    .show()
+            }
+            .show()
+    }
+
+    private fun abrirConfiguracoesDoCartao() {
+
+        val tentativas =
+            listOf(
+                Intent(Settings.ACTION_MEMORY_CARD_SETTINGS),
+                Intent(Settings.ACTION_INTERNAL_STORAGE_SETTINGS)
+            )
+
+        for (intent in tentativas) {
+
+            try {
+
+                startActivity(intent)
+
+                Toast.makeText(
+                    this,
+                    "Escolha o cartão SD e toque em Formatar",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                return
+
+            } catch (
+                _: Exception
+            ) {
+            }
+        }
+
+        Toast.makeText(
+            this,
+            "Não foi possível abrir as configurações",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    // Opção "Mover para o cartão" / "Mover para o celular"
+    private fun adicionarOpcoesCartao(
+        menu: LinearLayout,
+        arquivo: File
+    ) {
+
+        val cartao =
+            Armazenamento.raizCartao(this) ?: return
+
+        val noCartao =
+            Armazenamento.estaNoCartao(this, arquivo)
+
+        adicionarOpcaoMenu(
+            menu,
+            "→",
+            if (noCartao) "Mover para o celular" else "Mover para o cartão"
+        ) {
+
+            val destinoPasta =
+                if (noCartao) {
+                    Armazenamento.pastaEquivalente(
+                        arquivo,
+                        cartao,
+                        rootPath
+                    )
+                } else {
+                    Armazenamento.pastaEquivalente(
+                        arquivo,
+                        rootPath,
+                        cartao
+                    )
+                }
+
+            moverEntreArmazenamentos(
+                arquivo,
+                destinoPasta,
+                if (noCartao) "celular" else "cartão"
+            )
+        }
+    }
+
+    private fun moverEntreArmazenamentos(
+        arquivo: File,
+        destinoPasta: File,
+        nomeDestino: String
+    ) {
+
+        Toast.makeText(
+            this,
+            "Movendo para o $nomeDestino...",
+            Toast.LENGTH_SHORT
+        ).show()
+
+        thread {
+
+            val ok =
+                try {
+
+                    destinoPasta.mkdirs()
+
+                    Armazenamento.mover(
+                        arquivo,
+                        Armazenamento.nomeLivre(
+                            destinoPasta,
+                            arquivo.name
+                        )
+                    )
+
+                } catch (
+                    _: Exception
+                ) {
+                    false
+                }
+
+            runOnUiThread {
+
+                Toast.makeText(
+                    this,
+                    if (ok) {
+                        "Movido para o $nomeDestino"
+                    } else {
+                        "Não foi possível mover para o $nomeDestino"
+                    },
+                    Toast.LENGTH_LONG
+                ).show()
+
+                recarregarTelaAtual()
+            }
+        }
+    }
+
+    // ============================================================
+    // BOTÕES E TEXTOS DA BARRA DE AÇÕES
+    // ============================================================
+
+    private fun criarBotaoAcao(
+        texto: String,
+        iconeRes: Int,
+        cor: Int,
+        acao: () -> Unit
+    ): View {
+
+        val botao =
+            LinearLayout(this)
+
+        botao.orientation =
+            LinearLayout.HORIZONTAL
+
+        botao.gravity =
+            Gravity.CENTER
+
+        val fundo =
+            android.graphics.drawable.GradientDrawable()
+
+        fundo.setColor(cor)
+
+        fundo.cornerRadius =
+            dp(23).toFloat()
+
+        botao.background =
+            fundo
+
+        botao.isClickable =
+            true
+
+        val icone =
+            ImageView(this)
+
+        icone.setImageResource(
+            iconeRes
+        )
+
+        icone.setColorFilter(
+            Color.WHITE
+        )
+
+        botao.addView(
+            icone,
+            LinearLayout.LayoutParams(
+                dp(20),
+                dp(20)
+            )
+        )
+
+        val nome =
+            TextView(this)
+
+        nome.text =
+            texto
+
+        nome.textSize =
+            15f
+
+        nome.setTextColor(
+            Color.WHITE
+        )
+
+        nome.typeface =
+            android.graphics.Typeface.DEFAULT_BOLD
+
+        botao.addView(
+            nome,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                marginStart = dp(8)
+            }
+        )
+
+        botao.setOnClickListener {
+            acao()
+        }
+
+        return botao
+    }
+
+    private fun criarTextoAjuda(
+        texto: String
+    ): TextView {
+
+        val ajuda =
+            TextView(this)
+
+        ajuda.text =
+            texto
+
+        ajuda.textSize =
+            14f
+
+        ajuda.setTextColor(
+            COR_TEXTO_SECUNDARIO
+        )
+
+        ajuda.setPadding(
+            0,
+            dp(6),
+            0,
+            0
+        )
+
+        return ajuda
+    }
+
+    private fun dp(
+        valor: Int
+    ): Int =
+        (valor * resources.displayMetrics.density).toInt()
 
     // ============================================================
     // PESQUISA
@@ -1575,6 +2459,9 @@ class MainActivity : AppCompatActivity() {
             View.VISIBLE
 
         appTabs.visibility =
+            View.GONE
+
+        barraAcoes.visibility =
             View.GONE
 
         fileScreenTitle.text =
@@ -2228,6 +3115,10 @@ class MainActivity : AppCompatActivity() {
     // ANÁLISE
     // ============================================================
 
+    /*
+     * Percorre o armazenamento uma vez, soma o espaço de cada
+     * tipo de arquivo e monta sugestões do que pode ser apagado.
+     */
     private fun analisarArmazenamento() {
 
         homeScroll.visibility =
@@ -2239,11 +3130,14 @@ class MainActivity : AppCompatActivity() {
         appTabs.visibility =
             View.GONE
 
+        barraAcoes.visibility =
+            View.GONE
+
         fileScreenTitle.text =
             "Análise do armazenamento"
 
         currentPath.text =
-            "Calculando..."
+            "Analisando... isso pode levar alguns segundos"
 
         mediaGrid.visibility =
             View.GONE
@@ -2251,56 +3145,785 @@ class MainActivity : AppCompatActivity() {
         fileList.visibility =
             View.VISIBLE
 
+        fileList.adapter =
+            null
+
+        fileList.setOnItemClickListener(null)
+
+        fileList.setOnItemLongClickListener(null)
+
         thread {
 
-            val categorias =
-                LinkedHashMap<String, Long>()
-
-            categorias["Imagens"] =
-                tamanhoPorExtensoes(
-                    rootPath,
-                    TIPO_IMAGEM
-                )
-
-            categorias["Vídeos"] =
-                tamanhoPorExtensoes(
-                    rootPath,
-                    TIPO_VIDEO
-                )
-
-            categorias["Áudios"] =
-                tamanhoPorExtensoes(
-                    rootPath,
-                    TIPO_AUDIO
-                )
-
-            categorias["Documentos"] =
-                tamanhoPorExtensoes(
-                    rootPath,
-                    TIPO_DOCUMENTO
-                )
+            val analise =
+                try {
+                    fazerAnalise(rootPath)
+                } catch (
+                    _: Exception
+                ) {
+                    null
+                }
 
             runOnUiThread {
 
-                val linhas =
-                    categorias.map {
-                        "${it.key}: ${formatarBytes(it.value)}"
+                if (
+                    fileScreenTitle.text.toString() !=
+                    "Análise do armazenamento"
+                ) {
+                    return@runOnUiThread
+                }
+
+                if (analise == null) {
+
+                    currentPath.text =
+                        "Não foi possível analisar o armazenamento"
+
+                    return@runOnUiThread
+                }
+
+                mostrarAnalise(analise)
+            }
+        }
+    }
+
+    private class Sugestao(
+        val titulo: String,
+        val descricao: String,
+        val arquivos: List<File>,
+        val tamanho: Long,
+        val ehLixeira: Boolean = false
+    )
+
+    private class ResultadoAnalise(
+        val porCategoria: LinkedHashMap<String, Long>,
+        val sugestoes: List<Sugestao>
+    )
+
+    private fun categoriaDoArquivo(
+        extensao: String
+    ): String =
+        when (extensao) {
+            in TIPO_IMAGEM -> "Imagens"
+            in TIPO_VIDEO -> "Vídeos"
+            in TIPO_AUDIO -> "Áudios"
+            in TIPO_DOCUMENTO -> "Documentos"
+            "apk", "apks", "xapk" -> "Instaladores (APK)"
+            else -> "Outros"
+        }
+
+    private fun novasCategorias(): LinkedHashMap<String, Long> =
+        linkedMapOf(
+            "Imagens" to 0L,
+            "Vídeos" to 0L,
+            "Áudios" to 0L,
+            "Documentos" to 0L,
+            "Instaladores (APK)" to 0L,
+            "Outros" to 0L
+        )
+
+    // Usado também pelo cartão de memória
+    private fun tamanhosPorCategoria(
+        raiz: File
+    ): LinkedHashMap<String, Long> {
+
+        val categorias =
+            novasCategorias()
+
+        percorrerArquivos(raiz) { arquivo ->
+
+            val categoria =
+                categoriaDoArquivo(
+                    arquivo.extension.lowercase(Locale.getDefault())
+                )
+
+            categorias[categoria] =
+                (categorias[categoria] ?: 0L) + arquivo.length()
+        }
+
+        return categorias
+    }
+
+    // Visita todos os arquivos, sem entrar em pastas do sistema
+    private fun percorrerArquivos(
+        raiz: File,
+        visitar: (File) -> Unit
+    ) {
+
+        val pilha =
+            ArrayDeque<File>()
+
+        pilha.add(raiz)
+
+        while (pilha.isNotEmpty()) {
+
+            val pasta =
+                pilha.removeLast()
+
+            val itens =
+                try {
+                    pasta.listFiles()
+                } catch (
+                    _: Exception
+                ) {
+                    null
+                } ?: continue
+
+            for (item in itens) {
+
+                if (item.isDirectory) {
+
+                    // Android/data e Android/obb são de outros apps
+                    if (
+                        item.name == "Android" &&
+                        pasta.absolutePath == raiz.absolutePath
+                    ) {
+                        continue
                     }
 
-                currentPath.text =
-                    "Espaço ocupado por categoria"
+                    // A lixeira é contada à parte
+                    if (
+                        item.absolutePath ==
+                        Armazenamento.pastaLixeira.absolutePath
+                    ) {
+                        continue
+                    }
 
-                fileList.adapter =
-                    ArrayAdapter(
-                        this,
-                        android.R.layout.simple_list_item_1,
-                        linhas
+                    pilha.add(item)
+
+                } else {
+
+                    try {
+                        visitar(item)
+                    } catch (
+                        _: Exception
+                    ) {
+                    }
+                }
+            }
+        }
+    }
+
+    private fun fazerAnalise(
+        raiz: File
+    ): ResultadoAnalise {
+
+        val categorias =
+            novasCategorias()
+
+        val grandes =
+            ArrayList<File>()
+
+        val apks =
+            ArrayList<File>()
+
+        val downloadsAntigos =
+            ArrayList<File>()
+
+        val miniaturas =
+            ArrayList<File>()
+
+        val vazios =
+            ArrayList<File>()
+
+        val downloads =
+            Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS
+            ).absolutePath + File.separator
+
+        val limiteAntigo =
+            System.currentTimeMillis() -
+                90L * 24 * 60 * 60 * 1000
+
+        val limiteGrande =
+            100L * 1024 * 1024
+
+        percorrerArquivos(raiz) { arquivo ->
+
+            val tamanho =
+                arquivo.length()
+
+            val extensao =
+                arquivo.extension.lowercase(Locale.getDefault())
+
+            val categoria =
+                categoriaDoArquivo(extensao)
+
+            categorias[categoria] =
+                (categorias[categoria] ?: 0L) + tamanho
+
+            val caminho =
+                arquivo.absolutePath
+
+            when {
+
+                caminho.contains("/.thumbnails/") ->
+                    miniaturas.add(arquivo)
+
+                categoria == "Instaladores (APK)" ->
+                    apks.add(arquivo)
+
+                tamanho >= limiteGrande ->
+                    grandes.add(arquivo)
+
+                caminho.startsWith(downloads) &&
+                    arquivo.lastModified() < limiteAntigo ->
+                    downloadsAntigos.add(arquivo)
+
+                tamanho == 0L ->
+                    vazios.add(arquivo)
+            }
+        }
+
+        val lixeira =
+            Armazenamento.itensDaLixeira()
+
+        fun soma(lista: List<File>): Long =
+            lista.sumOf {
+                if (it.isDirectory) calcularTamanhoPasta(it) else it.length()
+            }
+
+        val sugestoes =
+            ArrayList<Sugestao>()
+
+        if (lixeira.isNotEmpty()) {
+            sugestoes.add(
+                Sugestao(
+                    "Esvaziar a lixeira",
+                    "${lixeira.size} item(ns) que você já apagou",
+                    lixeira,
+                    soma(lixeira),
+                    ehLixeira = true
+                )
+            )
+        }
+
+        if (apks.isNotEmpty()) {
+            sugestoes.add(
+                Sugestao(
+                    "Instaladores (APK)",
+                    "${apks.size} arquivo(s) de instalação que não são mais necessários",
+                    apks.sortedByDescending { it.length() },
+                    soma(apks)
+                )
+            )
+        }
+
+        if (grandes.isNotEmpty()) {
+            sugestoes.add(
+                Sugestao(
+                    "Arquivos grandes",
+                    "${grandes.size} arquivo(s) com mais de 100 MB",
+                    grandes.sortedByDescending { it.length() },
+                    soma(grandes)
+                )
+            )
+        }
+
+        if (downloadsAntigos.isNotEmpty()) {
+            sugestoes.add(
+                Sugestao(
+                    "Downloads antigos",
+                    "${downloadsAntigos.size} download(s) com mais de 3 meses",
+                    downloadsAntigos.sortedByDescending { it.length() },
+                    soma(downloadsAntigos)
+                )
+            )
+        }
+
+        if (miniaturas.isNotEmpty()) {
+            sugestoes.add(
+                Sugestao(
+                    "Miniaturas em cache",
+                    "${miniaturas.size} miniatura(s) que o celular recria quando precisar",
+                    miniaturas.sortedByDescending { it.length() },
+                    soma(miniaturas)
+                )
+            )
+        }
+
+        if (vazios.isNotEmpty()) {
+            sugestoes.add(
+                Sugestao(
+                    "Arquivos vazios",
+                    "${vazios.size} arquivo(s) sem conteúdo (0 bytes)",
+                    vazios,
+                    0L
+                )
+            )
+        }
+
+        return ResultadoAnalise(
+            categorias,
+            sugestoes.sortedByDescending { it.tamanho }
+        )
+    }
+
+    private fun mostrarAnalise(
+        analise: ResultadoAnalise
+    ) {
+
+        val espaco =
+            Armazenamento.espaco(rootPath)
+
+        currentPath.text =
+            if (espaco != null) {
+                "${formatarBytes(espaco.usado)} usados • " +
+                    "${formatarBytes(espaco.livre)} livres"
+            } else {
+                "Análise concluída"
+            }
+
+        val itens =
+            ArrayList<ItemAnalise>()
+
+        itens.add(
+            ItemAnalise.Cabecalho(
+                "Espaço por categoria"
+            )
+        )
+
+        val totalCategorias =
+            analise.porCategoria.values.sum().coerceAtLeast(1L)
+
+        analise.porCategoria
+            .entries
+            .sortedByDescending { it.value }
+            .forEach {
+                itens.add(
+                    ItemAnalise.Categoria(
+                        it.key,
+                        it.value,
+                        (it.value * 100 / totalCategorias).toInt()
                     )
-
-                fileList.setOnItemClickListener(
-                    null
                 )
             }
+
+        itens.add(
+            ItemAnalise.Cabecalho(
+                "Sugestões para liberar espaço"
+            )
+        )
+
+        if (analise.sugestoes.isEmpty()) {
+
+            itens.add(
+                ItemAnalise.Cabecalho(
+                    "Tudo certo! Nada para limpar agora."
+                )
+            )
+        }
+
+        analise.sugestoes.forEach {
+            itens.add(
+                ItemAnalise.ItemSugestao(it)
+            )
+        }
+
+        fileList.adapter =
+            AnaliseAdapter(itens)
+
+        fileList.setOnItemClickListener {
+                _,
+                _,
+                position,
+                _ ->
+
+            val item =
+                itens.getOrNull(position)
+
+            if (item is ItemAnalise.ItemSugestao) {
+
+                if (item.sugestao.ehLixeira) {
+                    abrirLixeira()
+                } else {
+                    abrirSugestao(item.sugestao)
+                }
+            }
+        }
+
+        fileList.setOnItemLongClickListener(null)
+    }
+
+    // Lista os arquivos da sugestão com um botão para limpar tudo
+    private fun abrirSugestao(
+        sugestao: Sugestao
+    ) {
+
+        fileScreenTitle.text =
+            sugestao.titulo
+
+        currentPath.text =
+            "${sugestao.arquivos.size} arquivo(s) • " +
+                formatarBytes(sugestao.tamanho)
+
+        val arquivos =
+            sugestao.arquivos.filter { it.exists() }
+
+        fileList.adapter =
+            FileListAdapter(arquivos)
+
+        fileList.setOnItemClickListener {
+                _,
+                _,
+                position,
+                _ ->
+
+            arquivos.getOrNull(position)?.let {
+                abrirArquivo(it)
+            }
+        }
+
+        fileList.setOnItemLongClickListener {
+                _,
+                view,
+                position,
+                _ ->
+
+            arquivos.getOrNull(position)?.let {
+                mostrarMenuMidia(it, view)
+            }
+
+            true
+        }
+
+        barraAcoes.removeAllViews()
+
+        barraAcoes.visibility =
+            View.VISIBLE
+
+        barraAcoes.addView(
+            criarTextoAjuda(
+                sugestao.descricao +
+                    ". Os arquivos vão para a lixeira e podem ser restaurados."
+            )
+        )
+
+        barraAcoes.addView(
+            criarBotaoAcao(
+                "Mover tudo para a lixeira",
+                R.drawable.ic_acao_lixeira,
+                Color.rgb(229, 57, 53)
+            ) {
+
+                AlertDialog.Builder(this)
+                    .setTitle("Limpar ${sugestao.titulo.lowercase()}?")
+                    .setMessage(
+                        "${arquivos.size} arquivo(s) vão para a lixeira."
+                    )
+                    .setNegativeButton("Cancelar", null)
+                    .setPositiveButton("Limpar") { _, _ ->
+
+                        thread {
+
+                            var movidos = 0
+
+                            arquivos.forEach { arquivo ->
+
+                                val destino =
+                                    Armazenamento.nomeLivre(
+                                        Armazenamento.pastaLixeira,
+                                        arquivo.name
+                                    )
+
+                                if (Armazenamento.mover(arquivo, destino)) {
+
+                                    Armazenamento.registrarNaLixeira(
+                                        this,
+                                        destino,
+                                        arquivo
+                                    )
+
+                                    movidos++
+                                }
+                            }
+
+                            runOnUiThread {
+
+                                Toast.makeText(
+                                    this,
+                                    "$movidos arquivo(s) movidos para a lixeira",
+                                    Toast.LENGTH_LONG
+                                ).show()
+
+                                analisarArmazenamento()
+                            }
+                        }
+                    }
+                    .show()
+            },
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(46)
+            ).apply {
+                topMargin = dp(8)
+            }
+        )
+    }
+
+    private sealed class ItemAnalise {
+
+        class Cabecalho(
+            val texto: String
+        ) : ItemAnalise()
+
+        class Categoria(
+            val nome: String,
+            val tamanho: Long,
+            val percentual: Int
+        ) : ItemAnalise()
+
+        class ItemSugestao(
+            val sugestao: Sugestao
+        ) : ItemAnalise()
+    }
+
+    private inner class AnaliseAdapter(
+        private val itens: List<ItemAnalise>
+    ) : BaseAdapter() {
+
+        override fun getCount(): Int =
+            itens.size
+
+        override fun getItem(
+            position: Int
+        ): Any =
+            itens[position]
+
+        override fun getItemId(
+            position: Int
+        ): Long =
+            position.toLong()
+
+        override fun isEnabled(
+            position: Int
+        ): Boolean =
+            itens[position] is ItemAnalise.ItemSugestao
+
+        override fun getView(
+            position: Int,
+            convertView: View?,
+            parent: ViewGroup
+        ): View {
+
+            val item =
+                itens[position]
+
+            val linha =
+                LinearLayout(this@MainActivity)
+
+            linha.orientation =
+                LinearLayout.VERTICAL
+
+            linha.setPadding(
+                dp(16),
+                dp(12),
+                dp(16),
+                dp(12)
+            )
+
+            when (item) {
+
+                is ItemAnalise.Cabecalho -> {
+
+                    linha.setBackgroundColor(
+                        Color.rgb(245, 245, 245)
+                    )
+
+                    val texto =
+                        TextView(this@MainActivity)
+
+                    texto.text =
+                        item.texto
+
+                    texto.textSize =
+                        15f
+
+                    texto.typeface =
+                        android.graphics.Typeface.DEFAULT_BOLD
+
+                    texto.setTextColor(
+                        Color.rgb(21, 101, 192)
+                    )
+
+                    linha.addView(texto)
+                }
+
+                is ItemAnalise.Categoria -> {
+
+                    val topo =
+                        LinearLayout(this@MainActivity)
+
+                    topo.orientation =
+                        LinearLayout.HORIZONTAL
+
+                    val nome =
+                        TextView(this@MainActivity)
+
+                    nome.text =
+                        item.nome
+
+                    nome.textSize =
+                        17f
+
+                    nome.setTextColor(
+                        COR_TEXTO_PRINCIPAL
+                    )
+
+                    topo.addView(
+                        nome,
+                        LinearLayout.LayoutParams(
+                            0,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            1f
+                        )
+                    )
+
+                    val valor =
+                        TextView(this@MainActivity)
+
+                    valor.text =
+                        formatarBytes(item.tamanho)
+
+                    valor.textSize =
+                        16f
+
+                    valor.typeface =
+                        android.graphics.Typeface.DEFAULT_BOLD
+
+                    valor.setTextColor(
+                        COR_TEXTO_PRINCIPAL
+                    )
+
+                    topo.addView(valor)
+
+                    linha.addView(topo)
+
+                    val barra =
+                        ProgressBar(
+                            this@MainActivity,
+                            null,
+                            android.R.attr.progressBarStyleHorizontal
+                        )
+
+                    barra.max = 100
+
+                    barra.progress =
+                        item.percentual
+
+                    linha.addView(
+                        barra,
+                        LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            dp(6)
+                        ).apply {
+                            topMargin = dp(6)
+                        }
+                    )
+                }
+
+                is ItemAnalise.ItemSugestao -> {
+
+                    val topo =
+                        LinearLayout(this@MainActivity)
+
+                    topo.orientation =
+                        LinearLayout.HORIZONTAL
+
+                    topo.gravity =
+                        Gravity.CENTER_VERTICAL
+
+                    val icone =
+                        ImageView(this@MainActivity)
+
+                    icone.setImageResource(
+                        R.drawable.ic_acao_lixeira
+                    )
+
+                    icone.setColorFilter(
+                        Color.rgb(229, 57, 53)
+                    )
+
+                    topo.addView(
+                        icone,
+                        LinearLayout.LayoutParams(
+                            dp(28),
+                            dp(28)
+                        )
+                    )
+
+                    val textos =
+                        LinearLayout(this@MainActivity)
+
+                    textos.orientation =
+                        LinearLayout.VERTICAL
+
+                    val titulo =
+                        TextView(this@MainActivity)
+
+                    titulo.text =
+                        item.sugestao.titulo
+
+                    titulo.textSize =
+                        17f
+
+                    titulo.typeface =
+                        android.graphics.Typeface.DEFAULT_BOLD
+
+                    titulo.setTextColor(
+                        COR_TEXTO_PRINCIPAL
+                    )
+
+                    textos.addView(titulo)
+
+                    val descricao =
+                        TextView(this@MainActivity)
+
+                    descricao.text =
+                        item.sugestao.descricao
+
+                    descricao.textSize =
+                        14f
+
+                    descricao.setTextColor(
+                        COR_TEXTO_SECUNDARIO
+                    )
+
+                    textos.addView(descricao)
+
+                    topo.addView(
+                        textos,
+                        LinearLayout.LayoutParams(
+                            0,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            1f
+                        ).apply {
+                            marginStart = dp(14)
+                            marginEnd = dp(8)
+                        }
+                    )
+
+                    val valor =
+                        TextView(this@MainActivity)
+
+                    valor.text =
+                        formatarBytes(item.sugestao.tamanho)
+
+                    valor.textSize =
+                        16f
+
+                    valor.typeface =
+                        android.graphics.Typeface.DEFAULT_BOLD
+
+                    valor.setTextColor(
+                        Color.rgb(229, 57, 53)
+                    )
+
+                    topo.addView(valor)
+
+                    linha.addView(topo)
+                }
+            }
+
+            return linha
         }
     }
 
@@ -2386,6 +4009,9 @@ class MainActivity : AppCompatActivity() {
         appTabs.visibility =
             View.GONE
 
+        barraAcoes.visibility =
+            View.GONE
+
         homeScroll.visibility =
             View.VISIBLE
 
@@ -2420,35 +4046,53 @@ class MainActivity : AppCompatActivity() {
     // ============================================================
 
     private fun obterIconeArquivo(
-    arquivo: File
-): Int {
+        arquivo: File
+    ): Int {
 
-    if (arquivo.isDirectory) {
-        return R.drawable.ic_folder
-    }
+        if (arquivo.isDirectory) {
+            return R.drawable.ic_folder
+        }
 
-    val extensao =
-        arquivo.extension.lowercase(
-            Locale.getDefault()
-        )
+        val extensao =
+            arquivo.extension.lowercase(
+                Locale.getDefault()
+            )
 
-    return when {
+        return when (extensao) {
 
-        TIPO_IMAGEM.contains(extensao) ->
-            R.drawable.imagens
+            in TIPO_IMAGEM ->
+                R.drawable.imagens
 
-        TIPO_VIDEO.contains(extensao) ->
-            R.drawable.videos
+            in TIPO_VIDEO ->
+                R.drawable.videos
 
-        TIPO_DOCUMENTO.contains(extensao) ->
-            R.drawable.documentos
+            in TIPO_AUDIO ->
+                R.drawable.audios
 
-        extensao == "apk" ->
-            R.drawable.aplicativos
+            "apk", "apks", "xapk" ->
+                R.drawable.aplicativos
 
-        else ->
-            android.R.drawable.ic_menu_edit
-    }
+            "pdf" ->
+                R.drawable.ic_tipo_pdf
+
+            "doc", "docx", "odt", "rtf" ->
+                R.drawable.ic_tipo_word
+
+            "xls", "xlsx", "ods", "csv" ->
+                R.drawable.ic_tipo_excel
+
+            "ppt", "pptx", "odp" ->
+                R.drawable.ic_tipo_ppt
+
+            "txt", "log", "md", "json", "xml" ->
+                R.drawable.ic_tipo_texto
+
+            "zip", "rar", "7z", "tar", "gz" ->
+                R.drawable.ic_zip
+
+            else ->
+                R.drawable.ic_tipo_arquivo
+        }
     }
 
     // ============================================================
@@ -2738,6 +4382,11 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        adicionarOpcoesCartao(
+            menu,
+            arquivo
+        )
+
         adicionarOpcaoMenu(
             menu,
             "✎",
@@ -2983,6 +4632,11 @@ class MainActivity : AppCompatActivity() {
                 pasta
             )
         }
+
+        adicionarOpcoesCartao(
+            menu,
+            pasta
+        )
 
         adicionarOpcaoMenu(
             menu,
@@ -4070,11 +5724,18 @@ class MainActivity : AppCompatActivity() {
             }
 
             val sucesso =
-                arquivo.renameTo(
+                Armazenamento.mover(
+                    arquivo,
                     destino
                 )
 
             if (sucesso) {
+
+                Armazenamento.registrarNaLixeira(
+                    this,
+                    destino,
+                    arquivo
+                )
 
                 Toast.makeText(
                     this,
@@ -4213,10 +5874,10 @@ class MainActivity : AppCompatActivity() {
                 Gravity.CENTER_VERTICAL
 
             linha.setPadding(
-                14,
-                10,
-                14,
-                10
+                dp(14),
+                dp(10),
+                dp(14),
+                dp(10)
             )
 
             val icone =
@@ -4230,25 +5891,11 @@ class MainActivity : AppCompatActivity() {
                         Locale.getDefault()
                     )
 
-            if (
-                !arquivo.isDirectory &&
-                TIPO_AUDIO.contains(
-                    extensao
+            icone.setImageResource(
+                obterIconeArquivo(
+                    arquivo
                 )
-            ) {
-
-                icone.setImageDrawable(
-                    criarIconeAudio()
-                )
-
-            } else {
-
-                icone.setImageResource(
-                    obterIconeArquivo(
-                        arquivo
-                    )
-                )
-            }
+            )
 
             val tamanhoIcone =
                 (40 * resources.displayMetrics.density)
@@ -4852,10 +6499,10 @@ class MainActivity : AppCompatActivity() {
                 Gravity.CENTER_VERTICAL
 
             linha.setPadding(
-                14,
-                10,
-                14,
-                10
+                dp(14),
+                dp(10),
+                dp(14),
+                dp(10)
             )
 
             val icone =
@@ -5053,7 +6700,98 @@ class MainActivity : AppCompatActivity() {
                     retriever.release()
                 }
 
+            } else if (
+                android.os.Build.VERSION.SDK_INT >=
+                android.os.Build.VERSION_CODES.P
+            ) {
+
+                // Mesmo decodificador da galeria: respeita a rotação
+                // da foto (EXIF), as cores e abre HEIC
+                miniaturaComImageDecoder(
+                    arquivo,
+                    tamanho
+                ) ?: miniaturaComBitmapFactory(
+                    arquivo,
+                    tamanho
+                )
+
             } else {
+
+                miniaturaComBitmapFactory(
+                    arquivo,
+                    tamanho
+                )
+            }
+
+        } catch (
+            _: Exception
+        ) {
+
+            null
+
+        } catch (
+            _: OutOfMemoryError
+        ) {
+
+            null
+        }
+    }
+
+    @android.annotation.TargetApi(28)
+    private fun miniaturaComImageDecoder(
+        arquivo: File,
+        tamanho: Int
+    ): Bitmap? {
+
+        return try {
+
+            val bitmap =
+                android.graphics.ImageDecoder.decodeBitmap(
+                    android.graphics.ImageDecoder.createSource(arquivo)
+                ) { decoder, info, _ ->
+
+                    val menorLado =
+                        minOf(
+                            info.size.width,
+                            info.size.height
+                        )
+
+                    var amostra = 1
+
+                    while (menorLado / (amostra * 2) >= tamanho) {
+                        amostra *= 2
+                    }
+
+                    decoder.setTargetSampleSize(amostra)
+
+                    decoder.allocator =
+                        android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE
+                }
+
+            reduzirComQualidade(
+                bitmap,
+                tamanho
+            )
+
+        } catch (
+            _: Exception
+        ) {
+            null
+        } catch (
+            _: OutOfMemoryError
+        ) {
+            null
+        }
+    }
+
+    private fun miniaturaComBitmapFactory(
+        arquivo: File,
+        tamanho: Int
+    ): Bitmap? {
+
+        return try {
+
+            run {
 
                 val informacoes =
                     BitmapFactory.Options()
