@@ -35,8 +35,10 @@ object MenuEscuro {
         texto: String
     ): Int? {
 
+        // Compara pelo texto original em português (vale em
+        // qualquer idioma)
         val t =
-            texto.lowercase()
+            I18n.original(texto).lowercase()
 
         return when {
 
@@ -75,6 +77,9 @@ object MenuEscuro {
             t.contains("informaç") ->
                 R.drawable.ic_acao_informacoes
 
+            t.startsWith("idioma") ->
+                R.drawable.ic_acao_idioma
+
             t.startsWith("letras grandes") ->
                 R.drawable.ic_acao_letras
 
@@ -99,7 +104,7 @@ object MenuEscuro {
     ): Boolean {
 
         val t =
-            texto.lowercase()
+            I18n.original(texto).lowercase()
 
         return t.contains("lixeira") ||
             t.contains("excluir") ||

@@ -200,7 +200,7 @@ class VideoViewerActivity : Activity() {
                     .putString(
                         chaveErro,
                         gerarDiagnostico(
-                            "ERRO FATAL",
+                            tr("ERRO FATAL"),
                             throwable
                         )
                     )
@@ -239,16 +239,16 @@ class VideoViewerActivity : Activity() {
             .apply()
 
         AlertDialog.Builder(this)
-            .setTitle("Erro anterior")
+            .setTitle(tr("Erro anterior"))
             .setMessage(
-                "O aplicativo registrou um erro na última execução.\n\n$erro"
+                tr("O aplicativo registrou um erro na última execução.\n\n{0}", erro)
             )
             .setPositiveButton(
                 "OK",
                 null
             )
             .setNeutralButton(
-                "COPIAR"
+                tr("COPIAR")
             ) { _, _ ->
                 copiarTexto(erro)
             }
@@ -333,7 +333,7 @@ class VideoViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "Nenhum vídeo foi recebido.",
+                tr("Nenhum vídeo foi recebido."),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -634,21 +634,21 @@ class VideoViewerActivity : Activity() {
 
         if (!arquivoAtual.exists()) {
             mostrarDiagnostico(
-                "O arquivo não existe:\n\n${arquivoAtual.absolutePath}"
+                tr("O arquivo não existe:\n\n{0}", arquivoAtual.absolutePath)
             )
             return
         }
 
         if (!arquivoAtual.isFile) {
             mostrarDiagnostico(
-                "O caminho informado não é um arquivo."
+                tr("O caminho informado não é um arquivo.")
             )
             return
         }
 
         if (!arquivoAtual.canRead()) {
             mostrarDiagnostico(
-                "O arquivo não pode ser lido:\n\n${arquivoAtual.absolutePath}"
+                tr("O arquivo não pode ser lido:\n\n{0}", arquivoAtual.absolutePath)
             )
             return
         }
@@ -821,7 +821,7 @@ class VideoViewerActivity : Activity() {
             if (arquivosDoPlayer.isEmpty()) {
 
                 mostrarDiagnostico(
-                    "Nenhum vídeo válido foi encontrado."
+                    tr("Nenhum vídeo válido foi encontrado.")
                 )
 
                 liberarPlayer()
@@ -900,7 +900,7 @@ class VideoViewerActivity : Activity() {
 
             mostrarDiagnostico(
                 gerarDiagnostico(
-                    "Falha ao iniciar o player",
+                    tr("Falha ao iniciar o player"),
                     erro
                 )
             )
@@ -1061,7 +1061,7 @@ class VideoViewerActivity : Activity() {
 
             clipData =
                 ClipData.newRawUri(
-                    "Vídeo",
+                    tr("Vídeo"),
                     uri
                 )
         }
@@ -1106,11 +1106,11 @@ class VideoViewerActivity : Activity() {
             StringBuilder()
 
         detalhes.append(
-            "Não foi possível reproduzir este vídeo.\n\n"
+            tr("Não foi possível reproduzir este vídeo.\n\n")
         )
 
         detalhes.append(
-            "Arquivo:\n"
+            tr("Arquivo:\n")
         )
 
         detalhes.append(
@@ -1118,7 +1118,7 @@ class VideoViewerActivity : Activity() {
         )
 
         detalhes.append(
-            "Tamanho:\n"
+            tr("Tamanho:\n")
         )
 
         detalhes.append(
@@ -1128,7 +1128,7 @@ class VideoViewerActivity : Activity() {
         )
 
         detalhes.append(
-            "\n\nMIME:\n"
+            tr("\n\nMIME:\n")
         )
 
         detalhes.append(
@@ -1138,7 +1138,7 @@ class VideoViewerActivity : Activity() {
         )
 
         detalhes.append(
-            "\n\nPlayer interno:\n"
+            tr("\n\nPlayer interno:\n")
         )
 
         detalhes.append(
@@ -1149,7 +1149,7 @@ class VideoViewerActivity : Activity() {
         if (erroExterno != null) {
 
             detalhes.append(
-                "\n\nPlayer externo:\n"
+                tr("\n\nPlayer externo:\n")
             )
 
             detalhes.append(
@@ -1159,38 +1159,38 @@ class VideoViewerActivity : Activity() {
         }
 
         detalhes.append(
-            "\n\nPossíveis causas:\n"
+            tr("\n\nPossíveis causas:\n")
         )
 
         detalhes.append(
-            "• formato ou codec não suportado\n"
+            tr("• formato ou codec não suportado\n")
         )
 
         detalhes.append(
-            "• arquivo corrompido\n"
+            tr("• arquivo corrompido\n")
         )
 
         detalhes.append(
-            "• extensão incorreta\n"
+            tr("• extensão incorreta\n")
         )
 
         detalhes.append(
-            "• arquivo protegido ou sem permissão\n"
+            tr("• arquivo protegido ou sem permissão\n")
         )
 
         detalhes.append(
-            "• nenhum aplicativo compatível instalado"
+            tr("• nenhum aplicativo compatível instalado")
         )
 
         AlertDialog.Builder(this)
             .setTitle(
-                "Não foi possível abrir o vídeo"
+                tr("Não foi possível abrir o vídeo")
             )
             .setMessage(
                 detalhes.toString()
             )
             .setPositiveButton(
-                "TENTAR NOVAMENTE"
+                tr("TENTAR NOVAMENTE")
             ) { _, _ ->
 
                 dialogoErroAberto = false
@@ -1202,7 +1202,7 @@ class VideoViewerActivity : Activity() {
                 inicializarPlayer()
             }
             .setNeutralButton(
-                "COPIAR ERRO"
+                tr("COPIAR ERRO")
             ) { _, _ ->
 
                 copiarTexto(
@@ -1212,7 +1212,7 @@ class VideoViewerActivity : Activity() {
                 dialogoErroAberto = false
             }
             .setNegativeButton(
-                "FECHAR"
+                tr("FECHAR")
             ) { _, _ ->
 
                 dialogoErroAberto = false
@@ -1241,19 +1241,19 @@ class VideoViewerActivity : Activity() {
 
         val diagnostico =
             gerarDiagnostico(
-                "ERRO MEDIA3",
+                tr("ERRO MEDIA3"),
                 erro
             )
 
         AlertDialog.Builder(this)
             .setTitle(
-                "Erro ao reproduzir vídeo"
+                tr("Erro ao reproduzir vídeo")
             )
             .setMessage(
                 diagnostico
             )
             .setPositiveButton(
-                "TENTAR NOVAMENTE"
+                tr("TENTAR NOVAMENTE")
             ) { _, _ ->
 
                 dialogoErroAberto = false
@@ -1265,7 +1265,7 @@ class VideoViewerActivity : Activity() {
                 inicializarPlayer()
             }
             .setNeutralButton(
-                "COPIAR ERRO"
+                tr("COPIAR ERRO")
             ) { _, _ ->
 
                 copiarTexto(
@@ -1275,7 +1275,7 @@ class VideoViewerActivity : Activity() {
                 dialogoErroAberto = false
             }
             .setNegativeButton(
-                "FECHAR"
+                tr("FECHAR")
             ) { _, _ ->
 
                 dialogoErroAberto = false
@@ -1303,7 +1303,7 @@ class VideoViewerActivity : Activity() {
         dialogoErroAberto = true
 
         AlertDialog.Builder(this)
-            .setTitle("Diagnóstico")
+            .setTitle(tr("Diagnóstico"))
             .setMessage(mensagem)
             .setPositiveButton(
                 "OK"
@@ -1311,7 +1311,7 @@ class VideoViewerActivity : Activity() {
                 dialogoErroAberto = false
             }
             .setNeutralButton(
-                "COPIAR"
+                tr("COPIAR")
             ) { _, _ ->
 
                 copiarTexto(
@@ -1345,7 +1345,7 @@ class VideoViewerActivity : Activity() {
         if (::arquivoAtual.isInitialized) {
 
             texto.append(
-                "Arquivo:\n"
+                tr("Arquivo:\n")
             )
 
             texto.append(
@@ -1353,7 +1353,7 @@ class VideoViewerActivity : Activity() {
             )
 
             texto.append(
-                "\n\nTamanho:\n"
+                tr("\n\nTamanho:\n")
             )
 
             texto.append(
@@ -1363,7 +1363,7 @@ class VideoViewerActivity : Activity() {
             )
 
             texto.append(
-                "\n\nMIME:\n"
+                tr("\n\nMIME:\n")
             )
 
             texto.append(
@@ -1374,7 +1374,7 @@ class VideoViewerActivity : Activity() {
         }
 
         texto.append(
-            "\n\nClasse:\n"
+            tr("\n\nClasse:\n")
         )
 
         texto.append(
@@ -1382,18 +1382,18 @@ class VideoViewerActivity : Activity() {
         )
 
         texto.append(
-            "\n\nMensagem:\n"
+            tr("\n\nMensagem:\n")
         )
 
         texto.append(
             erro.message
-                ?: "Sem mensagem"
+                ?: tr("Sem mensagem")
         )
 
         if (erro is PlaybackException) {
 
             texto.append(
-                "\n\nCódigo Media3:\n"
+                tr("\n\nCódigo Media3:\n")
             )
 
             texto.append(
@@ -1401,7 +1401,7 @@ class VideoViewerActivity : Activity() {
             )
 
             texto.append(
-                "\n\nNome do código:\n"
+                tr("\n\nNome do código:\n")
             )
 
             texto.append(
@@ -1414,7 +1414,7 @@ class VideoViewerActivity : Activity() {
         erro.cause?.let { causa ->
 
             texto.append(
-                "\n\nCausa:\n"
+                tr("\n\nCausa:\n")
             )
 
             texto.append(
@@ -1431,7 +1431,7 @@ class VideoViewerActivity : Activity() {
         }
 
         texto.append(
-            "\n\nStacktrace:\n"
+            tr("\n\nStacktrace:\n")
         )
 
         texto.append(
@@ -1454,14 +1454,14 @@ class VideoViewerActivity : Activity() {
 
             clipboard.setPrimaryClip(
                 ClipData.newPlainText(
-                    "Diagnóstico",
+                    tr("Diagnóstico"),
                     texto
                 )
             )
 
             Toast.makeText(
                 this,
-                "Diagnóstico copiado.",
+                tr("Diagnóstico copiado."),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -1516,8 +1516,8 @@ class VideoViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                if (deslocamento > 0) "Este é o último vídeo"
-                else "Este é o primeiro vídeo",
+                if (deslocamento > 0) tr("Este é o último vídeo")
+                else tr("Este é o primeiro vídeo"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -1563,14 +1563,14 @@ class VideoViewerActivity : Activity() {
 
         val opcoes =
             arrayOf(
-                "Compartilhar",
-                "Abrir com...",
-                "Informações",
-                "Renomear",
-                "Copiar",
-                "Mover",
-                "Criar pasta",
-                "Enviar para lixeira"
+                tr("Compartilhar"),
+                tr("Abrir com..."),
+                tr("Informações"),
+                tr("Renomear"),
+                tr("Copiar"),
+                tr("Mover"),
+                tr("Criar pasta"),
+                tr("Enviar para lixeira")
             )
 
         val popup =
@@ -1601,28 +1601,28 @@ class VideoViewerActivity : Activity() {
 
                 when (opcao) {
 
-                    "Compartilhar" ->
+                    tr("Compartilhar") ->
                         compartilharArquivo()
 
-                    "Abrir com..." ->
+                    tr("Abrir com...") ->
                         abrirComAplicativo()
 
-                    "Informações" ->
+                    tr("Informações") ->
                         mostrarInformacoes()
 
-                    "Renomear" ->
+                    tr("Renomear") ->
                         renomearArquivo()
 
-                    "Copiar" ->
+                    tr("Copiar") ->
                         copiarArquivo()
 
-                    "Mover" ->
+                    tr("Mover") ->
                         moverArquivo()
 
-                    "Criar pasta" ->
+                    tr("Criar pasta") ->
                         criarPasta()
 
-                    "Enviar para lixeira" ->
+                    tr("Enviar para lixeira") ->
                         enviarParaLixeira()
                 }
             }
@@ -1692,7 +1692,7 @@ class VideoViewerActivity : Activity() {
 
                     clipData =
                         ClipData.newRawUri(
-                            "Vídeo",
+                            tr("Vídeo"),
                             uri
                         )
                 }
@@ -1700,7 +1700,7 @@ class VideoViewerActivity : Activity() {
             startActivity(
                 Intent.createChooser(
                     intent,
-                    "Compartilhar vídeo"
+                    tr("Compartilhar vídeo")
                 )
             )
 
@@ -1708,7 +1708,7 @@ class VideoViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "Não foi possível compartilhar.",
+                tr("Não foi possível compartilhar."),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -1791,7 +1791,7 @@ class VideoViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "Nenhum aplicativo compatível foi encontrado.",
+                tr("Nenhum aplicativo compatível foi encontrado."),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -1799,7 +1799,7 @@ class VideoViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "Nenhum aplicativo consegue abrir este vídeo.",
+                tr("Nenhum aplicativo consegue abrir este vídeo."),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -1807,7 +1807,7 @@ class VideoViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "Erro ao abrir o vídeo.",
+                tr("Erro ao abrir o vídeo."),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -1823,7 +1823,7 @@ class VideoViewerActivity : Activity() {
             StringBuilder()
 
         info.append(
-            "Nome:\n"
+            tr("Nome:\n")
         )
 
         info.append(
@@ -1831,7 +1831,7 @@ class VideoViewerActivity : Activity() {
         )
 
         info.append(
-            "\n\nCaminho:\n"
+            tr("\n\nCaminho:\n")
         )
 
         info.append(
@@ -1839,7 +1839,7 @@ class VideoViewerActivity : Activity() {
         )
 
         info.append(
-            "\n\nTamanho:\n"
+            tr("\n\nTamanho:\n")
         )
 
         info.append(
@@ -1849,7 +1849,7 @@ class VideoViewerActivity : Activity() {
         )
 
         info.append(
-            "\n\nTipo:\n"
+            tr("\n\nTipo:\n")
         )
 
         info.append(
@@ -1890,7 +1890,7 @@ class VideoViewerActivity : Activity() {
             if (!duracao.isNullOrBlank()) {
 
                 info.append(
-                    "\n\nDuração:\n"
+                    tr("\n\nDuração:\n")
                 )
 
                 info.append(
@@ -1907,7 +1907,7 @@ class VideoViewerActivity : Activity() {
             ) {
 
                 info.append(
-                    "\n\nResolução:\n"
+                    tr("\n\nResolução:\n")
                 )
 
                 info.append(
@@ -1918,7 +1918,7 @@ class VideoViewerActivity : Activity() {
             if (!codec.isNullOrBlank()) {
 
                 info.append(
-                    "\n\nFormato detectado:\n"
+                    tr("\n\nFormato detectado:\n")
                 )
 
                 info.append(
@@ -1933,7 +1933,7 @@ class VideoViewerActivity : Activity() {
 
         AlertDialog.Builder(this)
             .setTitle(
-                "Informações do vídeo"
+                tr("Informações do vídeo")
             )
             .setMessage(
                 info.toString()
@@ -1943,7 +1943,7 @@ class VideoViewerActivity : Activity() {
                 null
             )
             .setNeutralButton(
-                "COPIAR"
+                tr("COPIAR")
             ) { _, _ ->
                 copiarTexto(
                     info.toString()
@@ -1970,15 +1970,15 @@ class VideoViewerActivity : Activity() {
         val dialog =
             AlertDialog.Builder(this)
                 .setTitle(
-                    "Renomear"
+                    tr("Renomear")
                 )
                 .setView(campo)
                 .setNegativeButton(
-                    "CANCELAR",
+                    tr("CANCELAR"),
                     null
                 )
                 .setPositiveButton(
-                    "RENOMEAR",
+                    tr("RENOMEAR"),
                     null
                 )
                 .create()
@@ -1995,7 +1995,7 @@ class VideoViewerActivity : Activity() {
                 if (novoNome.isBlank()) {
 
                     campo.error =
-                        "Digite um nome."
+                        tr("Digite um nome.")
 
                     return@setOnClickListener
                 }
@@ -2006,7 +2006,7 @@ class VideoViewerActivity : Activity() {
                 if (pai == null) {
 
                     campo.error =
-                        "Pasta de origem inválida."
+                        tr("Pasta de origem inválida.")
 
                     return@setOnClickListener
                 }
@@ -2020,7 +2020,7 @@ class VideoViewerActivity : Activity() {
                 if (destino.exists()) {
 
                     campo.error =
-                        "Já existe um arquivo com esse nome."
+                        tr("Já existe um arquivo com esse nome.")
 
                     return@setOnClickListener
                 }
@@ -2043,7 +2043,7 @@ class VideoViewerActivity : Activity() {
 
                         Toast.makeText(
                             this,
-                            "Arquivo renomeado.",
+                            tr("Arquivo renomeado."),
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -2052,14 +2052,14 @@ class VideoViewerActivity : Activity() {
                     } else {
 
                         campo.error =
-                            "Não foi possível renomear."
+                            tr("Não foi possível renomear.")
                     }
 
                 } catch (e: Exception) {
 
                     campo.error =
                         e.message
-                            ?: "Erro ao renomear."
+                            ?: tr("Erro ao renomear.")
                 }
             }
         }
@@ -2070,7 +2070,7 @@ class VideoViewerActivity : Activity() {
     private fun copiarArquivo() {
 
         selecionarPastaDestino(
-            "Copiar para"
+            tr("Copiar para")
         ) { pastaDestino ->
 
             try {
@@ -2085,7 +2085,7 @@ class VideoViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Já existe um arquivo com esse nome.",
+                        tr("Já existe um arquivo com esse nome."),
                         Toast.LENGTH_LONG
                     ).show()
 
@@ -2099,7 +2099,7 @@ class VideoViewerActivity : Activity() {
 
                 Toast.makeText(
                     this,
-                    "Arquivo copiado.",
+                    tr("Arquivo copiado."),
                     Toast.LENGTH_SHORT
                 ).show()
 
@@ -2107,7 +2107,7 @@ class VideoViewerActivity : Activity() {
 
                 Toast.makeText(
                     this,
-                    "Erro ao copiar: ${e.message}",
+                    tr("Erro ao copiar: {0}", e.message),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -2117,7 +2117,7 @@ class VideoViewerActivity : Activity() {
     private fun moverArquivo() {
 
         selecionarPastaDestino(
-            "Mover para"
+            tr("Mover para")
         ) { pastaDestino ->
 
             try {
@@ -2132,7 +2132,7 @@ class VideoViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Já existe um arquivo com esse nome.",
+                        tr("Já existe um arquivo com esse nome."),
                         Toast.LENGTH_LONG
                     ).show()
 
@@ -2155,7 +2155,7 @@ class VideoViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Arquivo movido.",
+                        tr("Arquivo movido."),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -2182,7 +2182,7 @@ class VideoViewerActivity : Activity() {
 
                 Toast.makeText(
                     this,
-                    "Erro ao mover: ${e.message}",
+                    tr("Erro ao mover: {0}", e.message),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -2219,7 +2219,7 @@ class VideoViewerActivity : Activity() {
                     raizStorage.absolutePath
                 ) {
 
-                    "Armazenamento principal"
+                    tr("Armazenamento principal")
 
                 } else {
 
@@ -2243,7 +2243,7 @@ class VideoViewerActivity : Activity() {
                 )
             }
             .setNegativeButton(
-                "CANCELAR",
+                tr("CANCELAR"),
                 null
             )
             .show()
@@ -2294,19 +2294,19 @@ class VideoViewerActivity : Activity() {
             EditText(this)
 
         campo.hint =
-            "Nome da pasta"
+            tr("Nome da pasta")
 
         AlertDialog.Builder(this)
             .setTitle(
-                "Criar pasta"
+                tr("Criar pasta")
             )
             .setView(campo)
             .setNegativeButton(
-                "CANCELAR",
+                tr("CANCELAR"),
                 null
             )
             .setPositiveButton(
-                "CRIAR"
+                tr("CRIAR")
             ) { _, _ ->
 
                 val nome =
@@ -2316,7 +2316,7 @@ class VideoViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Digite um nome.",
+                        tr("Digite um nome."),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -2335,7 +2335,7 @@ class VideoViewerActivity : Activity() {
 
                         Toast.makeText(
                             this,
-                            "A pasta já existe.",
+                            tr("A pasta já existe."),
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -2346,7 +2346,7 @@ class VideoViewerActivity : Activity() {
 
                         Toast.makeText(
                             this,
-                            "Pasta criada.",
+                            tr("Pasta criada."),
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -2354,7 +2354,7 @@ class VideoViewerActivity : Activity() {
 
                         Toast.makeText(
                             this,
-                            "Não foi possível criar a pasta.",
+                            tr("Não foi possível criar a pasta."),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -2363,7 +2363,7 @@ class VideoViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Erro: ${e.message}",
+                        tr("Erro: {0}", e.message),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -2379,17 +2379,17 @@ class VideoViewerActivity : Activity() {
 
         AlertDialog.Builder(this)
             .setTitle(
-                "Enviar para lixeira?"
+                tr("Enviar para lixeira?")
             )
             .setMessage(
-                "O arquivo será movido para a lixeira do Faxina."
+                tr("O arquivo será movido para a lixeira do Faxina.")
             )
             .setNegativeButton(
-                "CANCELAR",
+                tr("CANCELAR"),
                 null
             )
             .setPositiveButton(
-                "MOVER"
+                tr("MOVER")
             ) { _, _ ->
 
                 try {
@@ -2457,7 +2457,7 @@ class VideoViewerActivity : Activity() {
 
                             Toast.makeText(
                                 this,
-                                "Arquivo enviado para a lixeira.",
+                                tr("Arquivo enviado para a lixeira."),
                                 Toast.LENGTH_SHORT
                             ).show()
 
@@ -2488,7 +2488,7 @@ class VideoViewerActivity : Activity() {
 
                         Toast.makeText(
                             this,
-                            "Arquivo enviado para a lixeira.",
+                            tr("Arquivo enviado para a lixeira."),
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -2499,7 +2499,7 @@ class VideoViewerActivity : Activity() {
 
                         Toast.makeText(
                             this,
-                            "Não foi possível mover o arquivo.",
+                            tr("Não foi possível mover o arquivo."),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -2508,7 +2508,7 @@ class VideoViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Erro: ${e.message}",
+                        tr("Erro: {0}", e.message),
                         Toast.LENGTH_LONG
                     ).show()
                 }

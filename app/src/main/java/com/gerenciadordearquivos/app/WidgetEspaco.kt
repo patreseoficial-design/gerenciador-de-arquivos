@@ -67,15 +67,20 @@ class WidgetEspaco : AppWidgetProvider() {
 
                     tela.setTextViewText(
                         R.id.widgetLivre,
-                        "${AvisoArmazenamento.formatar(espaco.livre)} livres"
+                        tr("{0} livres", AvisoArmazenamento.formatar(espaco.livre))
                     )
 
                     tela.setTextViewText(
                         R.id.widgetDetalhe,
-                        "$usado% usado de ${AvisoArmazenamento.formatar(espaco.total)}"
+                        tr("{0}% usado de {1}", usado, AvisoArmazenamento.formatar(espaco.total))
                     )
 
                     tela.setProgressBar(R.id.widgetBarra, 100, usado, false)
+                }
+
+                if (espaco == null || espaco.total <= 0) {
+                    tela.setTextViewText(R.id.widgetLivre, tr("Calculando..."))
+                    tela.setTextViewText(R.id.widgetDetalhe, tr("Toque para liberar espaço"))
                 }
 
                 tela.setOnClickPendingIntent(R.id.widgetRaiz, abrir)

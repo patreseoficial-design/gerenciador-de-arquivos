@@ -336,7 +336,7 @@ open class TelaBase : AppCompatActivity() {
 
         } catch (_: Exception) {
 
-            Toast.makeText(this, "Nenhum app pode abrir este arquivo", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, tr("Nenhum app pode abrir este arquivo"), Toast.LENGTH_SHORT).show()
         }
     }
 

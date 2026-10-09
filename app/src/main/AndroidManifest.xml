@@ -52,6 +52,7 @@
         android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 
     <application
+        android:name=".FaxinaApp"
         android:allowBackup="true"
         android:requestLegacyExternalStorage="true"
         android:label="@string/app_name"

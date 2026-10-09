@@ -46,6 +46,9 @@ object ModoSimples {
         val config =
             Configuration(base.resources.configuration)
 
+        // Idioma escolhido no app (datas, teclado numérico etc.)
+        config.setLocale(I18n.locale())
+
         config.fontScale =
             config.fontScale *
                 if (ativo(base)) AUMENTO_GRANDE else AUMENTO_PADRAO

@@ -136,7 +136,7 @@ class AudioViewerActivity : Activity() {
                 18
             )
 
-            contentDescription = "Voltar"
+            contentDescription = tr("Voltar")
 
             setPadding(
                 dp(14),
@@ -160,7 +160,7 @@ class AudioViewerActivity : Activity() {
 
         val tituloTopo = TextView(this).apply {
 
-            text = "Reproduzindo"
+            text = tr("Reproduzindo")
 
             textSize = 19f
 
@@ -303,7 +303,7 @@ class AudioViewerActivity : Activity() {
 
         val tipoAudio = TextView(this).apply {
 
-            text = "Áudio"
+            text = tr("Áudio")
 
             textSize = 14f
 
@@ -463,7 +463,7 @@ class AudioViewerActivity : Activity() {
                 dp(23)
             )
 
-            contentDescription = "Pausar"
+            contentDescription = tr("Pausar")
 
             setOnClickListener {
 

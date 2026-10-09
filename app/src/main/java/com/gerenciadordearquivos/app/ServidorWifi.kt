@@ -104,7 +104,7 @@ class ServidorWifi(
 
                 // Tudo precisa começar com /código
                 if (!caminho.startsWith("/$codigo")) {
-                    responderTexto(saida, 403, "Código inválido. Use o endereço mostrado no celular.")
+                    responderTexto(saida, 403, tr("Código inválido. Use o endereço mostrado no celular."))
                     return
                 }
 
@@ -123,7 +123,7 @@ class ServidorWifi(
                         listar(saida, pasta)
 
                     else ->
-                        responderTexto(saida, 405, "Método não suportado")
+                        responderTexto(saida, 405, tr("Método não suportado"))
                 }
 
                 saida.flush()
@@ -198,7 +198,7 @@ class ServidorWifi(
     private fun listar(saida: OutputStream, pasta: File?) {
 
         if (pasta == null || !pasta.isDirectory) {
-            responderTexto(saida, 404, "Pasta não encontrada")
+            responderTexto(saida, 404, tr("Pasta não encontrada"))
             return
         }
 
@@ -269,7 +269,7 @@ button{background:#1e88e5;color:#fff;border:0;border-radius:20px;padding:10px 18
     private fun baixar(saida: OutputStream, arquivo: File?) {
 
         if (arquivo == null || !arquivo.isFile) {
-            responderTexto(saida, 404, "Arquivo não encontrado")
+            responderTexto(saida, 404, tr("Arquivo não encontrado"))
             return
         }
 
@@ -294,7 +294,7 @@ button{background:#1e88e5;color:#fff;border:0;border-radius:20px;padding:10px 18
     ) {
 
         if (pasta == null || !pasta.isDirectory) {
-            responderTexto(saida, 404, "Pasta não encontrada")
+            responderTexto(saida, 404, tr("Pasta não encontrada"))
             return
         }
 
@@ -302,7 +302,7 @@ button{background:#1e88e5;color:#fff;border:0;border-radius:20px;padding:10px 18
         val limite = tipo.substringAfter("boundary=", "").trim('"')
 
         if (limite.isEmpty()) {
-            responderTexto(saida, 400, "Envio inválido")
+            responderTexto(saida, 400, tr("Envio inválido"))
             return
         }
 

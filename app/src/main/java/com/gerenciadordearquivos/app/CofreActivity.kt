@@ -124,14 +124,14 @@ class CofreActivity : TelaBase() {
 
         super.onCreate(savedInstanceState)
 
-        titulo.text = "Cofre"
+        titulo.text = tr("Cofre")
 
-        status.text = "🔒 Cofre trancado"
+        status.text = tr("🔒 Cofre trancado")
 
         // Sem Premium só dá para abrir se já houver algo guardado
         if (!Premium.ativo(this) && Cofre.itens().isEmpty()) {
 
-            Toast.makeText(this, "O Cofre faz parte do Premium", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, tr("O Cofre faz parte do Premium"), Toast.LENGTH_LONG).show()
 
             startActivity(Intent(this, PremiumActivity::class.java))
 
@@ -163,29 +163,29 @@ class CofreActivity : TelaBase() {
 
     private fun criarPin() {
 
-        val pin1 = campoPin("Novo PIN (4 a 8 números)")
-        val pin2 = campoPin("Repita o PIN")
+        val pin1 = campoPin(tr("Novo PIN (4 a 8 números)"))
+        val pin2 = campoPin(tr("Repita o PIN"))
 
         AlertDialog.Builder(this)
-            .setTitle("Crie o PIN do Cofre")
+            .setTitle(tr("Crie o PIN do Cofre"))
             .setMessage(
-                "Guarde bem esse PIN: sem ele não dá para abrir o Cofre."
+                tr("Guarde bem esse PIN: sem ele não dá para abrir o Cofre.")
             )
             .setView(caixa(pin1, pin2))
             .setCancelable(false)
-            .setNegativeButton("Cancelar") { _, _ -> finish() }
-            .setPositiveButton("Criar") { _, _ ->
+            .setNegativeButton(tr("Cancelar")) { _, _ -> finish() }
+            .setPositiveButton(tr("Criar")) { _, _ ->
 
                 val a = pin1.text.toString()
                 val b = pin2.text.toString()
 
                 when {
                     a.length !in 4..8 -> {
-                        Toast.makeText(this, "O PIN precisa ter de 4 a 8 números", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, tr("O PIN precisa ter de 4 a 8 números"), Toast.LENGTH_LONG).show()
                         criarPin()
                     }
                     a != b -> {
-                        Toast.makeText(this, "Os PINs não são iguais", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, tr("Os PINs não são iguais"), Toast.LENGTH_LONG).show()
                         criarPin()
                     }
                     else -> {
@@ -203,17 +203,17 @@ class CofreActivity : TelaBase() {
         val pin = campoPin("PIN")
 
         AlertDialog.Builder(this)
-            .setTitle("Digite o PIN do Cofre")
+            .setTitle(tr("Digite o PIN do Cofre"))
             .setView(caixa(pin))
             .setCancelable(false)
-            .setNegativeButton("Cancelar") { _, _ -> finish() }
-            .setPositiveButton("Abrir") { _, _ ->
+            .setNegativeButton(tr("Cancelar")) { _, _ -> finish() }
+            .setPositiveButton(tr("Abrir")) { _, _ ->
 
                 if (Cofre.pinCorreto(this, pin.text.toString())) {
                     desbloqueado = true
                     mostrarItens()
                 } else {
-                    Toast.makeText(this, "PIN incorreto", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, tr("PIN incorreto"), Toast.LENGTH_SHORT).show()
                     pedirPin()
                 }
             }
@@ -235,15 +235,13 @@ class CofreActivity : TelaBase() {
         val arquivos = Cofre.itens()
 
         status.text =
-            if (arquivos.isEmpty()) "🔓 Cofre vazio"
-            else "🔓 ${arquivos.size} item(ns) no cofre"
+            if (arquivos.isEmpty()) tr("🔓 Cofre vazio")
+            else tr("🔓 {0} item(ns) no cofre", arquivos.size)
 
         acoes.removeAllViews()
         acoes.addView(
             criarTexto(
-                "Para guardar algo aqui, segure um arquivo na tela de arquivos " +
-                    "e escolha \"Mover para o cofre\". Os arquivos do cofre não " +
-                    "aparecem na galeria. Toque para abrir; segure para tirar do cofre."
+                tr("Para guardar algo aqui, segure um arquivo na tela de arquivos e escolha \"Mover para o cofre\". Os arquivos do cofre não aparecem na galeria. Toque para abrir; segure para tirar do cofre.")
             )
         )
 
@@ -261,14 +259,14 @@ class CofreActivity : TelaBase() {
 
             AlertDialog.Builder(this)
                 .setTitle(arquivo.name)
-                .setItems(arrayOf("Tirar do cofre", "Mover para a lixeira")) { _, qual ->
+                .setItems(arrayOf(tr("Tirar do cofre"), tr("Mover para a lixeira"))) { _, qual ->
                     when (qual) {
                         0 -> {
                             val destino = Cofre.retirar(this, arquivo)
                             Toast.makeText(
                                 this,
-                                if (destino != null) "Devolvido para ${destino.parentFile?.name}"
-                                else "Não foi possível tirar do cofre",
+                                if (destino != null) tr("Devolvido para {0}", destino.parentFile?.name)
+                                else tr("Não foi possível tirar do cofre"),
                                 Toast.LENGTH_SHORT
                             ).show()
                             mostrarItens()
@@ -288,15 +286,15 @@ class CofreActivity : TelaBase() {
 
             adicionarBotao(
                 rodape,
-                criarBotao("Tirar marcados do cofre", null, COR_AZUL) {
+                criarBotao(tr("Tirar marcados do cofre"), null, COR_AZUL) {
 
                     val marcados = itens.filter { it.marcado }.mapNotNull { it.arquivo }
 
                     if (marcados.isEmpty()) {
-                        Toast.makeText(this, "Marque os itens primeiro", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, tr("Marque os itens primeiro"), Toast.LENGTH_SHORT).show()
                     } else {
                         val ok = marcados.count { Cofre.retirar(this, it) != null }
-                        Toast.makeText(this, "$ok item(ns) devolvidos", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, tr("{0} item(ns) devolvidos", ok), Toast.LENGTH_SHORT).show()
                         mostrarItens()
                     }
                 }

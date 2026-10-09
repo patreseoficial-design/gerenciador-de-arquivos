@@ -14,7 +14,7 @@ class PremiumActivity : TelaBase() {
 
     private val aoMudar: (Boolean) -> Unit = { ativo ->
         if (ativo) {
-            Toast.makeText(this, "Obrigado! Premium ativado ⭐", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, tr("Obrigado! Premium ativado ⭐"), Toast.LENGTH_LONG).show()
         }
         montar()
     }
@@ -25,7 +25,7 @@ class PremiumActivity : TelaBase() {
 
         super.onCreate(savedInstanceState)
 
-        titulo.text = "Faxina Premium"
+        titulo.text = tr("Faxina Premium")
 
         Premium.aoMudar(aoMudar)
 
@@ -46,29 +46,28 @@ class PremiumActivity : TelaBase() {
         val ativo = Premium.ativo(this)
 
         status.text =
-            if (ativo) "⭐ Você já tem o Premium. Obrigado!"
-            else "Pague uma vez e use para sempre"
+            if (ativo) tr("⭐ Você já tem o Premium. Obrigado!")
+            else tr("Pague uma vez e use para sempre")
 
         lista.visibility = View.GONE
 
         acoes.removeAllViews()
 
-        acoes.addView(criarTexto("O que o Premium libera:", 18f, COR_TEXTO, true))
+        acoes.addView(criarTexto(tr("O que o Premium libera:"), 18f, COR_TEXTO, true))
 
         listOf(
-            "🔒  Cofre com PIN para esconder fotos e arquivos",
-            "🖼️  Apagar fotos e vídeos duplicados com 1 toque",
-            "🗜️  Comprimir fotos (até 4x menores, mesma qualidade na tela)",
-            "🚫  Sem nenhum anúncio",
-            "💛  Ajuda a manter o app sendo melhorado"
+            tr("🔒  Cofre com PIN para esconder fotos e arquivos"),
+            tr("🖼️  Apagar fotos e vídeos duplicados com 1 toque"),
+            tr("🗜️  Comprimir fotos (até 4x menores, mesma qualidade na tela)"),
+            tr("🚫  Sem nenhum anúncio"),
+            tr("💛  Ajuda a manter o app sendo melhorado")
         ).forEach {
             acoes.addView(criarTexto(it, 16f, COR_TEXTO))
         }
 
         acoes.addView(
             criarTexto(
-                "Compra única, sem assinatura. Vale para a sua conta Google: " +
-                    "se trocar de celular, é só tocar em \"Restaurar compra\".",
+                tr("Compra única, sem assinatura. Vale para a sua conta Google: se trocar de celular, é só tocar em \"Restaurar compra\"."),
                 14f
             )
         )
@@ -79,7 +78,7 @@ class PremiumActivity : TelaBase() {
 
             adicionarBotao(
                 rodape,
-                criarBotao("Comprar Premium por ${Premium.preco()}", null, COR_DOURADO) {
+                criarBotao(tr("Comprar Premium por {0}", Premium.preco()), null, COR_DOURADO) {
                     Premium.comprar(this)?.let { erro ->
                         Toast.makeText(this, erro, Toast.LENGTH_LONG).show()
                     }
@@ -89,9 +88,9 @@ class PremiumActivity : TelaBase() {
 
         adicionarBotao(
             rodape,
-            criarBotao("Restaurar compra", null, COR_AZUL) {
+            criarBotao(tr("Restaurar compra"), null, COR_AZUL) {
                 Premium.restaurar(this)
-                Toast.makeText(this, "Verificando suas compras...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, tr("Verificando suas compras..."), Toast.LENGTH_SHORT).show()
             }
         )
 
