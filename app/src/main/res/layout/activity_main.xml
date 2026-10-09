@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F7F7F7">
+    android:background="#FAFAFA">
 
     <!-- CABEÇALHO PRINCIPAL -->
     <FrameLayout
@@ -109,89 +109,89 @@
                 android:layout_width="match_parent"
                 android:layout_height="14dp"/>
 
-            <!-- ARMAZENAMENTO PRINCIPAL -->
+            <!--
+                GRADE DA TELA INICIAL
+                Sem quadros: ícone, nome e informação embaixo.
+                O código (montarGradeInicial) reorganiza estes blocos em
+                linhas de 3, pulando os escondidos (ex.: SD card sem cartão).
+            -->
             <LinearLayout
-                android:id="@+id/categoryStorage"
+                android:id="@+id/homeGrid"
                 android:layout_width="match_parent"
-                android:layout_height="112dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="18dp"
-                android:paddingEnd="18dp"
-                android:background="#FFFFFF"
-                android:clickable="true"
-                android:focusable="true">
-
-                <ImageView
-                    android:layout_width="95dp"
-                    android:layout_height="95dp"
-                    android:src="@drawable/armazenamento"
-                    android:scaleType="fitXY"
-                    android:contentDescription="Armazenamento principal"/>
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
                 <LinearLayout
+                    android:id="@+id/categoryStorage"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:paddingStart="15dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Armazenamento principal"
-                        android:textColor="#222222"
-                        android:textSize="17sp"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:id="@+id/storageInfo"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Calculando..."
-                        android:textColor="#777777"
-                        android:textSize="13sp"/>
-
-                    <ProgressBar
-                        android:id="@+id/storageProgress"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="7dp"
-                        android:layout_marginTop="7dp"
-                        android:max="100"
-                        android:progress="0"/>
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="14dp"/>
-
-            <!-- LINHA 1 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="125dp"
-                android:orientation="horizontal">
-
-                <!-- DOWNLOADS -->
-                <LinearLayout
-                    android:id="@+id/categoryDownloads"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
+                        android:src="@drawable/armazenamento"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="Armazenamento"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Armazenamento"
+                        android:textColor="#222222"
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/storageInfo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <!-- Barra de uso (usada pelo código; fica escondida) -->
+                    <ProgressBar
+                        android:id="@+id/storageProgress"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:visibility="gone"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/categoryDownloads"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
                         android:src="@drawable/downloads"
                         android:scaleType="fitCenter"
                         android:contentDescription="Downloads"/>
@@ -199,57 +199,89 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Downloads"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoDownloads"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
-                <!-- ANÁLISE -->
                 <LinearLayout
                     android:id="@+id/categoryAnalysis"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
-                        android:src="@drawable/armazenamento"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
+                        android:src="@drawable/ic_analise"
                         android:scaleType="fitCenter"
-                        android:contentDescription="Análise do armazenamento"/>
+                        android:contentDescription="Análise"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Análise"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoAnalise"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
-                <!-- IMAGENS -->
                 <LinearLayout
                     android:id="@+id/categoryImages"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
                         android:src="@drawable/imagens"
                         android:scaleType="fitCenter"
                         android:contentDescription="Imagens"/>
@@ -257,37 +289,44 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Imagens"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoImagens"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
-            </LinearLayout>
-
-            <!-- LINHA 2 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="125dp"
-                android:orientation="horizontal">
-
-                <!-- ÁUDIO -->
                 <LinearLayout
                     android:id="@+id/categoryAudio"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
-                    <!-- ÍCONE EXISTENTE: FONE DE OUVIDO -->
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
                         android:src="@drawable/audios"
                         android:scaleType="fitCenter"
                         android:contentDescription="Áudio"/>
@@ -295,28 +334,44 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Áudio"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoAudio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
-                <!-- VÍDEOS -->
                 <LinearLayout
                     android:id="@+id/categoryVideos"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
                         android:src="@drawable/videos"
                         android:scaleType="fitCenter"
                         android:contentDescription="Vídeos"/>
@@ -324,28 +379,44 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Vídeos"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoVideos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
-                <!-- DOCUMENTOS -->
                 <LinearLayout
                     android:id="@+id/categoryDocuments"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
                         android:src="@drawable/documentos"
                         android:scaleType="fitCenter"
                         android:contentDescription="Documentos"/>
@@ -353,36 +424,44 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Documentos"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoDocumentos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
-            </LinearLayout>
-
-            <!-- LINHA 3 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="125dp"
-                android:orientation="horizontal">
-
-                <!-- APLICATIVOS -->
                 <LinearLayout
                     android:id="@+id/categoryApps"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
                         android:src="@drawable/aplicativos"
                         android:scaleType="fitCenter"
                         android:contentDescription="Aplicativos"/>
@@ -390,28 +469,44 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Aplicativos"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoApps"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
-                <!-- LIXEIRA -->
                 <LinearLayout
                     android:id="@+id/categoryTrash"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
                         android:src="@drawable/lixeira"
                         android:scaleType="fitCenter"
                         android:contentDescription="Lixeira"/>
@@ -419,66 +514,89 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Lixeira"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoLixeira"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
-                <!-- CARTÃO DE MEMÓRIA -->
                 <LinearLayout
                     android:id="@+id/categoryMemoryCard"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
                         android:src="@drawable/cartao_memoria"
                         android:scaleType="fitCenter"
-                        android:contentDescription="Cartão de memória"/>
+                        android:contentDescription="SD card"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="SD card"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoCartao"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
-            </LinearLayout>
-
-
-            <!-- LINHA 4 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="125dp"
-                android:orientation="horizontal">
-
-                <!-- LIMPEZA DO WHATSAPP -->
                 <LinearLayout
                     android:id="@+id/toolWhatsApp"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
                         android:src="@drawable/ferramenta_whatsapp"
                         android:scaleType="fitCenter"
                         android:contentDescription="WhatsApp"/>
@@ -486,28 +604,44 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="WhatsApp"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoWhatsApp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
-                <!-- FOTOS DUPLICADAS -->
                 <LinearLayout
                     android:id="@+id/toolDuplicadas"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
                         android:src="@drawable/ferramenta_duplicadas"
                         android:scaleType="fitCenter"
                         android:contentDescription="Duplicadas"/>
@@ -515,28 +649,44 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Duplicadas"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoDuplicadas"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
-                <!-- COFRE -->
                 <LinearLayout
                     android:id="@+id/toolCofre"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
                         android:src="@drawable/ferramenta_cofre"
                         android:scaleType="fitCenter"
                         android:contentDescription="Cofre"/>
@@ -544,36 +694,44 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Cofre"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoCofre"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
-            </LinearLayout>
-
-            <!-- LINHA 5 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="125dp"
-                android:orientation="horizontal">
-
-                <!-- COMPRIMIR FOTOS -->
                 <LinearLayout
                     android:id="@+id/toolComprimir"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
                         android:src="@drawable/ferramenta_comprimir"
                         android:scaleType="fitCenter"
                         android:contentDescription="Comprimir"/>
@@ -581,28 +739,44 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Comprimir"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoComprimir"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
-                <!-- PASSAR PARA O PC -->
                 <LinearLayout
                     android:id="@+id/toolWifi"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
                         android:src="@drawable/ferramenta_wifi"
                         android:scaleType="fitCenter"
                         android:contentDescription="Para o PC"/>
@@ -610,28 +784,44 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Para o PC"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoWifi"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
-                <!-- PREMIUM -->
                 <LinearLayout
                     android:id="@+id/toolPremium"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:background="#FFFFFF"
+                    android:gravity="center_horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
+                    android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="95dp"
-                        android:layout_height="80dp"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
                         android:src="@drawable/ferramenta_premium"
                         android:scaleType="fitCenter"
                         android:contentDescription="Premium"/>
@@ -639,9 +829,23 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="Premium"
                         android:textColor="#222222"
-                        android:textSize="14sp"/>
+                        android:textSize="15sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/infoPremium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text=" "
+                        android:textColor="#888888"
+                        android:textSize="12sp"
+                        android:singleLine="true"
+                        android:ellipsize="end"/>
 
                 </LinearLayout>
 
