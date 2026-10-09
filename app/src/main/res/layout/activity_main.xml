@@ -510,9 +510,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:src="@drawable/ic_ferramenta_duplicadas"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:src="@drawable/ferramenta_duplicadas"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Fotos\nduplicadas"/>
 
                     <TextView
@@ -539,9 +540,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:src="@drawable/ic_ferramenta_cofre"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:src="@drawable/ferramenta_cofre"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Cofre"/>
 
                     <TextView
@@ -568,9 +570,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:src="@drawable/ic_ferramenta_premium"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:src="@drawable/ferramenta_premium"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Premium"/>
 
                     <TextView
@@ -605,9 +608,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:src="@drawable/ic_ferramenta_comprimir"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:src="@drawable/ferramenta_comprimir"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Comprimir\nfotos"/>
 
                     <TextView
@@ -634,9 +638,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:src="@drawable/ic_ferramenta_wifi"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:src="@drawable/ferramenta_wifi"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Passar\npara o PC"/>
 
                     <TextView
