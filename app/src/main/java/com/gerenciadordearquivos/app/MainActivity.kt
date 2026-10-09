@@ -3933,7 +3933,365 @@ if (arquivo.isDirectory) {
             }
         }
     }
+    
+// ============================================================  
+// APLICATIVOS  
+// ============================================================  
 
+private fun abrirAplicativos() {  
+
+    telaDePastasDeMidia = false  
+    pastaDeMidiaAtual = null  
+
+    homeScroll.visibility = View.GONE  
+    fileScreen.visibility = View.VISIBLE  
+    fileScreenTitle.text = "Aplicativos"  
+    currentPath.text = "Carregando aplicativos..."  
+    mediaGrid.visibility = View.GONE  
+    fileList.visibility = View.VISIBLE  
+
+    // Localiza as abas existentes ou cria uma nova linha.  
+    val abasExistentes =  
+        (0 until fileScreen.childCount)  
+            .map { fileScreen.getChildAt(it) }  
+            .firstOrNull {  
+                it.tag == "abasAplicativos"  
+            }  
+
+    val abas =  
+        (abasExistentes as? LinearLayout)  
+            ?: LinearLayout(this).apply {  
+
+                tag = "abasAplicativos"  
+                orientation = LinearLayout.HORIZONTAL  
+                setPadding(8, 6, 8, 6)  
+                setBackgroundColor(  
+                    Color.rgb(245, 245, 245)  
+                )  
+
+                fileScreen.addView(  
+                    this,  
+                    2.coerceAtMost(fileScreen.childCount),  
+                    LinearLayout.LayoutParams(  
+                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,  
+                        (48 * resources.displayMetrics.density).toInt()  
+                    )  
+                )  
+            }  
+
+    abas.visibility = View.VISIBLE  
+    abas.removeAllViews()  
+
+    val abaBaixados =  
+        TextView(this).apply {  
+            text = "BAIXADOS"  
+            gravity = Gravity.CENTER  
+            textSize = 14f  
+            setTypeface(  
+                null,  
+                android.graphics.Typeface.BOLD  
+            )  
+            isClickable = true  
+            isFocusable = true  
+        }  
+
+    val abaTodos =  
+        TextView(this).apply {  
+            text = "TODOS"  
+            gravity = Gravity.CENTER  
+            textSize = 14f  
+            setTypeface(  
+                null,  
+                android.graphics.Typeface.BOLD  
+            )  
+            isClickable = true  
+            isFocusable = true  
+        }  
+
+    abas.addView(  
+        abaBaixados,  
+        LinearLayout.LayoutParams(  
+            0,  
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT,  
+            1f  
+        ).apply {  
+            marginStart = 4  
+            marginEnd = 4  
+        }  
+    )  
+
+    abas.addView(  
+        abaTodos,  
+        LinearLayout.LayoutParams(  
+            0,  
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT,  
+            1f  
+        ).apply {  
+            marginStart = 4  
+            marginEnd = 4  
+        }  
+    )  
+
+    thread {  
+
+        val pm = packageManager  
+
+        val todosAplicativos: List<AppInfoItem> =  
+            try {  
+
+                pm.getInstalledApplications(  
+                    PackageManager.GET_META_DATA  
+                )  
+                    .map { aplicativo ->  
+
+                        AppInfoItem(  
+                            aplicativo,  
+                            pm.getApplicationLabel(  
+                                aplicativo  
+                            ).toString()  
+                        )  
+                    }  
+                    .distinctBy {  
+                        it.info.packageName  
+                    }  
+                    .sortedBy {  
+                        it.nome.lowercase(  
+                            Locale.getDefault()  
+                        )  
+                    }  
+
+            } catch (_: Exception) {  
+
+                emptyList()  
+            }  
+
+        // Aplicativos instalados pelo usuário.  
+        val aplicativosBaixados =  
+            todosAplicativos.filter { aplicativo ->  
+
+                (  
+                    aplicativo.info.flags and  
+                        android.content.pm.ApplicationInfo.FLAG_SYSTEM  
+                ) == 0  
+            }  
+
+        runOnUiThread {  
+
+            fun atualizarAparenciaAbas(  
+                mostrarBaixados: Boolean  
+            ) {  
+
+                abaBaixados.setBackgroundColor(  
+                    if (mostrarBaixados) {  
+                        Color.rgb(30, 136, 229)  
+                    } else {  
+                        Color.rgb(225, 225, 225)  
+                    }  
+                )  
+
+                abaBaixados.setTextColor(  
+                    if (mostrarBaixados) {  
+                        Color.WHITE  
+                    } else {  
+                        Color.DKGRAY  
+                    }  
+                )  
+
+                abaTodos.setBackgroundColor(  
+                    if (!mostrarBaixados) {  
+                        Color.rgb(30, 136, 229)  
+                    } else {  
+                        Color.rgb(225, 225, 225)  
+                    }  
+                )  
+
+                abaTodos.setTextColor(  
+                    if (!mostrarBaixados) {  
+                        Color.WHITE  
+                    } else {  
+                        Color.DKGRAY  
+                    }  
+                )  
+            }  
+
+            fun mostrarListaAplicativos(  
+                lista: List<AppInfoItem>,  
+                mostrarBaixados: Boolean  
+            ) {  
+
+                atualizarAparenciaAbas(  
+                    mostrarBaixados  
+                )  
+
+                currentPath.text =  
+                    if (mostrarBaixados) {  
+                        "${lista.size} aplicativos baixados"  
+                    } else {  
+                        "${lista.size} aplicativos no total"  
+                    }  
+
+                fileList.adapter =  
+                    AppListAdapter(lista)  
+
+                fileList.setOnItemClickListener {  
+                    _, _, position, _ ->  
+
+                    if (position in lista.indices) {  
+
+                        abrirAplicativo(  
+                            lista[position]  
+                        )  
+                    }  
+                }  
+
+                fileList.setOnItemLongClickListener {  
+                    _, view, position, _ ->  
+
+                    if (position in lista.indices) {  
+
+                        mostrarMenuAplicativo(  
+                            lista[position],  
+                            view  
+                        )  
+
+                        true  
+
+                    } else {  
+
+                        false  
+                    }  
+                }  
+            }  
+
+            abaBaixados.setOnClickListener {  
+
+                mostrarListaAplicativos(  
+                    aplicativosBaixados,  
+                    true  
+                )  
+            }  
+
+            abaTodos.setOnClickListener {  
+
+                mostrarListaAplicativos(  
+                    todosAplicativos,  
+                    false  
+                )  
+            }  
+
+            // Abre inicialmente na guia Baixados.  
+            mostrarListaAplicativos(  
+                aplicativosBaixados,  
+                true  
+            )  
+        }  
+    }  
+}  
+
+private fun abrirAplicativo(  
+    aplicativo: AppInfoItem  
+) {  
+
+    try {  
+
+        val intent =  
+            packageManager.getLaunchIntentForPackage(  
+                aplicativo.info.packageName  
+            )  
+
+        if (intent != null) {  
+
+            intent.addFlags(  
+                Intent.FLAG_ACTIVITY_NEW_TASK  
+            )  
+
+            startActivity(intent)  
+
+        } else {  
+
+            Toast.makeText(  
+                this,  
+                "Não foi possível abrir o aplicativo",  
+                Toast.LENGTH_SHORT  
+            ).show()  
+        }  
+
+    } catch (e: Exception) {  
+
+        Toast.makeText(  
+            this,  
+            "Erro ao abrir aplicativo: ${e.message}",  
+            Toast.LENGTH_LONG  
+        ).show()  
+    }  
+}  
+
+private fun mostrarMenuAplicativo(  
+    aplicativo: AppInfoItem,  
+    ancora: View  
+) {  
+
+    val menu = LinearLayout(this)  
+
+    menu.orientation = LinearLayout.VERTICAL  
+
+    menu.setBackgroundColor(  
+        Color.WHITE  
+    )  
+
+    menu.setPadding(  
+        0,  
+        6,  
+        0,  
+        6  
+    )  
+
+    adicionarOpcaoMenu(  
+        menu,  
+        "↗",  
+        "Abrir"  
+    ) {  
+
+        abrirAplicativo(  
+            aplicativo  
+        )  
+    }  
+
+    adicionarOpcaoMenu(  
+        menu,  
+        "ⓘ",  
+        "Informações"  
+    ) {  
+
+        try {  
+
+            val intent =  
+                Intent(  
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS  
+                )  
+
+            intent.data =  
+                Uri.parse(  
+                    "package:${aplicativo.info.packageName}"  
+                )  
+
+            startActivity(intent)  
+
+        } catch (_: Exception) {  
+
+            Toast.makeText(  
+                this,  
+                "Não foi possível abrir as informações",  
+                Toast.LENGTH_SHORT  
+            ).show()  
+        }  
+    }  
+
+    mostrarPopup(  
+        menu,  
+        ancora  
+    )  
+}
     // ============================================================
     // LIXEIRA
     // ============================================================
