@@ -18,6 +18,15 @@ import java.io.File
 
 class PdfViewerActivity : AppCompatActivity() {
 
+    // Mesmo tamanho de letra do resto do app
+    override fun attachBaseContext(
+        novoContexto: android.content.Context
+    ) {
+        super.attachBaseContext(
+            ModoSimples.contexto(novoContexto)
+        )
+    }
+
     private var renderer: PdfRenderer? = null
     private var descriptor: ParcelFileDescriptor? = null
 
@@ -37,7 +46,7 @@ class PdfViewerActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Arquivo PDF inválido",
+                tr("Arquivo PDF inválido"),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -52,7 +61,7 @@ class PdfViewerActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "PDF não encontrado",
+                tr("PDF não encontrado"),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -82,7 +91,7 @@ class PdfViewerActivity : AppCompatActivity() {
 
                 Toast.makeText(
                     this,
-                    "PDF sem páginas",
+                    tr("PDF sem páginas"),
                     Toast.LENGTH_LONG
                 ).show()
 
@@ -96,7 +105,7 @@ class PdfViewerActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Erro ao abrir PDF: ${e.message}",
+                tr("Erro ao abrir PDF: {0}", e.message),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -296,7 +305,7 @@ class PdfViewerActivity : AppCompatActivity() {
             Button(this)
 
         anterior.text =
-            "‹ Anterior"
+            tr("‹ Anterior")
 
         anterior.setOnClickListener {
 
@@ -316,7 +325,7 @@ class PdfViewerActivity : AppCompatActivity() {
             Button(this)
 
         proxima.text =
-            "Próxima ›"
+            tr("Próxima ›")
 
         proxima.setOnClickListener {
 
@@ -422,13 +431,13 @@ class PdfViewerActivity : AppCompatActivity() {
                 numero
 
             pageInfo.text =
-                "Página ${numero + 1} de $totalPaginas"
+                tr("Página {0} de {1}", numero + 1, totalPaginas)
 
         } catch (e: Exception) {
 
             Toast.makeText(
                 this,
-                "Erro ao renderizar página: ${e.message}",
+                tr("Erro ao renderizar página: {0}", e.message),
                 Toast.LENGTH_SHORT
             ).show()
         }

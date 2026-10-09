@@ -17,6 +17,15 @@ import java.util.zip.ZipFile
 
 class ZipViewerActivity : AppCompatActivity() {
 
+    // Mesmo tamanho de letra do resto do app
+    override fun attachBaseContext(
+        novoContexto: android.content.Context
+    ) {
+        super.attachBaseContext(
+            ModoSimples.contexto(novoContexto)
+        )
+    }
+
     private lateinit var lista: ListView
 
     private var arquivoZip: File? = null
@@ -31,7 +40,7 @@ class ZipViewerActivity : AppCompatActivity() {
         if (caminho.isNullOrEmpty()) {
             Toast.makeText(
                 this,
-                "ZIP inválido",
+                tr("ZIP inválido"),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -44,7 +53,7 @@ class ZipViewerActivity : AppCompatActivity() {
         if (!arquivoZip!!.exists() || !arquivoZip!!.isFile) {
             Toast.makeText(
                 this,
-                "ZIP não encontrado",
+                tr("ZIP não encontrado"),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -167,7 +176,7 @@ class ZipViewerActivity : AppCompatActivity() {
 
         val extrair = Button(this)
 
-        extrair.text = "Extrair"
+        extrair.text = tr("Extrair")
 
         extrair.setOnClickListener {
             extrairZip()
@@ -273,7 +282,7 @@ class ZipViewerActivity : AppCompatActivity() {
 
                         Toast.makeText(
                             this,
-                            "ZIP vazio",
+                            tr("ZIP vazio"),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -285,7 +294,7 @@ class ZipViewerActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Erro ao ler ZIP: ${e.message}",
+                        tr("Erro ao ler ZIP: {0}", e.message),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -311,7 +320,7 @@ class ZipViewerActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "ZIP não encontrado",
+                tr("ZIP não encontrado"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -325,7 +334,7 @@ class ZipViewerActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Não foi possível determinar a pasta de destino",
+                tr("Não foi possível determinar a pasta de destino"),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -345,7 +354,7 @@ class ZipViewerActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Não foi possível criar a pasta de destino",
+                tr("Não foi possível criar a pasta de destino"),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -354,7 +363,7 @@ class ZipViewerActivity : AppCompatActivity() {
 
         Toast.makeText(
             this,
-            "Extraindo...",
+            tr("Extraindo..."),
             Toast.LENGTH_SHORT
         ).show()
 
@@ -464,7 +473,7 @@ class ZipViewerActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Extraído em:\n${destino.absolutePath}",
+                        tr("Extraído em:\n{0}", destino.absolutePath),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -475,7 +484,7 @@ class ZipViewerActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Erro ao extrair ZIP: ${e.message}",
+                        tr("Erro ao extrair ZIP: {0}", e.message),
                         Toast.LENGTH_LONG
                     ).show()
                 }

@@ -5,8 +5,9 @@ import android.content.res.Configuration
 
 /*
  * =============================================================
- * LETRAS GRANDES
- * Aumenta todos os textos do app (bom para quem enxerga pouco).
+ * TAMANHO DAS LETRAS
+ * O app inteiro usa letras 15% maiores que o padrão do Android.
+ * Com "Letras grandes" (menu ⋮) fica 50% maior.
  * Cada tela chama ModoSimples.contexto() em attachBaseContext.
  * =============================================================
  */
@@ -17,7 +18,10 @@ object ModoSimples {
 
     private const val CHAVE = "letras_grandes"
 
-    private const val AUMENTO = 1.3f
+    // Aumento normal do app e aumento do modo "Letras grandes"
+    private const val AUMENTO_PADRAO = 1.15f
+
+    private const val AUMENTO_GRANDE = 1.5f
 
     fun ativo(
         context: Context
@@ -39,15 +43,15 @@ object ModoSimples {
         base: Context
     ): Context {
 
-        if (!ativo(base)) {
-            return base
-        }
-
         val config =
             Configuration(base.resources.configuration)
 
+        // Idioma escolhido no app (datas, teclado numérico etc.)
+        config.setLocale(I18n.locale())
+
         config.fontScale =
-            config.fontScale * AUMENTO
+            config.fontScale *
+                if (ativo(base)) AUMENTO_GRANDE else AUMENTO_PADRAO
 
         return base.createConfigurationContext(config)
     }

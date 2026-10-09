@@ -34,13 +34,13 @@ class LimpezaWhatsAppActivity : TelaBase() {
 
     private val categorias =
         listOf(
-            Categoria("Fotos", listOf("WhatsApp Images"), R.drawable.imagens),
-            Categoria("Vídeos", listOf("WhatsApp Video", "WhatsApp Video Notes"), R.drawable.videos),
-            Categoria("Áudios e mensagens de voz", listOf("WhatsApp Audio", "WhatsApp Voice Notes"), R.drawable.audios),
-            Categoria("Documentos", listOf("WhatsApp Documents"), R.drawable.documentos),
-            Categoria("Figurinhas", listOf("WhatsApp Stickers"), R.drawable.ic_tipo_arquivo),
-            Categoria("GIFs", listOf("WhatsApp Animated Gifs"), R.drawable.ic_tipo_arquivo),
-            Categoria("Status salvos", listOf(".Statuses"), R.drawable.ic_tipo_arquivo)
+            Categoria(tr("Fotos"), listOf("WhatsApp Images"), R.drawable.imagens),
+            Categoria(tr("Vídeos"), listOf("WhatsApp Video", "WhatsApp Video Notes"), R.drawable.videos),
+            Categoria(tr("Áudios e mensagens de voz"), listOf("WhatsApp Audio", "WhatsApp Voice Notes"), R.drawable.audios),
+            Categoria(tr("Documentos"), listOf("WhatsApp Documents"), R.drawable.documentos),
+            Categoria(tr("Figurinhas"), listOf("WhatsApp Stickers"), R.drawable.ic_tipo_arquivo),
+            Categoria(tr("GIFs"), listOf("WhatsApp Animated Gifs"), R.drawable.ic_tipo_arquivo),
+            Categoria(tr("Status salvos"), listOf(".Statuses"), R.drawable.ic_tipo_arquivo)
         )
 
     private var categoriaAberta: Categoria? = null
@@ -51,7 +51,7 @@ class LimpezaWhatsAppActivity : TelaBase() {
 
         super.onCreate(savedInstanceState)
 
-        titulo.text = "Limpeza do WhatsApp"
+        titulo.text = tr("Limpeza do WhatsApp")
 
         onBackPressedDispatcher.addCallback(
             this,
@@ -87,7 +87,7 @@ class LimpezaWhatsAppActivity : TelaBase() {
 
     private fun analisar() {
 
-        status.text = "Procurando arquivos do WhatsApp..."
+        status.text = tr("Procurando arquivos do WhatsApp...")
 
         acoes.removeAllViews()
         rodape.visibility = View.GONE
@@ -115,7 +115,7 @@ class LimpezaWhatsAppActivity : TelaBase() {
                 if (isFinishing) return@runOnUiThread
 
                 if (midias.isEmpty()) {
-                    status.text = "Não encontramos a pasta do WhatsApp neste celular."
+                    status.text = tr("Não encontramos a pasta do WhatsApp neste celular.")
                     return@runOnUiThread
                 }
 
@@ -128,15 +128,15 @@ class LimpezaWhatsAppActivity : TelaBase() {
 
         categoriaAberta = null
 
-        titulo.text = "Limpeza do WhatsApp"
+        titulo.text = tr("Limpeza do WhatsApp")
 
         val total = categorias.sumOf { it.tamanho }
 
-        status.text = "O WhatsApp ocupa ${formatarBytes(total)} no seu celular"
+        status.text = tr("O WhatsApp ocupa {0} no seu celular", formatarBytes(total))
 
         acoes.removeAllViews()
         acoes.addView(
-            criarTexto("Toque em uma categoria para ver e limpar os arquivos.")
+            criarTexto(tr("Toque em uma categoria para ver e limpar os arquivos."))
         )
 
         rodape.visibility = View.GONE
@@ -168,7 +168,7 @@ class LimpezaWhatsAppActivity : TelaBase() {
                     val textos = LinearLayout(this@LimpezaWhatsAppActivity)
                     textos.orientation = LinearLayout.VERTICAL
                     textos.addView(criarTexto(categoria.nome, 17f, COR_TEXTO, true))
-                    textos.addView(criarTexto("${categoria.arquivos.size} arquivo(s)", 14f))
+                    textos.addView(criarTexto(tr("{0} arquivo(s)", categoria.arquivos.size), 14f))
 
                     linha.addView(
                         textos,
@@ -188,7 +188,7 @@ class LimpezaWhatsAppActivity : TelaBase() {
         }
 
         if (visiveis.isEmpty()) {
-            status.text = "Nada para limpar no WhatsApp 🎉"
+            status.text = tr("Nada para limpar no WhatsApp 🎉")
         }
     }
 
@@ -206,10 +206,10 @@ class LimpezaWhatsAppActivity : TelaBase() {
                 .sortedByDescending { it.length() }
                 .map { ItemArquivo(it) }
 
-        status.text = "${itens.size} arquivo(s) • ${formatarBytes(categoria.tamanho)}"
+        status.text = tr("{0} arquivo(s) • {1}", itens.size, formatarBytes(categoria.tamanho))
 
         val botaoLimpar =
-            criarBotao("Mover para a lixeira", R.drawable.ic_acao_lixeira, COR_VERMELHO) {
+            criarBotao(tr("Mover para a lixeira"), R.drawable.ic_acao_lixeira, COR_VERMELHO) {
                 limpar(itens)
             }
 
@@ -217,8 +217,8 @@ class LimpezaWhatsAppActivity : TelaBase() {
             val marcados = itens.filter { it.marcado }
             mudarTextoBotao(
                 botaoLimpar,
-                if (marcados.isEmpty()) "Marque o que quer apagar"
-                else "Mover ${marcados.size} para a lixeira (${formatarBytes(marcados.sumOf { it.arquivo!!.length() })})"
+                if (marcados.isEmpty()) tr("Marque o que quer apagar")
+                else tr("Mover {0} para a lixeira ({1})", marcados.size, formatarBytes(marcados.sumOf { it.arquivo!!.length() }))
             )
         }
 
@@ -230,7 +230,7 @@ class LimpezaWhatsAppActivity : TelaBase() {
         linhaBotoes.orientation = LinearLayout.HORIZONTAL
 
         linhaBotoes.addView(
-            criarBotao("Marcar +30 dias", null, COR_AZUL) {
+            criarBotao(tr("Marcar +30 dias"), null, COR_AZUL) {
                 val limite = System.currentTimeMillis() - 30L * 24 * 60 * 60 * 1000
                 itens.forEach { it.marcado = it.arquivo!!.lastModified() < limite }
                 adapter.notifyDataSetChanged()
@@ -240,7 +240,7 @@ class LimpezaWhatsAppActivity : TelaBase() {
         )
 
         linhaBotoes.addView(
-            criarBotao("Marcar todos", null, COR_AZUL) {
+            criarBotao(tr("Marcar todos"), null, COR_AZUL) {
                 val marcar = itens.any { !it.marcado }
                 itens.forEach { it.marcado = marcar }
                 adapter.notifyDataSetChanged()
@@ -278,23 +278,23 @@ class LimpezaWhatsAppActivity : TelaBase() {
             itens.filter { it.marcado }.mapNotNull { it.arquivo }
 
         if (marcados.isEmpty()) {
-            Toast.makeText(this, "Marque os arquivos que quer apagar", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, tr("Marque os arquivos que quer apagar"), Toast.LENGTH_SHORT).show()
             return
         }
 
         androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Limpar ${marcados.size} arquivo(s)?")
-            .setMessage("Eles vão para a lixeira do Faxina e podem ser restaurados.")
-            .setNegativeButton("Cancelar", null)
-            .setPositiveButton("Limpar") { _, _ ->
+            .setTitle(tr("Limpar {0} arquivo(s)?", marcados.size))
+            .setMessage(tr("Eles vão para a lixeira do Faxina e podem ser restaurados."))
+            .setNegativeButton(tr("Cancelar"), null)
+            .setPositiveButton(tr("Limpar")) { _, _ ->
 
-                status.text = "Limpando..."
+                status.text = tr("Limpando...")
 
                 moverParaLixeira(marcados) { movidos, bytes ->
 
                     Toast.makeText(
                         this,
-                        "Pronto! ${formatarBytes(bytes)} liberados ($movidos arquivo(s))",
+                        tr("Pronto! {0} liberados ({1} arquivo(s))", formatarBytes(bytes), movidos),
                         Toast.LENGTH_LONG
                     ).show()
 

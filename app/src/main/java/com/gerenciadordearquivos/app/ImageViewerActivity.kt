@@ -45,6 +45,15 @@ import kotlin.math.min
 
 class ImageViewerActivity : Activity() {
 
+    // Mesmo tamanho de letra do resto do app
+    override fun attachBaseContext(
+        novoContexto: android.content.Context
+    ) {
+        super.attachBaseContext(
+            ModoSimples.contexto(novoContexto)
+        )
+    }
+
     // Altura da barra de navegação do celular (px)
     private var espacoBaixoSistema = 0
 
@@ -97,7 +106,7 @@ class ImageViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "Imagem não encontrada",
+                tr("Imagem não encontrada"),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -115,7 +124,7 @@ class ImageViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "Arquivo não encontrado",
+                tr("Arquivo não encontrado"),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -335,7 +344,7 @@ class ImageViewerActivity : Activity() {
         )
 
         voltar.contentDescription =
-            "Voltar"
+            tr("Voltar")
 
         topo.addView(
             voltar,
@@ -479,7 +488,7 @@ class ImageViewerActivity : Activity() {
         )
 
         favoritoButton!!.contentDescription =
-            "Favorito"
+            tr("Favorito")
 
         topo.addView(
             favoritoButton,
@@ -516,7 +525,7 @@ class ImageViewerActivity : Activity() {
         )
 
         menu.contentDescription =
-            "Mais opções"
+            tr("Mais opções")
 
         topo.addView(
             menu,
@@ -573,7 +582,7 @@ class ImageViewerActivity : Activity() {
         adicionarBotaoInferior(
             inferior,
             "↗",
-            "Compartilhar"
+            tr("Compartilhar")
         ) {
             compartilharArquivo()
         }
@@ -581,7 +590,7 @@ class ImageViewerActivity : Activity() {
         adicionarBotaoInferior(
             inferior,
             "⧉",
-            "Copiar"
+            tr("Copiar")
         ) {
             mostrarEscolhaDePastaParaCopiar()
         }
@@ -589,7 +598,7 @@ class ImageViewerActivity : Activity() {
         adicionarBotaoInferior(
             inferior,
             "➜",
-            "Mover"
+            tr("Mover")
         ) {
             abrirSeletorDePasta(
                 arquivoAtual.parentFile
@@ -600,7 +609,7 @@ class ImageViewerActivity : Activity() {
         adicionarBotaoInferior(
             inferior,
             "⋮",
-            "Mais"
+            tr("Mais")
         ) {
             mostrarMenuInferior()
         }
@@ -852,7 +861,7 @@ class ImageViewerActivity : Activity() {
                 ?.takeIf {
                     it.isNotBlank()
                 }
-                ?: "Armazenamento"
+                ?: tr("Armazenamento")
 
         nomePastaText.text =
             "📁 $pasta"
@@ -966,7 +975,7 @@ class ImageViewerActivity : Activity() {
 
                         Toast.makeText(
                             this,
-                            "Formato de imagem inválido",
+                            tr("Formato de imagem inválido"),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -1041,7 +1050,7 @@ class ImageViewerActivity : Activity() {
 
                         Toast.makeText(
                             this,
-                            "Não foi possível carregar a imagem",
+                            tr("Não foi possível carregar a imagem"),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -1084,7 +1093,7 @@ class ImageViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Imagem muito grande para a memória do aparelho",
+                        tr("Imagem muito grande para a memória do aparelho"),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -1100,7 +1109,7 @@ class ImageViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Erro ao abrir imagem",
+                        tr("Erro ao abrir imagem"),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -1129,7 +1138,7 @@ class ImageViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "Última imagem",
+                tr("Última imagem"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -1159,7 +1168,7 @@ class ImageViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "Primeira imagem",
+                tr("Primeira imagem"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -1218,9 +1227,9 @@ class ImageViewerActivity : Activity() {
         Toast.makeText(
             this,
             if (novoValor) {
-                "Imagem adicionada aos favoritos"
+                tr("Imagem adicionada aos favoritos")
             } else {
-                "Imagem removida dos favoritos"
+                tr("Imagem removida dos favoritos")
             },
             Toast.LENGTH_SHORT
         ).show()
@@ -1266,7 +1275,7 @@ class ImageViewerActivity : Activity() {
         adicionarOpcao(
             layout,
             "↗",
-            "Abrir com"
+            tr("Abrir com")
         ) {
 
             popup.dismiss()
@@ -1277,7 +1286,7 @@ class ImageViewerActivity : Activity() {
         adicionarOpcao(
             layout,
             "ℹ",
-            "Informações"
+            tr("Informações")
         ) {
 
             popup.dismiss()
@@ -1288,7 +1297,7 @@ class ImageViewerActivity : Activity() {
         adicionarOpcao(
             layout,
             "✎",
-            "Renomear"
+            tr("Renomear")
         ) {
 
             popup.dismiss()
@@ -1299,7 +1308,7 @@ class ImageViewerActivity : Activity() {
         adicionarOpcao(
             layout,
             "⧉",
-            "Criar cópia"
+            tr("Criar cópia")
         ) {
 
             popup.dismiss()
@@ -1310,7 +1319,7 @@ class ImageViewerActivity : Activity() {
         adicionarOpcao(
             layout,
             "＋",
-            "Criar pasta"
+            tr("Criar pasta")
         ) {
 
             popup.dismiss()
@@ -1324,7 +1333,7 @@ class ImageViewerActivity : Activity() {
         adicionarOpcao(
             layout,
             "🗑",
-            "Mover para lixeira"
+            tr("Mover para lixeira")
         ) {
 
             popup.dismiss()
@@ -1440,7 +1449,7 @@ class ImageViewerActivity : Activity() {
             startActivity(
                 Intent.createChooser(
                     intent,
-                    "Compartilhar imagem"
+                    tr("Compartilhar imagem")
                 )
             )
 
@@ -1448,7 +1457,7 @@ class ImageViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "Não foi possível compartilhar",
+                tr("Não foi possível compartilhar"),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -1526,7 +1535,7 @@ class ImageViewerActivity : Activity() {
             startActivity(
                 Intent.createChooser(
                     intent,
-                    "Abrir imagem com"
+                    tr("Abrir imagem com")
                 )
             )
 
@@ -1534,7 +1543,7 @@ class ImageViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "Nenhum aplicativo compatível encontrado",
+                tr("Nenhum aplicativo compatível encontrado"),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -1591,7 +1600,7 @@ class ImageViewerActivity : Activity() {
 
             } else {
 
-                "Desconhecida"
+                tr("Desconhecida")
             }
 
         val mensagem =
@@ -1612,7 +1621,7 @@ class ImageViewerActivity : Activity() {
 
         AlertDialog.Builder(this)
             .setTitle(
-                "Informações da imagem"
+                tr("Informações da imagem")
             )
             .setMessage(
                 mensagem
@@ -1690,17 +1699,17 @@ class ImageViewerActivity : Activity() {
 
         AlertDialog.Builder(this)
             .setTitle(
-                "Renomear imagem"
+                tr("Renomear imagem")
             )
             .setView(
                 campo
             )
             .setNegativeButton(
-                "Cancelar",
+                tr("Cancelar"),
                 null
             )
             .setPositiveButton(
-                "Renomear"
+                tr("Renomear")
             ) { _, _ ->
 
                 val nomeBase =
@@ -1714,7 +1723,7 @@ class ImageViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Digite um nome",
+                        tr("Digite um nome"),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -1748,7 +1757,7 @@ class ImageViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Já existe um arquivo com esse nome",
+                        tr("Já existe um arquivo com esse nome"),
                         Toast.LENGTH_LONG
                     ).show()
 
@@ -1771,7 +1780,7 @@ class ImageViewerActivity : Activity() {
 
                         Toast.makeText(
                             this,
-                            "Imagem renomeada",
+                            tr("Imagem renomeada"),
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -1781,7 +1790,7 @@ class ImageViewerActivity : Activity() {
 
                         Toast.makeText(
                             this,
-                            "Não foi possível renomear",
+                            tr("Não foi possível renomear"),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -1790,7 +1799,7 @@ class ImageViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Erro ao renomear",
+                        tr("Erro ao renomear"),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -1923,22 +1932,22 @@ class ImageViewerActivity : Activity() {
             Button(this)
 
         criar.text =
-            "＋ Pasta"
+            tr("＋ Pasta")
 
         val cancelar =
             Button(this)
 
         cancelar.text =
-            "Cancelar"
+            tr("Cancelar")
 
         val acao =
             Button(this)
 
         acao.text =
             if (somenteCopiar) {
-                "Copiar aqui"
+                tr("Copiar aqui")
             } else {
-                "Mover aqui"
+                tr("Mover aqui")
             }
 
         botoes.addView(
@@ -1974,9 +1983,9 @@ class ImageViewerActivity : Activity() {
 
         dialog.setTitle(
             if (somenteCopiar) {
-                "Escolher pasta para copiar"
+                tr("Escolher pasta para copiar")
             } else {
-                "Escolher pasta"
+                tr("Escolher pasta")
             }
         )
 
@@ -2062,7 +2071,7 @@ class ImageViewerActivity : Activity() {
                 raiz.absolutePath
             ) {
 
-                "Armazenamento interno"
+                tr("Armazenamento interno")
 
             } else {
 
@@ -2181,21 +2190,21 @@ class ImageViewerActivity : Activity() {
             EditText(this)
 
         campo.hint =
-            "Nome da pasta"
+            tr("Nome da pasta")
 
         AlertDialog.Builder(this)
             .setTitle(
-                "Criar pasta"
+                tr("Criar pasta")
             )
             .setView(
                 campo
             )
             .setNegativeButton(
-                "Cancelar",
+                tr("Cancelar"),
                 null
             )
             .setPositiveButton(
-                "Criar"
+                tr("Criar")
             ) { _, _ ->
 
                 val nome =
@@ -2209,7 +2218,7 @@ class ImageViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Digite um nome",
+                        tr("Digite um nome"),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -2228,7 +2237,7 @@ class ImageViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Essa pasta já existe",
+                        tr("Essa pasta já existe"),
                         Toast.LENGTH_LONG
                     ).show()
 
@@ -2243,7 +2252,7 @@ class ImageViewerActivity : Activity() {
 
                         Toast.makeText(
                             this,
-                            "Pasta criada",
+                            tr("Pasta criada"),
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -2253,7 +2262,7 @@ class ImageViewerActivity : Activity() {
 
                         Toast.makeText(
                             this,
-                            "Não foi possível criar a pasta",
+                            tr("Não foi possível criar a pasta"),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -2262,7 +2271,7 @@ class ImageViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Erro ao criar pasta",
+                        tr("Erro ao criar pasta"),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -2318,7 +2327,7 @@ class ImageViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Imagem copiada com sucesso",
+                        tr("Imagem copiada com sucesso"),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -2334,7 +2343,7 @@ class ImageViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Erro ao copiar imagem",
+                        tr("Erro ao copiar imagem"),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -2392,7 +2401,7 @@ class ImageViewerActivity : Activity() {
             destino.delete()
 
             throw Exception(
-                "Falha na cópia"
+                tr("Falha na cópia")
             )
         }
     }
@@ -2417,7 +2426,7 @@ class ImageViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "A imagem já está nessa pasta",
+                tr("A imagem já está nessa pasta"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -2520,7 +2529,7 @@ class ImageViewerActivity : Activity() {
 
                 Toast.makeText(
                     this,
-                    "Imagem movida com sucesso",
+                    tr("Imagem movida com sucesso"),
                     Toast.LENGTH_SHORT
                 ).show()
 
@@ -2539,7 +2548,7 @@ class ImageViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "Erro ao mover imagem",
+                tr("Erro ao mover imagem"),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -2579,7 +2588,7 @@ class ImageViewerActivity : Activity() {
 
                 Toast.makeText(
                     this,
-                    "Imagem movida com sucesso",
+                    tr("Imagem movida com sucesso"),
                     Toast.LENGTH_SHORT
                 ).show()
 
@@ -2589,7 +2598,7 @@ class ImageViewerActivity : Activity() {
 
                 Toast.makeText(
                     this,
-                    "Imagem copiada, mas a original não pôde ser removida",
+                    tr("Imagem copiada, mas a original não pôde ser removida"),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -2603,7 +2612,7 @@ class ImageViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "Erro ao mover imagem",
+                tr("Erro ao mover imagem"),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -2639,7 +2648,7 @@ class ImageViewerActivity : Activity() {
 
                     Toast.makeText(
                         this,
-                        "Não foi possível criar a lixeira",
+                        tr("Não foi possível criar a lixeira"),
                         Toast.LENGTH_LONG
                     ).show()
 
@@ -2655,17 +2664,17 @@ class ImageViewerActivity : Activity() {
 
             AlertDialog.Builder(this)
                 .setTitle(
-                    "Mover para lixeira?"
+                    tr("Mover para lixeira?")
                 )
                 .setMessage(
-                    "A imagem será movida para a lixeira."
+                    tr("A imagem será movida para a lixeira.")
                 )
                 .setNegativeButton(
-                    "Cancelar",
+                    tr("Cancelar"),
                     null
                 )
                 .setPositiveButton(
-                    "Mover"
+                    tr("Mover")
                 ) { _, _ ->
 
                     val origem =
@@ -2686,7 +2695,7 @@ class ImageViewerActivity : Activity() {
 
                         Toast.makeText(
                             this,
-                            "Imagem movida para a lixeira",
+                            tr("Imagem movida para a lixeira"),
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -2707,7 +2716,7 @@ class ImageViewerActivity : Activity() {
 
             Toast.makeText(
                 this,
-                "Erro ao mover para lixeira",
+                tr("Erro ao mover para lixeira"),
                 Toast.LENGTH_LONG
             ).show()
         }

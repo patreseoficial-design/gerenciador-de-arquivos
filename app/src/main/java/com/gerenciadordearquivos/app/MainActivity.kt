@@ -179,6 +179,11 @@ class MainActivity : AppCompatActivity() {
             R.layout.activity_main
         )
 
+        // Textos da tela inicial no idioma escolhido
+        I18n.traduzirTela(
+            findViewById(android.R.id.content)
+        )
+
         inicializarViews()
         configurarBotoes()
         configurarPesquisa()
@@ -284,7 +289,7 @@ class MainActivity : AppCompatActivity() {
         if (
             ::fileScreen.isInitialized &&
             fileScreen.visibility == View.VISIBLE &&
-            fileScreenTitle.text.toString() == "Aplicativos"
+            fileScreenTitle.text.toString() == tr("Aplicativos")
         ) {
             abrirAplicativos()
         }
@@ -354,7 +359,7 @@ class MainActivity : AppCompatActivity() {
 
             abrirPasta(
                 rootPath,
-                "Armazenamento"
+                tr("Armazenamento")
             )
         }
 
@@ -372,7 +377,7 @@ class MainActivity : AppCompatActivity() {
 
             abrirPasta(
                 pasta,
-                "Downloads"
+                tr("Downloads")
             )
         }
 
@@ -571,7 +576,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Pasta não encontrada",
+                tr("Pasta não encontrada"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -772,7 +777,7 @@ class MainActivity : AppCompatActivity() {
     private fun abrirImagens() {
 
         abrirCategoriaDeMidia(
-            "Imagens",
+            tr("Imagens"),
             TIPO_IMAGEM,
             listOf(
                 Environment.getExternalStoragePublicDirectory(
@@ -792,7 +797,7 @@ class MainActivity : AppCompatActivity() {
     private fun abrirVideos() {
 
         abrirCategoriaDeMidia(
-            "Vídeos",
+            tr("Vídeos"),
             TIPO_VIDEO,
             listOf(
                 Environment.getExternalStoragePublicDirectory(
@@ -833,7 +838,7 @@ class MainActivity : AppCompatActivity() {
             titulo
 
         currentPath.text =
-            "Pastas de $titulo"
+            tr("Pastas de {0}", titulo)
 
         fileList.visibility =
             View.GONE
@@ -894,7 +899,7 @@ class MainActivity : AppCompatActivity() {
 
         Toast.makeText(
             this,
-            "Organizando por pasta...",
+            tr("Organizando por pasta..."),
             Toast.LENGTH_SHORT
         ).show()
 
@@ -998,7 +1003,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
 
                 currentPath.text =
-                    "${resultado.size} pasta(s)"
+                    tr("{0} pasta(s)", resultado.size)
 
                 mediaGrid.adapter =
                     PastaMediaAdapter(
@@ -1095,9 +1100,9 @@ class MainActivity : AppCompatActivity() {
 
                 currentPath.text =
                     if (tipos == TIPO_VIDEO) {
-                        "${resultado.size} vídeo(s)"
+                        tr("{0} vídeo(s)", resultado.size)
                     } else {
-                        "${resultado.size} imagem(ns)"
+                        tr("{0} imagem(ns)", resultado.size)
                     }
 
                 mediaGrid.adapter =
@@ -1176,7 +1181,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Arquivo não encontrado",
+                tr("Arquivo não encontrado"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -1237,7 +1242,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Erro ao abrir imagem: ${e.message}",
+                        tr("Erro ao abrir imagem: {0}", e.message),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -1280,7 +1285,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Erro ao abrir vídeo: ${e.message}",
+                        tr("Erro ao abrir vídeo: {0}", e.message),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -1316,7 +1321,7 @@ class MainActivity : AppCompatActivity() {
             )
 
         abrirListaPorExtensao(
-            "Áudio",
+            tr("Áudio"),
             listOf(
                 musicas,
                 gravacoes
@@ -1335,7 +1340,7 @@ class MainActivity : AppCompatActivity() {
         pastaDeMidiaAtual = null
 
         abrirListaPorExtensao(
-            "Documentos",
+            tr("Documentos"),
             listOf(
                 Environment.getExternalStoragePublicDirectory(
                     Environment.DIRECTORY_DOCUMENTS
@@ -1370,7 +1375,7 @@ class MainActivity : AppCompatActivity() {
             titulo
 
         currentPath.text =
-            "Buscando arquivos..."
+            tr("Buscando arquivos...")
 
         mediaGrid.visibility =
             View.GONE
@@ -1456,7 +1461,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
 
                 currentPath.text =
-                    "${resultado.size} arquivo(s)"
+                    tr("{0} arquivo(s)", resultado.size)
 
                 fileList.adapter =
                     FileListAdapter(
@@ -1529,10 +1534,10 @@ class MainActivity : AppCompatActivity() {
             View.GONE
 
         fileScreenTitle.text =
-            "Aplicativos"
+            tr("Aplicativos")
 
         currentPath.text =
-            "Carregando aplicativos instalados..."
+            tr("Carregando aplicativos instalados...")
 
         mediaGrid.visibility =
             View.GONE
@@ -1594,7 +1599,7 @@ class MainActivity : AppCompatActivity() {
 
                 if (
                     fileScreen.visibility != View.VISIBLE ||
-                    fileScreenTitle.text.toString() != "Aplicativos"
+                    fileScreenTitle.text.toString() != tr("Aplicativos")
                 ) {
                     return@runOnUiThread
                 }
@@ -1654,9 +1659,9 @@ class MainActivity : AppCompatActivity() {
 
         currentPath.text =
             if (nativos) {
-                "${aplicativos.size} aplicativos nativos"
+                tr("{0} aplicativos nativos", aplicativos.size)
             } else {
-                "${aplicativos.size} aplicativos baixados"
+                tr("{0} aplicativos baixados", aplicativos.size)
             }
 
         fileList.adapter =
@@ -1732,7 +1737,7 @@ class MainActivity : AppCompatActivity() {
 
                 Toast.makeText(
                     this,
-                    "Não foi possível abrir o aplicativo",
+                    tr("Não foi possível abrir o aplicativo"),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -1743,7 +1748,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Erro ao abrir aplicativo: ${e.message}",
+                tr("Erro ao abrir aplicativo: {0}", e.message),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -1764,7 +1769,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "↗",
-            "Abrir"
+            tr("Abrir")
         ) {
 
             abrirAplicativo(
@@ -1775,7 +1780,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "ⓘ",
-            "Informações"
+            tr("Informações")
         ) {
 
             try {
@@ -1800,7 +1805,7 @@ class MainActivity : AppCompatActivity() {
 
                 Toast.makeText(
                     this,
-                    "Não foi possível abrir as informações",
+                    tr("Não foi possível abrir as informações"),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -1812,7 +1817,7 @@ class MainActivity : AppCompatActivity() {
             adicionarOpcaoMenu(
                 menu,
                 "🗑",
-                "Desinstalar"
+                tr("Desinstalar")
             ) {
 
                 try {
@@ -1832,7 +1837,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Não foi possível desinstalar",
+                        tr("Não foi possível desinstalar"),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -1860,7 +1865,7 @@ class MainActivity : AppCompatActivity() {
 
         abrirPasta(
             pasta,
-            "Lixeira"
+            tr("Lixeira")
         )
 
         mostrarBarraLixeira()
@@ -1875,7 +1880,7 @@ class MainActivity : AppCompatActivity() {
 
         barraAcoes.addView(
             criarTextoAjuda(
-                "Toque em um item para restaurar ou excluir de vez."
+                tr("Toque em um item para restaurar ou excluir de vez.")
             )
         )
 
@@ -1887,7 +1892,7 @@ class MainActivity : AppCompatActivity() {
 
         botoes.addView(
             criarBotaoAcao(
-                "Restaurar tudo",
+                tr("Restaurar tudo"),
                 R.drawable.ic_acao_restaurar,
                 Color.rgb(30, 136, 229)
             ) {
@@ -1900,7 +1905,7 @@ class MainActivity : AppCompatActivity() {
 
         botoes.addView(
             criarBotaoAcao(
-                "Esvaziar lixeira",
+                tr("Esvaziar lixeira"),
                 R.drawable.ic_acao_lixeira,
                 Color.rgb(229, 57, 53)
             ) {
@@ -1931,7 +1936,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "A lixeira já está vazia",
+                tr("A lixeira já está vazia"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -1939,13 +1944,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         AlertDialog.Builder(this)
-            .setTitle("Esvaziar lixeira?")
+            .setTitle(tr("Esvaziar lixeira?"))
             .setMessage(
-                "${itens.size} item(ns) serão apagados para sempre. " +
-                    "Isso não pode ser desfeito."
+                tr("{0} item(ns) serão apagados para sempre. Isso não pode ser desfeito.", itens.size)
             )
-            .setNegativeButton("Cancelar", null)
-            .setPositiveButton("Esvaziar") { _, _ ->
+            .setNegativeButton(tr("Cancelar"), null)
+            .setPositiveButton(tr("Esvaziar")) { _, _ ->
 
                 thread {
 
@@ -1956,7 +1960,7 @@ class MainActivity : AppCompatActivity() {
 
                         Toast.makeText(
                             this,
-                            "$apagados item(ns) apagados",
+                            tr("{0} item(ns) apagados", apagados),
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -1978,7 +1982,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "A lixeira está vazia",
+                tr("A lixeira está vazia"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -1986,12 +1990,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         AlertDialog.Builder(this)
-            .setTitle("Restaurar tudo?")
+            .setTitle(tr("Restaurar tudo?"))
             .setMessage(
-                "${itens.size} item(ns) voltarão para as pastas de origem."
+                tr("{0} item(ns) voltarão para as pastas de origem.", itens.size)
             )
-            .setNegativeButton("Cancelar", null)
-            .setPositiveButton("Restaurar") { _, _ ->
+            .setNegativeButton(tr("Cancelar"), null)
+            .setPositiveButton(tr("Restaurar")) { _, _ ->
 
                 thread {
 
@@ -2004,7 +2008,7 @@ class MainActivity : AppCompatActivity() {
 
                         Toast.makeText(
                             this,
-                            "$restaurados item(ns) restaurados",
+                            tr("{0} item(ns) restaurados", restaurados),
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -2030,7 +2034,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "↺",
-            "Restaurar"
+            tr("Restaurar")
         ) {
 
             val destino =
@@ -2042,9 +2046,9 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(
                 this,
                 if (destino != null) {
-                    "Restaurado em ${destino.parentFile?.name ?: ""}"
+                    tr("Restaurado em {0}", destino.parentFile?.name ?: "")
                 } else {
-                    "Não foi possível restaurar"
+                    tr("Não foi possível restaurar")
                 },
                 Toast.LENGTH_SHORT
             ).show()
@@ -2055,7 +2059,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "ⓘ",
-            "Informações"
+            tr("Informações")
         ) {
 
             mostrarInformacoes(
@@ -2066,16 +2070,16 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "🗑",
-            "Excluir definitivamente"
+            tr("Excluir definitivamente")
         ) {
 
             AlertDialog.Builder(this)
-                .setTitle("Excluir definitivamente?")
+                .setTitle(tr("Excluir definitivamente?"))
                 .setMessage(
-                    "\"${arquivo.name}\" será apagado para sempre."
+                    tr("\"{0}\" será apagado para sempre.", arquivo.name)
                 )
-                .setNegativeButton("Cancelar", null)
-                .setPositiveButton("Excluir") { _, _ ->
+                .setNegativeButton(tr("Cancelar"), null)
+                .setPositiveButton(tr("Excluir")) { _, _ ->
 
                     if (
                         Armazenamento.excluirDefinitivamente(
@@ -2086,7 +2090,7 @@ class MainActivity : AppCompatActivity() {
 
                         Toast.makeText(
                             this,
-                            "Excluído",
+                            tr("Excluído"),
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -2094,7 +2098,7 @@ class MainActivity : AppCompatActivity() {
 
                         Toast.makeText(
                             this,
-                            "Não foi possível excluir",
+                            tr("Não foi possível excluir"),
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -2139,7 +2143,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Nenhum cartão de memória encontrado",
+                tr("Nenhum cartão de memória encontrado"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -2153,7 +2157,7 @@ class MainActivity : AppCompatActivity() {
 
         abrirPasta(
             cartao,
-            "Cartão de memória"
+            tr("Cartão de memória")
         )
 
         mostrarBarraCartao(
@@ -2188,11 +2192,9 @@ class MainActivity : AppCompatActivity() {
 
         titulo.text =
             if (espaco != null) {
-                "${formatarBytes(espaco.usado)} usados de " +
-                    "${formatarBytes(espaco.total)} • " +
-                    "${formatarBytes(espaco.livre)} livres"
+                tr("{0} usados de {1} • {2} livres", formatarBytes(espaco.usado), formatarBytes(espaco.total), formatarBytes(espaco.livre))
             } else {
-                "Espaço não disponível"
+                tr("Espaço não disponível")
             }
 
         barraAcoes.addView(titulo)
@@ -2226,7 +2228,7 @@ class MainActivity : AppCompatActivity() {
         // Quanto cada tipo ocupa no cartão (calculado em segundo plano)
         val detalhes =
             criarTextoAjuda(
-                "Calculando o que tem no cartão..."
+                tr("Calculando o que tem no cartão...")
             )
 
         barraAcoes.addView(detalhes)
@@ -2245,13 +2247,13 @@ class MainActivity : AppCompatActivity() {
                         .joinToString("   •   ") {
                             "${it.key}: ${formatarBytes(it.value)}"
                         }
-                        .ifEmpty { "Cartão vazio" }
+                        .ifEmpty { tr("Cartão vazio") }
             }
         }
 
         barraAcoes.addView(
             criarBotaoAcao(
-                "Formatar cartão",
+                tr("Formatar cartão"),
                 R.drawable.ic_acao_lixeira,
                 Color.rgb(229, 57, 53)
             ) {
@@ -2267,7 +2269,7 @@ class MainActivity : AppCompatActivity() {
 
         barraAcoes.addView(
             criarTextoAjuda(
-                "Segure um arquivo ou pasta para mover entre o cartão e o celular."
+                tr("Segure um arquivo ou pasta para mover entre o cartão e o celular.")
             )
         )
     }
@@ -2285,11 +2287,11 @@ class MainActivity : AppCompatActivity() {
     ) {
 
         AlertDialog.Builder(this)
-            .setTitle("Formatar cartão de memória")
+            .setTitle(tr("Formatar cartão de memória"))
             .setItems(
                 arrayOf(
-                    "Formatar normal (apagar tudo do cartão)",
-                    "Formatar FAT32 pelo sistema do Android"
+                    tr("Formatar normal (apagar tudo do cartão)"),
+                    tr("Formatar FAT32 pelo sistema do Android")
                 )
             ) { _, qual ->
 
@@ -2302,7 +2304,7 @@ class MainActivity : AppCompatActivity() {
                         abrirConfiguracoesDoCartao()
                 }
             }
-            .setNegativeButton("Cancelar", null)
+            .setNegativeButton(tr("Cancelar"), null)
             .show()
     }
 
@@ -2311,25 +2313,24 @@ class MainActivity : AppCompatActivity() {
     ) {
 
         AlertDialog.Builder(this)
-            .setTitle("Apagar TUDO do cartão?")
+            .setTitle(tr("Apagar TUDO do cartão?"))
             .setMessage(
-                "Todas as fotos, vídeos, músicas e arquivos do cartão " +
-                    "serão apagados para sempre. Isso não pode ser desfeito."
+                tr("Todas as fotos, vídeos, músicas e arquivos do cartão serão apagados para sempre. Isso não pode ser desfeito.")
             )
-            .setNegativeButton("Cancelar", null)
-            .setPositiveButton("Continuar") { _, _ ->
+            .setNegativeButton(tr("Cancelar"), null)
+            .setPositiveButton(tr("Continuar")) { _, _ ->
 
                 AlertDialog.Builder(this)
-                    .setTitle("Tem certeza?")
+                    .setTitle(tr("Tem certeza?"))
                     .setMessage(
-                        "Última confirmação: apagar tudo do cartão de memória."
+                        tr("Última confirmação: apagar tudo do cartão de memória.")
                     )
-                    .setNegativeButton("Não", null)
-                    .setPositiveButton("Sim, apagar tudo") { _, _ ->
+                    .setNegativeButton(tr("Não"), null)
+                    .setPositiveButton(tr("Sim, apagar tudo")) { _, _ ->
 
                         Toast.makeText(
                             this,
-                            "Formatando o cartão...",
+                            tr("Formatando o cartão..."),
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -2354,9 +2355,9 @@ class MainActivity : AppCompatActivity() {
                                 Toast.makeText(
                                     this,
                                     if (falhas == 0) {
-                                        "Cartão formatado"
+                                        tr("Cartão formatado")
                                     } else {
-                                        "Alguns itens não puderam ser apagados ($falhas)"
+                                        tr("Alguns itens não puderam ser apagados ({0})", falhas)
                                     },
                                     Toast.LENGTH_LONG
                                 ).show()
@@ -2386,7 +2387,7 @@ class MainActivity : AppCompatActivity() {
 
                 Toast.makeText(
                     this,
-                    "Escolha o cartão SD e toque em Formatar",
+                    tr("Escolha o cartão SD e toque em Formatar"),
                     Toast.LENGTH_LONG
                 ).show()
 
@@ -2400,7 +2401,7 @@ class MainActivity : AppCompatActivity() {
 
         Toast.makeText(
             this,
-            "Não foi possível abrir as configurações",
+            tr("Não foi possível abrir as configurações"),
             Toast.LENGTH_SHORT
         ).show()
     }
@@ -2420,7 +2421,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "→",
-            if (noCartao) "Mover para o celular" else "Mover para o cartão"
+            if (noCartao) tr("Mover para o celular") else tr("Mover para o cartão")
         ) {
 
             val destinoPasta =
@@ -2441,7 +2442,7 @@ class MainActivity : AppCompatActivity() {
             moverEntreArmazenamentos(
                 arquivo,
                 destinoPasta,
-                if (noCartao) "celular" else "cartão"
+                if (noCartao) tr("celular") else tr("cartão")
             )
         }
     }
@@ -2454,7 +2455,7 @@ class MainActivity : AppCompatActivity() {
 
         Toast.makeText(
             this,
-            "Movendo para o $nomeDestino...",
+            tr("Movendo para o {0}...", nomeDestino),
             Toast.LENGTH_SHORT
         ).show()
 
@@ -2484,9 +2485,9 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(
                     this,
                     if (ok) {
-                        "Movido para o $nomeDestino"
+                        tr("Movido para o {0}", nomeDestino)
                     } else {
-                        "Não foi possível mover para o $nomeDestino"
+                        tr("Não foi possível mover para o {0}", nomeDestino)
                     },
                     Toast.LENGTH_LONG
                 ).show()
@@ -2514,7 +2515,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "★",
-            if (Premium.ativo(this)) "Premium ativo ⭐" else "Faxina Premium"
+            if (Premium.ativo(this)) tr("Premium ativo ⭐") else tr("Faxina Premium")
         ) {
             startActivity(
                 Intent(this, PremiumActivity::class.java)
@@ -2523,9 +2524,17 @@ class MainActivity : AppCompatActivity() {
 
         adicionarOpcaoMenu(
             menu,
+            "🌐",
+            tr("Idioma") + " / Language"
+        ) {
+            escolherIdioma()
+        }
+
+        adicionarOpcaoMenu(
+            menu,
             "A",
-            if (ModoSimples.ativo(this)) "Letras grandes: ligado"
-            else "Letras grandes: desligado"
+            if (ModoSimples.ativo(this)) tr("Letras grandes: ligado")
+            else tr("Letras grandes: desligado")
         ) {
 
             ModoSimples.definir(
@@ -2540,8 +2549,8 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "!",
-            if (AvisoArmazenamento.ativo(this)) "Avisar celular cheio: ligado"
-            else "Avisar celular cheio: desligado"
+            if (AvisoArmazenamento.ativo(this)) tr("Avisar celular cheio: ligado")
+            else tr("Avisar celular cheio: desligado")
         ) {
 
             val ligar =
@@ -2554,8 +2563,8 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                if (ligar) "Vamos avisar quando o celular estiver quase cheio"
-                else "Aviso de celular cheio desligado",
+                if (ligar) tr("Vamos avisar quando o celular estiver quase cheio")
+                else tr("Aviso de celular cheio desligado"),
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -2563,7 +2572,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "ⓘ",
-            "Política de privacidade"
+            tr("Política de privacidade")
         ) {
             try {
                 startActivity(
@@ -2577,7 +2586,7 @@ class MainActivity : AppCompatActivity() {
             ) {
                 Toast.makeText(
                     this,
-                    "Não foi possível abrir o navegador",
+                    tr("Não foi possível abrir o navegador"),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -2587,6 +2596,42 @@ class MainActivity : AppCompatActivity() {
             menu,
             ancora
         )
+    }
+
+    // ============================================================
+    // IDIOMA
+    // ============================================================
+
+    private fun escolherIdioma() {
+
+        val codigos =
+            listOf(I18n.AUTOMATICO) + I18n.IDIOMAS.keys
+
+        val nomes =
+            listOf(tr("Automático (idioma do celular)")) + I18n.IDIOMAS.values
+
+        val atual =
+            codigos.indexOf(I18n.escolha(this)).coerceAtLeast(0)
+
+        AlertDialog.Builder(this)
+            .setTitle(tr("Idioma") + " / Language")
+            .setSingleChoiceItems(
+                nomes.toTypedArray(),
+                atual
+            ) { dialogo, qual ->
+
+                dialogo.dismiss()
+
+                I18n.definir(
+                    this,
+                    codigos[qual]
+                )
+
+                // Abre a tela de novo já no idioma escolhido
+                recreate()
+            }
+            .setNegativeButton(tr("Cancelar"), null)
+            .show()
     }
 
     // ============================================================
@@ -2601,7 +2646,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "O Cofre faz parte do Premium",
+                tr("O Cofre faz parte do Premium"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -2616,7 +2661,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Abra o Cofre e crie um PIN primeiro",
+                tr("Abra o Cofre e crie um PIN primeiro"),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -2631,7 +2676,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Guardado no cofre 🔒",
+                tr("Guardado no cofre 🔒"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -2641,7 +2686,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Não foi possível guardar no cofre",
+                tr("Não foi possível guardar no cofre"),
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -2789,10 +2834,10 @@ class MainActivity : AppCompatActivity() {
             View.GONE
 
         fileScreenTitle.text =
-            "Pesquisa"
+            tr("Pesquisa")
 
         currentPath.text =
-            "Resultados para: $texto"
+            tr("Resultados para: {0}", texto)
 
         mediaGrid.visibility =
             View.GONE
@@ -2916,7 +2961,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Arquivo não encontrado",
+                tr("Arquivo não encontrado"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -2947,7 +2992,7 @@ class MainActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     Toast.makeText(
                         this,
-                        "Erro ao reproduzir áudio: ${e.message}",
+                        tr("Erro ao reproduzir áudio: {0}", e.message),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -3015,7 +3060,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Erro ao abrir imagem: ${e.message}",
+                tr("Erro ao abrir imagem: {0}", e.message),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -3046,7 +3091,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Erro ao abrir vídeo: ${e.message}",
+                tr("Erro ao abrir vídeo: {0}", e.message),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -3077,7 +3122,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Erro ao abrir PDF: ${e.message}",
+                tr("Erro ao abrir PDF: {0}", e.message),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -3108,7 +3153,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Erro ao abrir ZIP: ${e.message}",
+                tr("Erro ao abrir ZIP: {0}", e.message),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -3144,7 +3189,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(
                 Intent.createChooser(
                     intent,
-                    "Abrir com"
+                    tr("Abrir com")
                 )
             )
 
@@ -3154,7 +3199,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Nenhum aplicativo pode abrir este arquivo",
+                tr("Nenhum aplicativo pode abrir este arquivo"),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -3164,7 +3209,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Não foi possível abrir: ${e.message}",
+                tr("Não foi possível abrir: {0}", e.message),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -3311,8 +3356,7 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
 
                     storageInfo.text =
-                        "${formatarBytes(usado)} usados de " +
-                                "${formatarBytes(total)}"
+                        tr("{0} usados de {1}", formatarBytes(usado), formatarBytes(total))
 
                     storageProgress.max =
                         100
@@ -3328,7 +3372,7 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
 
                     storageInfo.text =
-                        "Não foi possível calcular o armazenamento"
+                        tr("Não foi possível calcular o armazenamento")
 
                     storageProgress.progress =
                         0
@@ -3400,17 +3444,13 @@ class MainActivity : AppCompatActivity() {
             }
 
             AlertDialog.Builder(this)
-                .setTitle("Acesso aos arquivos")
+                .setTitle(tr("Acesso aos arquivos"))
                 .setMessage(
-                    "Para mostrar, organizar, mover e apagar seus arquivos, " +
-                        "o Faxina precisa da permissão " +
-                        "\"Acesso a todos os arquivos\".\n\n" +
-                        "Seus arquivos ficam só no seu celular: o app não " +
-                        "envia nada para a internet."
+                    tr("Para mostrar, organizar, mover e apagar seus arquivos, o Faxina precisa da permissão \"Acesso a todos os arquivos\".\n\nSeus arquivos ficam só no seu celular: o app não envia nada para a internet.")
                 )
                 .setCancelable(false)
-                .setNegativeButton("Agora não", null)
-                .setPositiveButton("Permitir") { _, _ ->
+                .setNegativeButton(tr("Agora não"), null)
+                .setPositiveButton(tr("Permitir")) { _, _ ->
                     abrirTelaDePermissao()
                 }
                 .show()
@@ -3506,10 +3546,10 @@ class MainActivity : AppCompatActivity() {
             View.GONE
 
         fileScreenTitle.text =
-            "Análise do armazenamento"
+            tr("Análise do armazenamento")
 
         currentPath.text =
-            "Analisando... isso pode levar alguns segundos"
+            tr("Analisando... isso pode levar alguns segundos")
 
         mediaGrid.visibility =
             View.GONE
@@ -3539,7 +3579,7 @@ class MainActivity : AppCompatActivity() {
 
                 if (
                     fileScreenTitle.text.toString() !=
-                    "Análise do armazenamento"
+                    tr("Análise do armazenamento")
                 ) {
                     return@runOnUiThread
                 }
@@ -3547,7 +3587,7 @@ class MainActivity : AppCompatActivity() {
                 if (analise == null) {
 
                     currentPath.text =
-                        "Não foi possível analisar o armazenamento"
+                        tr("Não foi possível analisar o armazenamento")
 
                     return@runOnUiThread
                 }
@@ -3574,22 +3614,22 @@ class MainActivity : AppCompatActivity() {
         extensao: String
     ): String =
         when (extensao) {
-            in TIPO_IMAGEM -> "Imagens"
-            in TIPO_VIDEO -> "Vídeos"
-            in TIPO_AUDIO -> "Áudios"
-            in TIPO_DOCUMENTO -> "Documentos"
-            "apk", "apks", "xapk" -> "Instaladores (APK)"
-            else -> "Outros"
+            in TIPO_IMAGEM -> tr("Imagens")
+            in TIPO_VIDEO -> tr("Vídeos")
+            in TIPO_AUDIO -> tr("Áudios")
+            in TIPO_DOCUMENTO -> tr("Documentos")
+            "apk", "apks", "xapk" -> tr("Instaladores (APK)")
+            else -> tr("Outros")
         }
 
     private fun novasCategorias(): LinkedHashMap<String, Long> =
         linkedMapOf(
-            "Imagens" to 0L,
-            "Vídeos" to 0L,
-            "Áudios" to 0L,
-            "Documentos" to 0L,
-            "Instaladores (APK)" to 0L,
-            "Outros" to 0L
+            tr("Imagens") to 0L,
+            tr("Vídeos") to 0L,
+            tr("Áudios") to 0L,
+            tr("Documentos") to 0L,
+            tr("Instaladores (APK)") to 0L,
+            tr("Outros") to 0L
         )
 
     // Usado também pelo cartão de memória
@@ -3727,7 +3767,7 @@ class MainActivity : AppCompatActivity() {
                 caminho.contains("/.thumbnails/") ->
                     miniaturas.add(arquivo)
 
-                categoria == "Instaladores (APK)" ->
+                categoria == tr("Instaladores (APK)") ->
                     apks.add(arquivo)
 
                 tamanho >= limiteGrande ->
@@ -3756,8 +3796,8 @@ class MainActivity : AppCompatActivity() {
         if (lixeira.isNotEmpty()) {
             sugestoes.add(
                 Sugestao(
-                    "Esvaziar a lixeira",
-                    "${lixeira.size} item(ns) que você já apagou",
+                    tr("Esvaziar a lixeira"),
+                    tr("{0} item(ns) que você já apagou", lixeira.size),
                     lixeira,
                     soma(lixeira),
                     ehLixeira = true
@@ -3768,8 +3808,8 @@ class MainActivity : AppCompatActivity() {
         if (apks.isNotEmpty()) {
             sugestoes.add(
                 Sugestao(
-                    "Instaladores (APK)",
-                    "${apks.size} arquivo(s) de instalação que não são mais necessários",
+                    tr("Instaladores (APK)"),
+                    tr("{0} arquivo(s) de instalação que não são mais necessários", apks.size),
                     apks.sortedByDescending { it.length() },
                     soma(apks)
                 )
@@ -3779,8 +3819,8 @@ class MainActivity : AppCompatActivity() {
         if (grandes.isNotEmpty()) {
             sugestoes.add(
                 Sugestao(
-                    "Arquivos grandes",
-                    "${grandes.size} arquivo(s) com mais de 100 MB",
+                    tr("Arquivos grandes"),
+                    tr("{0} arquivo(s) com mais de 100 MB", grandes.size),
                     grandes.sortedByDescending { it.length() },
                     soma(grandes)
                 )
@@ -3790,8 +3830,8 @@ class MainActivity : AppCompatActivity() {
         if (downloadsAntigos.isNotEmpty()) {
             sugestoes.add(
                 Sugestao(
-                    "Downloads antigos",
-                    "${downloadsAntigos.size} download(s) com mais de 3 meses",
+                    tr("Downloads antigos"),
+                    tr("{0} download(s) com mais de 3 meses", downloadsAntigos.size),
                     downloadsAntigos.sortedByDescending { it.length() },
                     soma(downloadsAntigos)
                 )
@@ -3801,8 +3841,8 @@ class MainActivity : AppCompatActivity() {
         if (miniaturas.isNotEmpty()) {
             sugestoes.add(
                 Sugestao(
-                    "Miniaturas em cache",
-                    "${miniaturas.size} miniatura(s) que o celular recria quando precisar",
+                    tr("Miniaturas em cache"),
+                    tr("{0} miniatura(s) que o celular recria quando precisar", miniaturas.size),
                     miniaturas.sortedByDescending { it.length() },
                     soma(miniaturas)
                 )
@@ -3812,8 +3852,8 @@ class MainActivity : AppCompatActivity() {
         if (vazios.isNotEmpty()) {
             sugestoes.add(
                 Sugestao(
-                    "Arquivos vazios",
-                    "${vazios.size} arquivo(s) sem conteúdo (0 bytes)",
+                    tr("Arquivos vazios"),
+                    tr("{0} arquivo(s) sem conteúdo (0 bytes)", vazios.size),
                     vazios,
                     0L
                 )
@@ -3835,10 +3875,9 @@ class MainActivity : AppCompatActivity() {
 
         currentPath.text =
             if (espaco != null) {
-                "${formatarBytes(espaco.usado)} usados • " +
-                    "${formatarBytes(espaco.livre)} livres"
+                tr("{0} usados • {1} livres", formatarBytes(espaco.usado), formatarBytes(espaco.livre))
             } else {
-                "Análise concluída"
+                tr("Análise concluída")
             }
 
         val itens =
@@ -3846,7 +3885,7 @@ class MainActivity : AppCompatActivity() {
 
         itens.add(
             ItemAnalise.Cabecalho(
-                "Espaço por categoria"
+                tr("Espaço por categoria")
             )
         )
 
@@ -3868,7 +3907,7 @@ class MainActivity : AppCompatActivity() {
 
         itens.add(
             ItemAnalise.Cabecalho(
-                "Sugestões para liberar espaço"
+                tr("Sugestões para liberar espaço")
             )
         )
 
@@ -3876,7 +3915,7 @@ class MainActivity : AppCompatActivity() {
 
             itens.add(
                 ItemAnalise.Cabecalho(
-                    "Tudo certo! Nada para limpar agora."
+                    tr("Tudo certo! Nada para limpar agora.")
                 )
             )
         }
@@ -3921,7 +3960,7 @@ class MainActivity : AppCompatActivity() {
             sugestao.titulo
 
         currentPath.text =
-            "${sugestao.arquivos.size} arquivo(s) • " +
+            tr("{0} arquivo(s) • ", sugestao.arquivos.size) +
                 formatarBytes(sugestao.tamanho)
 
         val arquivos =
@@ -3968,18 +4007,18 @@ class MainActivity : AppCompatActivity() {
 
         barraAcoes.addView(
             criarBotaoAcao(
-                "Mover tudo para a lixeira",
+                tr("Mover tudo para a lixeira"),
                 R.drawable.ic_acao_lixeira,
                 Color.rgb(229, 57, 53)
             ) {
 
                 AlertDialog.Builder(this)
-                    .setTitle("Limpar ${sugestao.titulo.lowercase()}?")
+                    .setTitle(tr("Limpar {0}?", sugestao.titulo.lowercase()))
                     .setMessage(
-                        "${arquivos.size} arquivo(s) vão para a lixeira."
+                        tr("{0} arquivo(s) vão para a lixeira.", arquivos.size)
                     )
-                    .setNegativeButton("Cancelar", null)
-                    .setPositiveButton("Limpar") { _, _ ->
+                    .setNegativeButton(tr("Cancelar"), null)
+                    .setPositiveButton(tr("Limpar")) { _, _ ->
 
                         thread {
 
@@ -4009,7 +4048,7 @@ class MainActivity : AppCompatActivity() {
 
                                 Toast.makeText(
                                     this,
-                                    "$movidos arquivo(s) movidos para a lixeira",
+                                    tr("{0} arquivo(s) movidos para a lixeira", movidos),
                                     Toast.LENGTH_LONG
                                 ).show()
 
@@ -4706,7 +4745,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Arquivo não encontrado",
+                tr("Arquivo não encontrado"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -4723,7 +4762,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "↗",
-            "Compartilhar"
+            tr("Compartilhar")
         ) {
 
             compartilharArquivo(
@@ -4734,7 +4773,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "▣",
-            "Copiar"
+            tr("Copiar")
         ) {
 
             mostrarEscolhaDePastaParaCopiar(
@@ -4745,7 +4784,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "→",
-            "Mover para"
+            tr("Mover para")
         ) {
 
             mostrarEscolhaDePasta(
@@ -4761,7 +4800,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "🔒",
-            "Mover para o cofre"
+            tr("Mover para o cofre")
         ) {
 
             moverParaCofre(
@@ -4772,7 +4811,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "✎",
-            "Renomear"
+            tr("Renomear")
         ) {
 
             renomearArquivo(
@@ -4783,7 +4822,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "ⓘ",
-            "Informações"
+            tr("Informações")
         ) {
 
             mostrarInformacoes(
@@ -4794,7 +4833,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "+",
-            "Criar pasta"
+            tr("Criar pasta")
         ) {
 
             criarPastaNoLocal(
@@ -4806,7 +4845,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "🗑",
-            "Mover para lixeira"
+            tr("Mover para lixeira")
         ) {
 
             moverParaLixeira(
@@ -4985,7 +5024,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "ⓘ",
-            "Informações"
+            tr("Informações")
         ) {
 
             mostrarInformacoes(
@@ -4996,7 +5035,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "✎",
-            "Renomear"
+            tr("Renomear")
         ) {
 
             renomearArquivo(
@@ -5007,7 +5046,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "→",
-            "Mover para"
+            tr("Mover para")
         ) {
 
             mostrarEscolhaDePasta(
@@ -5023,7 +5062,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "+",
-            "Criar pasta"
+            tr("Criar pasta")
         ) {
 
             criarPastaNoLocal(
@@ -5034,7 +5073,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "🗑",
-            "Mover para lixeira"
+            tr("Mover para lixeira")
         ) {
 
             moverParaLixeira(
@@ -5071,7 +5110,7 @@ class MainActivity : AppCompatActivity() {
         val tipo =
             if (arquivo.isDirectory) {
 
-                "Pasta"
+                tr("Pasta")
 
             } else {
 
@@ -5080,7 +5119,7 @@ class MainActivity : AppCompatActivity() {
                         Locale.getDefault()
                     )
                     .ifEmpty {
-                        "Arquivo"
+                        tr("Arquivo")
                     }
             }
 
@@ -5100,7 +5139,7 @@ class MainActivity : AppCompatActivity() {
                 _: Exception
             ) {
 
-                "Desconhecida"
+                tr("Desconhecida")
             }
 
         val mensagem =
@@ -5119,7 +5158,7 @@ class MainActivity : AppCompatActivity() {
             """.trimIndent()
 
         AlertDialog.Builder(this)
-            .setTitle("Informações")
+            .setTitle(tr("Informações"))
             .setMessage(mensagem)
             .setPositiveButton("OK", null)
             .show()
@@ -5187,14 +5226,14 @@ class MainActivity : AppCompatActivity() {
 
         val dialog =
             AlertDialog.Builder(this)
-                .setTitle("Renomear")
+                .setTitle(tr("Renomear"))
                 .setView(campo)
                 .setNegativeButton(
-                    "Cancelar",
+                    tr("Cancelar"),
                     null
                 )
                 .setPositiveButton(
-                    "Renomear",
+                    tr("Renomear"),
                     null
                 )
                 .create()
@@ -5214,7 +5253,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Digite um nome válido",
+                        tr("Digite um nome válido"),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -5225,7 +5264,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Nome inválido",
+                        tr("Nome inválido"),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -5243,7 +5282,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Já existe um arquivo com esse nome",
+                        tr("Já existe um arquivo com esse nome"),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -5265,7 +5304,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Renomeado com sucesso",
+                        tr("Renomeado com sucesso"),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -5277,7 +5316,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Não foi possível renomear",
+                        tr("Não foi possível renomear"),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -5299,18 +5338,18 @@ class MainActivity : AppCompatActivity() {
             EditText(this)
 
         campo.hint =
-            "Nome da pasta"
+            tr("Nome da pasta")
 
         val dialog =
             AlertDialog.Builder(this)
-                .setTitle("Criar pasta")
+                .setTitle(tr("Criar pasta"))
                 .setView(campo)
                 .setNegativeButton(
-                    "Cancelar",
+                    tr("Cancelar"),
                     null
                 )
                 .setPositiveButton(
-                    "Criar",
+                    tr("Criar"),
                     null
                 )
                 .create()
@@ -5330,7 +5369,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Digite um nome",
+                        tr("Digite um nome"),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -5341,7 +5380,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Nome inválido",
+                        tr("Nome inválido"),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -5358,7 +5397,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Essa pasta já existe",
+                        tr("Essa pasta já existe"),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -5378,7 +5417,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Pasta criada",
+                        tr("Pasta criada"),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -5390,7 +5429,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Não foi possível criar a pasta",
+                        tr("Não foi possível criar a pasta"),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -5452,7 +5491,7 @@ class MainActivity : AppCompatActivity() {
             nomes.add("⬆  ..")
         }
 
-        nomes.add("＋  Criar pasta aqui")
+        nomes.add(tr("＋  Criar pasta aqui"))
 
         pastas.forEach {
             nomes.add("📁  ${it.name}")
@@ -5470,10 +5509,10 @@ class MainActivity : AppCompatActivity() {
 
         val dialog =
             AlertDialog.Builder(this)
-                .setTitle("Mover para")
+                .setTitle(tr("Mover para"))
                 .setView(lista)
                 .setNegativeButton(
-                    "Cancelar",
+                    tr("Cancelar"),
                     null
                 )
                 .create()
@@ -5565,16 +5604,16 @@ class MainActivity : AppCompatActivity() {
     ) {
 
         AlertDialog.Builder(this)
-            .setTitle("Mover arquivo")
+            .setTitle(tr("Mover arquivo"))
             .setMessage(
-                "Mover \"${arquivo.name}\" para \"${destino.name}\"?"
+                tr("Mover \"{0}\" para \"{1}\"?", arquivo.name, destino.name)
             )
             .setNegativeButton(
-                "Cancelar",
+                tr("Cancelar"),
                 null
             )
             .setPositiveButton(
-                "Mover"
+                tr("Mover")
             ) { _, _ ->
 
                 moverArquivoParaPasta(
@@ -5597,7 +5636,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Pasta de destino inválida",
+                tr("Pasta de destino inválida"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -5614,7 +5653,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Já existe um arquivo com esse nome no destino",
+                tr("Já existe um arquivo com esse nome no destino"),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -5636,7 +5675,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Arquivo movido com sucesso",
+                tr("Arquivo movido com sucesso"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -5646,7 +5685,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Não foi possível mover o arquivo",
+                tr("Não foi possível mover o arquivo"),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -5691,7 +5730,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(
                 Intent.createChooser(
                     intent,
-                    "Compartilhar arquivo"
+                    tr("Compartilhar arquivo")
                 )
             )
 
@@ -5701,7 +5740,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Não foi possível compartilhar: ${e.message}",
+                tr("Não foi possível compartilhar: {0}", e.message),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -5759,8 +5798,8 @@ class MainActivity : AppCompatActivity() {
             nomes.add("⬆  ..")
         }
 
-        nomes.add("📋  Copiar aqui")
-        nomes.add("＋  Criar pasta aqui")
+        nomes.add(tr("📋  Copiar aqui"))
+        nomes.add(tr("＋  Criar pasta aqui"))
 
         pastas.forEach {
             nomes.add("📁  ${it.name}")
@@ -5778,10 +5817,10 @@ class MainActivity : AppCompatActivity() {
 
         val dialog =
             AlertDialog.Builder(this)
-                .setTitle("Copiar para")
+                .setTitle(tr("Copiar para"))
                 .setView(lista)
                 .setNegativeButton(
-                    "Cancelar",
+                    tr("Cancelar"),
                     null
                 )
                 .create()
@@ -5889,7 +5928,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Arquivo não encontrado",
+                tr("Arquivo não encontrado"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -5903,7 +5942,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Pasta de destino inválida",
+                tr("Pasta de destino inválida"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -5917,7 +5956,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "O arquivo já está nessa pasta",
+                tr("O arquivo já está nessa pasta"),
                 Toast.LENGTH_SHORT
             ).show()
 
@@ -6030,7 +6069,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Arquivo copiado com sucesso",
+                        tr("Arquivo copiado com sucesso"),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -6038,7 +6077,7 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(
                         this,
-                        "Não foi possível copiar o arquivo",
+                        tr("Não foi possível copiar o arquivo"),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -6121,7 +6160,7 @@ class MainActivity : AppCompatActivity() {
 
                 Toast.makeText(
                     this,
-                    "Movido para a lixeira",
+                    tr("Movido para a lixeira"),
                     Toast.LENGTH_SHORT
                 ).show()
 
@@ -6131,7 +6170,7 @@ class MainActivity : AppCompatActivity() {
 
                 Toast.makeText(
                     this,
-                    "Não foi possível mover para a lixeira",
+                    tr("Não foi possível mover para a lixeira"),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -6142,7 +6181,7 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(
                 this,
-                "Erro: ${e.message}",
+                tr("Erro: {0}", e.message),
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -6345,7 +6384,7 @@ class MainActivity : AppCompatActivity() {
                     arquivo.isDirectory
                 ) {
 
-                    "Pasta"
+                    tr("Pasta")
 
                 } else {
 

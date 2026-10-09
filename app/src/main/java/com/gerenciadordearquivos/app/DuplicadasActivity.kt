@@ -31,7 +31,7 @@ class DuplicadasActivity : TelaBase() {
 
         super.onCreate(savedInstanceState)
 
-        titulo.text = "Fotos duplicadas"
+        titulo.text = tr("Fotos duplicadas")
 
         procurar()
     }
@@ -62,7 +62,7 @@ class DuplicadasActivity : TelaBase() {
 
     private fun procurar() {
 
-        status.text = "Procurando fotos e vídeos..."
+        status.text = tr("Procurando fotos e vídeos...")
         acoes.removeAllViews()
         rodape.visibility = View.GONE
         lista.adapter = null
@@ -99,7 +99,7 @@ class DuplicadasActivity : TelaBase() {
 
                 if (indice % 20 == 0) {
                     runOnUiThread {
-                        status.text = "Comparando ${indice + 1} de ${candidatos.size}..."
+                        status.text = tr("Comparando {0} de {1}...", indice + 1, candidatos.size)
                     }
                 }
 
@@ -123,7 +123,7 @@ class DuplicadasActivity : TelaBase() {
                 novaLista.add(
                     ItemArquivo(
                         null,
-                        cabecalho = "Grupo ${numero + 1} • ${grupo.size} cópias iguais"
+                        cabecalho = tr("Grupo {0} • {1} cópias iguais", numero + 1, grupo.size)
                     )
                 )
 
@@ -132,7 +132,7 @@ class DuplicadasActivity : TelaBase() {
                         ItemArquivo(
                             arquivo,
                             marcado = i > 0,
-                            rotulo = if (i == 0) "Manter (original)" else null
+                            rotulo = if (i == 0) tr("Manter (original)") else null
                         )
                     )
                 }
@@ -204,7 +204,7 @@ class DuplicadasActivity : TelaBase() {
         acoes.removeAllViews()
 
         if (quantidadeGrupos == 0) {
-            status.text = "Nenhuma foto ou vídeo duplicado encontrado 🎉"
+            status.text = tr("Nenhuma foto ou vídeo duplicado encontrado 🎉")
             rodape.visibility = View.GONE
             return
         }
@@ -212,12 +212,11 @@ class DuplicadasActivity : TelaBase() {
         val copias = itens.count { it.arquivo != null && it.rotulo == null }
         val espaco = itens.filter { it.arquivo != null && it.rotulo == null }.sumOf { it.arquivo!!.length() }
 
-        status.text = "$copias cópia(s) ocupando ${formatarBytes(espaco)}"
+        status.text = tr("{0} cópia(s) ocupando {1}", copias, formatarBytes(espaco))
 
         acoes.addView(
             criarTexto(
-                "O mais antigo de cada grupo fica guardado. As cópias já vêm marcadas; " +
-                    "toque em uma foto para conferir."
+                tr("O mais antigo de cada grupo fica guardado. As cópias já vêm marcadas; toque em uma foto para conferir.")
             )
         )
 
@@ -238,9 +237,9 @@ class DuplicadasActivity : TelaBase() {
 
         val texto =
             when {
-                marcados.isEmpty() -> "Marque as cópias que quer apagar"
-                premium -> "Mover ${marcados.size} cópia(s) para a lixeira (${formatarBytes(marcados.sumOf { it.arquivo!!.length() })})"
-                else -> "⭐ Liberar ${formatarBytes(marcados.sumOf { it.arquivo!!.length() })} com o Premium"
+                marcados.isEmpty() -> tr("Marque as cópias que quer apagar")
+                premium -> tr("Mover {0} cópia(s) para a lixeira ({1})", marcados.size, formatarBytes(marcados.sumOf { it.arquivo!!.length() }))
+                else -> tr("⭐ Liberar {0} com o Premium", formatarBytes(marcados.sumOf { it.arquivo!!.length() }))
             }
 
         rodape.removeAllViews()
@@ -268,7 +267,7 @@ class DuplicadasActivity : TelaBase() {
         val marcados = itens.filter { it.marcado }.mapNotNull { it.arquivo }
 
         if (marcados.isEmpty()) {
-            Toast.makeText(this, "Marque as cópias que quer apagar", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, tr("Marque as cópias que quer apagar"), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -284,25 +283,25 @@ class DuplicadasActivity : TelaBase() {
         if (grupoSemOriginal) {
             Toast.makeText(
                 this,
-                "Deixe pelo menos uma foto de cada grupo desmarcada",
+                tr("Deixe pelo menos uma foto de cada grupo desmarcada"),
                 Toast.LENGTH_LONG
             ).show()
             return
         }
 
         androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Apagar ${marcados.size} cópia(s)?")
-            .setMessage("Elas vão para a lixeira do Faxina e podem ser restauradas.")
-            .setNegativeButton("Cancelar", null)
-            .setPositiveButton("Apagar") { _, _ ->
+            .setTitle(tr("Apagar {0} cópia(s)?", marcados.size))
+            .setMessage(tr("Elas vão para a lixeira do Faxina e podem ser restauradas."))
+            .setNegativeButton(tr("Cancelar"), null)
+            .setPositiveButton(tr("Apagar")) { _, _ ->
 
-                status.text = "Limpando..."
+                status.text = tr("Limpando...")
 
                 moverParaLixeira(marcados) { movidos, bytes ->
 
                     Toast.makeText(
                         this,
-                        "Pronto! ${formatarBytes(bytes)} liberados ($movidos cópia(s))",
+                        tr("Pronto! {0} liberados ({1} cópia(s))", formatarBytes(bytes), movidos),
                         Toast.LENGTH_LONG
                     ).show()
 

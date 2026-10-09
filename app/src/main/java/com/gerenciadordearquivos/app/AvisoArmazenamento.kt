@@ -77,11 +77,11 @@ object AvisoArmazenamento {
             val canal =
                 NotificationChannel(
                     CANAL,
-                    "Celular quase cheio",
+                    tr("Celular quase cheio"),
                     NotificationManager.IMPORTANCE_DEFAULT
                 )
 
-            canal.description = "Avisa quando o armazenamento estiver acabando"
+            canal.description = tr("Avisa quando o armazenamento estiver acabando")
 
             context.getSystemService(NotificationManager::class.java)
                 .createNotificationChannel(canal)
@@ -132,8 +132,8 @@ object AvisoArmazenamento {
         val notificacao =
             NotificationCompat.Builder(context, CANAL)
                 .setSmallIcon(R.drawable.ic_acao_lixeira)
-                .setContentTitle("Seu celular está quase cheio")
-                .setContentText("Só $livre livres. Toque para liberar espaço com o Faxina.")
+                .setContentTitle(tr("Seu celular está quase cheio"))
+                .setContentText(tr("Só {0} livres. Toque para liberar espaço com o Faxina.", livre))
                 .setContentIntent(abrir)
                 .setAutoCancel(true)
                 .build()

@@ -41,7 +41,7 @@ class CompressaoActivity : TelaBase() {
 
         super.onCreate(savedInstanceState)
 
-        titulo.text = "Comprimir fotos"
+        titulo.text = tr("Comprimir fotos")
 
         procurar()
     }
@@ -55,7 +55,7 @@ class CompressaoActivity : TelaBase() {
 
     private fun procurar() {
 
-        status.text = "Procurando fotos grandes..."
+        status.text = tr("Procurando fotos grandes...")
         acoes.removeAllViews()
         rodape.visibility = View.GONE
         lista.adapter = null
@@ -96,7 +96,7 @@ class CompressaoActivity : TelaBase() {
         acoes.removeAllViews()
 
         if (itens.isEmpty()) {
-            status.text = "Nenhuma foto grande para comprimir 🎉"
+            status.text = tr("Nenhuma foto grande para comprimir 🎉")
             rodape.visibility = View.GONE
             return
         }
@@ -104,14 +104,11 @@ class CompressaoActivity : TelaBase() {
         val total = itens.sumOf { it.arquivo!!.length() }
 
         status.text =
-            "${itens.size} foto(s) grandes • ${formatarBytes(total)} • " +
-                "economia estimada: ~${formatarBytes(total * 6 / 10)}"
+            tr("{0} foto(s) grandes • {1} • economia estimada: ~{2}", itens.size, formatarBytes(total), formatarBytes(total * 6 / 10))
 
         acoes.addView(
             criarTexto(
-                "As fotos ficam com qualidade alta (boa para ver no celular e postar), " +
-                    "mantendo data e local. As originais vão para a lixeira: " +
-                    "esvazie a lixeira depois para liberar o espaço de vez."
+                tr("As fotos ficam com qualidade alta (boa para ver no celular e postar), mantendo data e local. As originais vão para a lixeira: esvazie a lixeira depois para liberar o espaço de vez.")
             )
         )
 
@@ -136,9 +133,9 @@ class CompressaoActivity : TelaBase() {
             rodape,
             criarBotao(
                 when {
-                    marcados.isEmpty() -> "Marque as fotos"
-                    premium -> "Comprimir ${marcados.size} foto(s)"
-                    else -> "⭐ Comprimir com o Premium"
+                    marcados.isEmpty() -> tr("Marque as fotos")
+                    premium -> tr("Comprimir {0} foto(s)", marcados.size)
+                    else -> tr("⭐ Comprimir com o Premium")
                 },
                 null,
                 if (premium) COR_AZUL else COR_DOURADO
@@ -161,13 +158,12 @@ class CompressaoActivity : TelaBase() {
         if (marcados.isEmpty()) return
 
         AlertDialog.Builder(this)
-            .setTitle("Comprimir ${marcados.size} foto(s)?")
+            .setTitle(tr("Comprimir {0} foto(s)?", marcados.size))
             .setMessage(
-                "As fotos originais irão para a lixeira do Faxina " +
-                    "(dá para restaurar se não gostar)."
+                tr("As fotos originais irão para a lixeira do Faxina (dá para restaurar se não gostar).")
             )
-            .setNegativeButton("Cancelar", null)
-            .setPositiveButton("Comprimir") { _, _ -> comprimir(marcados) }
+            .setNegativeButton(tr("Cancelar"), null)
+            .setPositiveButton(tr("Comprimir")) { _, _ -> comprimir(marcados) }
             .show()
     }
 
@@ -185,7 +181,7 @@ class CompressaoActivity : TelaBase() {
             fotos.forEachIndexed { i, foto ->
 
                 runOnUiThread {
-                    status.text = "Comprimindo ${i + 1} de ${fotos.size}..."
+                    status.text = tr("Comprimindo {0} de {1}...", i + 1, fotos.size)
                 }
 
                 val ganho = comprimirFoto(foto)
@@ -202,8 +198,7 @@ class CompressaoActivity : TelaBase() {
 
                 Toast.makeText(
                     this,
-                    "$feitas foto(s) comprimidas • ${formatarBytes(economia)} a menos. " +
-                        "Esvazie a lixeira para liberar o espaço.",
+                    tr("{0} foto(s) comprimidas • {1} a menos. Esvazie a lixeira para liberar o espaço.", feitas, formatarBytes(economia)),
                     Toast.LENGTH_LONG
                 ).show()
 

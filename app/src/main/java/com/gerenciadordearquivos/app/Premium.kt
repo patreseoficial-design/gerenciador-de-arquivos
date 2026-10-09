@@ -245,8 +245,7 @@ object Premium {
 
             iniciar(activity)
 
-            return "A loja ainda está carregando. Verifique a internet " +
-                "e tente de novo em alguns segundos."
+            return tr("A loja ainda está carregando. Verifique a internet e tente de novo em alguns segundos.")
         }
 
         val params =
@@ -269,7 +268,7 @@ object Premium {
         ) {
             null
         } else {
-            "Não foi possível abrir o pagamento (${resultado.debugMessage})"
+            tr("Não foi possível abrir o pagamento ({0})", resultado.debugMessage)
         }
     }
 
