@@ -2,6 +2,7 @@
 
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -30,16 +31,20 @@
         <!-- TÍTULO CENTRALIZADO -->
         <TextView
             android:id="@+id/titleText"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center"
+            android:layout_marginStart="52dp"
+            android:layout_marginEnd="52dp"
             android:gravity="center"
             android:translationY="8dp"
-            android:text="Arquivos Pro"
+            android:text="Gerenciador de Arquivos Pro"
             android:textColor="#FFFFFF"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:singleLine="true"
+            android:maxLines="1"
+            app:autoSizeTextType="uniform"
+            app:autoSizeMinTextSize="12sp"
+            app:autoSizeMaxTextSize="20sp"
             android:includeFontPadding="false"/>
 
         <!-- MENU DIREITO -->

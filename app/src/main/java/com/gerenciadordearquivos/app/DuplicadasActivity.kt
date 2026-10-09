@@ -291,7 +291,7 @@ class DuplicadasActivity : TelaBase() {
 
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle(tr("Apagar {0} cópia(s)?", marcados.size))
-            .setMessage(tr("Elas vão para a lixeira do Arquivos Pro e podem ser restauradas."))
+            .setMessage(tr("Elas vão para a lixeira do Gerenciador de Arquivos Pro e podem ser restauradas."))
             .setNegativeButton(tr("Cancelar"), null)
             .setPositiveButton(tr("Apagar")) { _, _ ->
 

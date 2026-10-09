@@ -25,7 +25,7 @@ class PremiumActivity : TelaBase() {
 
         super.onCreate(savedInstanceState)
 
-        titulo.text = tr("Arquivos Pro Premium")
+        titulo.text = tr("Premium")
 
         Premium.aoMudar(aoMudar)
 

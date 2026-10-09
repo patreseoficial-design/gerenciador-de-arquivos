@@ -97,7 +97,7 @@ class TransferenciaWifiActivity : TelaBase() {
             acoes,
             criarBotao(tr("Copiar endereço"), null, COR_AZUL) {
                 val area = getSystemService(ClipboardManager::class.java)
-                area.setPrimaryClip(ClipData.newPlainText("Arquivos Pro", endereco))
+                area.setPrimaryClip(ClipData.newPlainText("Gerenciador de Arquivos Pro", endereco))
                 Toast.makeText(this, tr("Endereço copiado"), Toast.LENGTH_SHORT).show()
             }
         )

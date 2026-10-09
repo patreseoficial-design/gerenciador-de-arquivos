@@ -2768,7 +2768,7 @@ class MainActivity : AppCompatActivity() {
         adicionarOpcaoMenu(
             menu,
             "★",
-            if (Premium.ativo(this)) tr("Premium ativo ⭐") else tr("Arquivos Pro Premium")
+            if (Premium.ativo(this)) tr("Premium ativo ⭐") else tr("Premium")
         ) {
             startActivity(
                 Intent(this, PremiumActivity::class.java)
@@ -3702,7 +3702,7 @@ class MainActivity : AppCompatActivity() {
             AlertDialog.Builder(this)
                 .setTitle(tr("Acesso aos arquivos"))
                 .setMessage(
-                    tr("Para mostrar, organizar, mover e apagar seus arquivos, o Arquivos Pro precisa da permissão \"Acesso a todos os arquivos\".\n\nSeus arquivos ficam só no seu celular: o app não envia nada para a internet.")
+                    tr("Para mostrar, organizar, mover e apagar seus arquivos, o Gerenciador de Arquivos Pro precisa da permissão \"Acesso a todos os arquivos\".\n\nSeus arquivos ficam só no seu celular: o app não envia nada para a internet.")
                 )
                 .setCancelable(false)
                 .setNegativeButton(tr("Agora não"), null)
