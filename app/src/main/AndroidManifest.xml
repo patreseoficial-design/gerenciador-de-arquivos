@@ -6,12 +6,46 @@
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
 
-    <!-- Permite consultar todos os aplicativos instalados -->
+    <!-- Android 10 e anteriores: permissão comum de arquivos -->
     <uses-permission
-        android:name="android.permission.QUERY_ALL_PACKAGES" />
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29" />
+
+    <!--
+        Em vez de QUERY_ALL_PACKAGES (barrada pela Play Store),
+        o app declara só o que precisa ver: apps com ícone na tela
+        inicial e apps que abrem/compartilham arquivos.
+    -->
+    <queries>
+
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="*/*" />
+        </intent>
+
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
+        </intent>
+
+    </queries>
+
+    <!-- Permite pedir a desinstalação de aplicativos -->
+    <uses-permission
+        android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 
     <application
         android:allowBackup="true"
+        android:requestLegacyExternalStorage="true"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -27,7 +61,7 @@
         <!-- VISUALIZADOR DE IMAGENS -->
         <activity
             android:name=".ImageViewerActivity"
-            android:screenOrientation="portrait"
+            android:screenOrientation="fullUser"
             android:exported="false" />
 
         <!-- VISUALIZADOR / EXTRATOR DE ZIP -->
@@ -39,7 +73,7 @@
         <!-- VISUALIZADOR DE VÍDEOS -->
         <activity
             android:name=".VideoViewerActivity"
-            android:screenOrientation="landscape"
+            android:screenOrientation="fullUser"
             android:exported="false" />
 
         <!-- REPRODUTOR INTERNO DE ÁUDIO -->
@@ -64,6 +98,28 @@
             </intent-filter>
 
         </activity>
+
+        <!-- ID do app no AdMob (vem do build.gradle.kts) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/admob_app_id" />
+
+        <!-- FERRAMENTAS: WhatsApp, duplicadas, cofre e Premium -->
+        <activity
+            android:name=".LimpezaWhatsAppActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".DuplicadasActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".CofreActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".PremiumActivity"
+            android:exported="false" />
 
         <!-- FILE PROVIDER -->
         <provider

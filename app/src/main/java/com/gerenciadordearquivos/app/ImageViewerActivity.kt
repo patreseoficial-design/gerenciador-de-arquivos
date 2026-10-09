@@ -45,6 +45,9 @@ import kotlin.math.min
 
 class ImageViewerActivity : Activity() {
 
+    // Altura da barra de navegação do celular (px)
+    private var espacoBaixoSistema = 0
+
     private lateinit var imageView: ZoomImageView
     private lateinit var arquivoAtual: File
 
@@ -77,7 +80,7 @@ class ImageViewerActivity : Activity() {
          * paisagem = celular de lado
          */
         requestedOrientation =
-            ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+            ActivityInfo.SCREEN_ORIENTATION_FULL_USER
 
         /*
          * Evita que a tela desligue enquanto
@@ -208,19 +211,20 @@ class ImageViewerActivity : Activity() {
         }
 
         /*
-         * Garante novamente que o aparelho
-         * possa girar livremente.
+         * Gira junto com o celular, como na galeria:
+         * respeita a "rotação automática" do sistema.
          */
         requestedOrientation =
-            ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+            ActivityInfo.SCREEN_ORIENTATION_FULL_USER
 
-        window.decorView.systemUiVisibility =
-            View.SYSTEM_UI_FLAG_FULLSCREEN or
-            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        /*
+         * Esconde só a barra de status. A barra de navegação
+         * do celular fica visível e as barras do app ficam
+         * acima dela (veja criarInterface).
+         */
+        BarrasDoSistema.configurarTelaCheia(
+            this
+        )
     }
 
 
@@ -563,12 +567,7 @@ class ImageViewerActivity : Activity() {
         )
 
         inferior.setBackgroundColor(
-            Color.argb(
-                190,
-                0,
-                0,
-                0
-            )
+            Color.BLACK
         )
 
         adicionarBotaoInferior(
@@ -630,6 +629,43 @@ class ImageViewerActivity : Activity() {
 
         imageView.onSwipeRight = {
             abrirImagemAnterior()
+        }
+
+        /*
+         * Afasta as barras do app dos botões/gestos do celular
+         */
+        BarrasDoSistema.aoMudarEspacos(
+            raiz
+        ) { esquerda, topoSistema, direita, baixo ->
+
+            topo.setPadding(
+                dp(8) + esquerda,
+                dp(6) + topoSistema,
+                dp(8) + direita,
+                dp(4)
+            )
+
+            topoParams.height =
+                dp(76) + topoSistema
+
+            topo.layoutParams =
+                topoParams
+
+            inferior.setPadding(
+                dp(8) + esquerda,
+                dp(4),
+                dp(8) + direita,
+                dp(8) + baixo
+            )
+
+            inferiorParams.height =
+                dp(78) + baixo
+
+            espacoBaixoSistema =
+                baixo
+
+            inferior.layoutParams =
+                inferiorParams
         }
 
         setContentView(raiz)
@@ -696,29 +732,63 @@ class ImageViewerActivity : Activity() {
             0
         )
 
-        val iconeView =
-            TextView(this)
+        val iconeRes =
+            MenuEscuro.iconeDaAcao(texto)
 
-        iconeView.text =
-            icone
+        if (iconeRes != null) {
 
-        iconeView.textSize =
-            24f
+            val iconeView =
+                ImageView(this)
 
-        iconeView.gravity =
-            Gravity.CENTER
-
-        iconeView.setTextColor(
-            Color.WHITE
-        )
-
-        coluna.addView(
-            iconeView,
-            LinearLayout.LayoutParams(
-                dp(42),
-                dp(36)
+            iconeView.setImageResource(
+                iconeRes
             )
-        )
+
+            iconeView.setColorFilter(
+                Color.WHITE
+            )
+
+            iconeView.setPadding(
+                0,
+                dp(4),
+                0,
+                dp(4)
+            )
+
+            coluna.addView(
+                iconeView,
+                LinearLayout.LayoutParams(
+                    dp(42),
+                    dp(34)
+                )
+            )
+
+        } else {
+
+            val iconeView =
+                TextView(this)
+
+            iconeView.text =
+                icone
+
+            iconeView.textSize =
+                24f
+
+            iconeView.gravity =
+                Gravity.CENTER
+
+            iconeView.setTextColor(
+                Color.WHITE
+            )
+
+            coluna.addView(
+                iconeView,
+                LinearLayout.LayoutParams(
+                    dp(42),
+                    dp(34)
+                )
+            )
+        }
 
         val textoView =
             TextView(this)
@@ -727,7 +797,13 @@ class ImageViewerActivity : Activity() {
             texto
 
         textoView.textSize =
-            11f
+            13f
+
+        textoView.typeface =
+            android.graphics.Typeface.create(
+                "sans-serif-medium",
+                android.graphics.Typeface.NORMAL
+            )
 
         textoView.gravity =
             Gravity.CENTER
@@ -736,10 +812,13 @@ class ImageViewerActivity : Activity() {
             Color.WHITE
         )
 
+        textoView.maxLines =
+            1
+
         coluna.addView(
             textoView,
             LinearLayout.LayoutParams(
-                dp(70),
+                LinearLayout.LayoutParams.MATCH_PARENT,
                 dp(25)
             )
         )
@@ -823,6 +902,37 @@ class ImageViewerActivity : Activity() {
      * =========================================================
      */
 
+    @android.annotation.TargetApi(28)
+    private fun decodificarComImageDecoder(
+        arquivo: File,
+        amostra: Int
+    ): Bitmap? {
+
+        return try {
+
+            android.graphics.ImageDecoder.decodeBitmap(
+                android.graphics.ImageDecoder.createSource(arquivo)
+            ) { decoder, _, _ ->
+
+                decoder.setTargetSampleSize(amostra)
+
+                // Software: permite o mipmap (foto lisa ao reduzir)
+                decoder.allocator =
+                    android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE
+            }
+
+        } catch (
+            _: Exception
+        ) {
+            null
+        } catch (
+            _: OutOfMemoryError
+        ) {
+            null
+        }
+    }
+
+
     private fun carregarImagem() {
 
         carregandoImagem = true
@@ -864,13 +974,31 @@ class ImageViewerActivity : Activity() {
                     return@Thread
                 }
 
+                /*
+                 * Abre a foto na resolução original do arquivo.
+                 * Só reduz quando ela passa do que a tela/memória
+                 * do aparelho consegue desenhar (fotos enormes).
+                 */
                 var sample = 1
 
-                val limite = 4096
+                val limiteLado =
+                    if (
+                        android.os.Build.VERSION.SDK_INT >=
+                        android.os.Build.VERSION_CODES.P
+                    ) 8192 else 4096
+
+                val limiteBytes =
+                    minOf(
+                        90L * 1024 * 1024,
+                        Runtime.getRuntime().maxMemory() / 3
+                    )
 
                 while (
-                    bounds.outWidth / sample > limite ||
-                    bounds.outHeight / sample > limite
+                    bounds.outWidth / sample > limiteLado ||
+                    bounds.outHeight / sample > limiteLado ||
+                    (bounds.outWidth / sample).toLong() *
+                        (bounds.outHeight / sample).toLong() *
+                        4L > limiteBytes
                 ) {
 
                     sample *= 2
@@ -885,11 +1013,24 @@ class ImageViewerActivity : Activity() {
                 options.inPreferredConfig =
                     Bitmap.Config.ARGB_8888
 
+                // No Android 9+ usa o mesmo decodificador da galeria:
+                // foto na posição certa (EXIF), cores fiéis e HEIC
                 val bitmap =
-                    BitmapFactory.decodeFile(
-                        arquivoAtual.absolutePath,
-                        options
-                    )
+                    (if (
+                        android.os.Build.VERSION.SDK_INT >=
+                        android.os.Build.VERSION_CODES.P
+                    ) {
+                        decodificarComImageDecoder(
+                            arquivoAtual,
+                            sample
+                        )
+                    } else {
+                        null
+                    })
+                        ?: BitmapFactory.decodeFile(
+                            arquivoAtual.absolutePath,
+                            options
+                        )
 
                 if (bitmap == null) {
 
@@ -914,6 +1055,12 @@ class ImageViewerActivity : Activity() {
                         !isFinishing &&
                         !isDestroyed
                     ) {
+
+                        // Mipmap: a foto reduzida para caber na tela
+                        // fica lisa como na galeria, sem serrilhado
+                        bitmap.setHasMipMap(
+                            true
+                        )
 
                         imageView.setImageBitmap(
                             bitmap
@@ -1087,36 +1234,27 @@ class ImageViewerActivity : Activity() {
      */
 
     private fun mostrarMenu(
-        ancora: View
+        ancora: View,
+        acimaDaBarraInferior: Boolean = false
     ) {
 
         val layout =
             LinearLayout(this)
 
-        layout.orientation =
-            LinearLayout.VERTICAL
-
-        layout.setPadding(
-            0,
-            dp(8),
-            0,
-            dp(8)
-        )
-
-        layout.setBackgroundColor(
-            Color.WHITE
+        MenuEscuro.prepararMenu(
+            layout
         )
 
         val popup =
             PopupWindow(
                 layout,
-                dp(245),
+                dp(270),
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 true
             )
 
         popup.setBackgroundDrawable(
-            ColorDrawable(Color.WHITE)
+            ColorDrawable(Color.TRANSPARENT)
         )
 
         popup.isOutsideTouchable =
@@ -1194,6 +1332,18 @@ class ImageViewerActivity : Activity() {
             moverParaLixeira()
         }
 
+        if (acimaDaBarraInferior) {
+
+            popup.showAtLocation(
+                window.decorView,
+                Gravity.BOTTOM or Gravity.END,
+                dp(8),
+                dp(86) + espacoBaixoSistema
+            )
+
+            return
+        }
+
         ancora.post {
 
             val location =
@@ -1206,7 +1356,7 @@ class ImageViewerActivity : Activity() {
             val x =
                 location[0] +
                     ancora.width -
-                    dp(245)
+                    dp(270)
 
             val y =
                 location[1] +
@@ -1228,49 +1378,10 @@ class ImageViewerActivity : Activity() {
 
     private fun mostrarMenuInferior() {
 
-        val opcoes =
-            arrayOf(
-                "Abrir com",
-                "Informações",
-                "Renomear",
-                "Criar cópia",
-                "Criar pasta",
-                "Mover para lixeira"
-            )
-
-        AlertDialog.Builder(this)
-            .setTitle(
-                "Mais opções"
-            )
-            .setItems(
-                opcoes
-            ) { _, qual ->
-
-                when (qual) {
-
-                    0 ->
-                        abrirComAplicativo()
-
-                    1 ->
-                        mostrarInformacoes()
-
-                    2 ->
-                        renomearArquivo()
-
-                    3 ->
-                        mostrarEscolhaDePastaParaCopiar()
-
-                    4 ->
-                        criarPasta(
-                            arquivoAtual.parentFile
-                                ?: Environment.getExternalStorageDirectory()
-                        )
-
-                    5 ->
-                        moverParaLixeira()
-                }
-            }
-            .show()
+        mostrarMenu(
+            window.decorView,
+            acimaDaBarraInferior = true
+        )
     }
 
 
@@ -1281,98 +1392,13 @@ class ImageViewerActivity : Activity() {
         acao: () -> Unit
     ) {
 
-        val linha =
-            LinearLayout(this)
-
-        linha.orientation =
-            LinearLayout.HORIZONTAL
-
-        linha.gravity =
-            Gravity.CENTER_VERTICAL
-
-        linha.setPadding(
-            dp(18),
-            0,
-            dp(18),
-            0
-        )
-
-        val iconeView =
-            TextView(this)
-
-        iconeView.text =
-            icone
-
-        iconeView.textSize =
-            20f
-
-        iconeView.gravity =
-            Gravity.CENTER
-
-        iconeView.setTextColor(
-            Color.rgb(
-                55,
-                55,
-                55
-            )
-        )
-
-        linha.addView(
-            iconeView,
-            LinearLayout.LayoutParams(
-                dp(32),
-                dp(56)
-            )
-        )
-
-        val textoView =
-            TextView(this)
-
-        textoView.text =
-            texto
-
-        textoView.textSize =
-            16f
-
-        textoView.setTextColor(
-            Color.rgb(
-                35,
-                35,
-                35
-            )
-        )
-
-        textoView.gravity =
-            Gravity.CENTER_VERTICAL
-
-        val textoParams =
-            LinearLayout.LayoutParams(
-                0,
-                dp(56),
-                1f
-            )
-
-        textoParams.setMargins(
-            dp(8),
-            0,
-            0,
-            0
-        )
-
-        linha.addView(
-            textoView,
-            textoParams
-        )
-
-        linha.isClickable =
-            true
-
-        linha.setOnClickListener {
-            acao()
-        }
-
         layout.addView(
-            linha
+            MenuEscuro.criarLinha(
+                this,
+                icone,
+                texto,
+                acao
+            )
         )
     }
 
@@ -2642,11 +2668,21 @@ class ImageViewerActivity : Activity() {
                     "Mover"
                 ) { _, _ ->
 
+                    val origem =
+                        arquivoAtual
+
                     if (
-                        arquivoAtual.renameTo(
+                        Armazenamento.mover(
+                            origem,
                             destino
                         )
                     ) {
+
+                        Armazenamento.registrarNaLixeira(
+                            this,
+                            destino,
+                            origem
+                        )
 
                         Toast.makeText(
                             this,

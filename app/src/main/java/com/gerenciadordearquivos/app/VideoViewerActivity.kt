@@ -46,7 +46,6 @@ class VideoViewerActivity : Activity() {
 
     private lateinit var raiz: FrameLayout
     private lateinit var barraSuperior: LinearLayout
-    private lateinit var barraInferior: LinearLayout
 
     private val arquivos = ArrayList<String>()
     private val arquivosDoPlayer = ArrayList<String>()
@@ -84,7 +83,7 @@ class VideoViewerActivity : Activity() {
 
         instalarCapturadorErros()
 
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_USER
 
         window.addFlags(
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
@@ -163,13 +162,11 @@ class VideoViewerActivity : Activity() {
         super.onWindowFocusChanged(hasFocus)
 
         if (hasFocus) {
-            window.decorView.systemUiVisibility =
-                View.SYSTEM_UI_FLAG_FULLSCREEN or
-                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            // Barra de navegação do celular fica visível e
+            // as barras do player ficam afastadas dela
+            BarrasDoSistema.configurarTelaCheia(
+                this
+            )
         }
     }
 
@@ -408,7 +405,20 @@ class VideoViewerActivity : Activity() {
             )
         )
 
-        criarBarraInferior(principal)
+        // Sem barra inferior com setas: para trocar de vídeo
+        // basta deslizar na tela, como na galeria
+
+        BarrasDoSistema.aoMudarEspacos(
+            raiz
+        ) { esquerda, topo, direita, baixo ->
+
+            principal.setPadding(
+                esquerda,
+                topo,
+                direita,
+                baixo
+            )
+        }
 
         setContentView(raiz)
 
@@ -557,67 +567,6 @@ class VideoViewerActivity : Activity() {
 
         principal.addView(
             barraSuperior,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(64)
-            )
-        )
-    }
-
-    private fun criarBarraInferior(
-        principal: LinearLayout
-    ) {
-        barraInferior =
-            LinearLayout(this)
-
-        barraInferior.orientation =
-            LinearLayout.HORIZONTAL
-
-        barraInferior.gravity =
-            Gravity.CENTER
-
-        barraInferior.setBackgroundColor(
-            Color.rgb(20, 20, 20)
-        )
-
-        val anterior =
-            criarBotao(
-                "‹",
-                32
-            )
-
-        anterior.setOnClickListener {
-            trocarVideo(-1)
-        }
-
-        val proximo =
-            criarBotao(
-                "›",
-                32
-            )
-
-        proximo.setOnClickListener {
-            trocarVideo(1)
-        }
-
-        barraInferior.addView(
-            anterior,
-            LinearLayout.LayoutParams(
-                dp(80),
-                dp(56)
-            )
-        )
-
-        barraInferior.addView(
-            proximo,
-            LinearLayout.LayoutParams(
-                dp(80),
-                dp(56)
-            )
-        )
-
-        principal.addView(
-            barraInferior,
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 dp(64)
@@ -1555,6 +1504,14 @@ class VideoViewerActivity : Activity() {
             posicaoAtual + deslocamento
 
         if (novoIndice !in arquivos.indices) {
+
+            Toast.makeText(
+                this,
+                if (deslocamento > 0) "Este é o último vídeo"
+                else "Este é o primeiro vídeo",
+                Toast.LENGTH_SHORT
+            ).show()
+
             return
         }
 
@@ -1591,8 +1548,8 @@ class VideoViewerActivity : Activity() {
         layout.orientation =
             LinearLayout.VERTICAL
 
-        layout.setBackgroundColor(
-            Color.rgb(35, 35, 35)
+        MenuEscuro.prepararMenu(
+            layout
         )
 
         val opcoes =
@@ -1610,7 +1567,7 @@ class VideoViewerActivity : Activity() {
         val popup =
             PopupWindow(
                 layout,
-                dp(260),
+                dp(270),
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 true
             )
@@ -1621,27 +1578,11 @@ class VideoViewerActivity : Activity() {
         for (opcao in opcoes) {
 
             val item =
-                TextView(this)
-
-            item.text =
-                opcao
-
-            item.textSize =
-                16f
-
-            item.setTextColor(
-                Color.WHITE
-            )
-
-            item.gravity =
-                Gravity.CENTER_VERTICAL
-
-            item.setPadding(
-                dp(20),
-                dp(16),
-                dp(20),
-                dp(16)
-            )
+                MenuEscuro.criarLinha(
+                    this,
+                    "",
+                    opcao
+                ) {}
 
             item.setOnClickListener {
 
@@ -1678,17 +1619,13 @@ class VideoViewerActivity : Activity() {
             }
 
             layout.addView(
-                item,
-                LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
+                item
             )
         }
 
         popup.setBackgroundDrawable(
             android.graphics.drawable.ColorDrawable(
-                Color.rgb(35, 35, 35)
+                Color.TRANSPARENT
             )
         )
 
@@ -2436,7 +2373,7 @@ class VideoViewerActivity : Activity() {
                 "Enviar para lixeira?"
             )
             .setMessage(
-                "O arquivo será movido para a lixeira do Gerenciador de Arquivos."
+                "O arquivo será movido para a lixeira do Faxina."
             )
             .setNegativeButton(
                 "CANCELAR",
@@ -2484,13 +2421,24 @@ class VideoViewerActivity : Activity() {
                         contador++
                     }
 
+                    val origem =
+                        arquivoAtual
+
+                    // Libera o arquivo antes de mover
+                    liberarPlayer()
+
                     if (
-                        arquivoAtual.renameTo(
+                        Armazenamento.mover(
+                            origem,
                             destino
                         )
                     ) {
 
-                        liberarPlayer()
+                        Armazenamento.registrarNaLixeira(
+                            this,
+                            destino,
+                            origem
+                        )
 
                         arquivos.removeAt(
                             posicaoAtual
@@ -2536,6 +2484,9 @@ class VideoViewerActivity : Activity() {
                         ).show()
 
                     } else {
+
+                        // Não moveu: volta a tocar o vídeo
+                        inicializarPlayer()
 
                         Toast.makeText(
                             this,
@@ -2707,8 +2658,16 @@ class VideoViewerActivity : Activity() {
 
         private var inicioX = 0f
         private var inicioY = 0f
+        private var podeDeslizar = false
 
-        override fun onTouchEvent(
+        /*
+         * Deslizar para o lado troca de vídeo, como na galeria.
+         * Usa dispatchTouchEvent para funcionar mesmo com os
+         * controles do player na tela. Toques que começam na
+         * parte de baixo (barra de tempo) não trocam de vídeo,
+         * para não atrapalhar quem está avançando o vídeo.
+         */
+        override fun dispatchTouchEvent(
             event: MotionEvent
         ): Boolean {
 
@@ -2721,28 +2680,46 @@ class VideoViewerActivity : Activity() {
 
                     inicioY =
                         event.y
+
+                    podeDeslizar =
+                        event.y < height - dpGesture(110)
+                }
+
+                MotionEvent.ACTION_POINTER_DOWN -> {
+
+                    podeDeslizar = false
                 }
 
                 MotionEvent.ACTION_UP -> {
 
-                    val fimX =
-                        event.x
-
-                    val fimY =
-                        event.y
-
                     val distanciaX =
-                        fimX - inicioX
+                        event.x - inicioX
 
                     val distanciaY =
-                        fimY - inicioY
+                        event.y - inicioY
 
                     if (
+                        podeDeslizar &&
                         abs(distanciaX) >
-                        dpGesture(100) &&
+                        dpGesture(70) &&
                         abs(distanciaX) >
-                        abs(distanciaY)
+                        abs(distanciaY) * 1.5f
                     ) {
+
+                        podeDeslizar = false
+
+                        // Cancela o toque nos controles
+                        val cancelar =
+                            MotionEvent.obtain(event)
+
+                        cancelar.action =
+                            MotionEvent.ACTION_CANCEL
+
+                        super.dispatchTouchEvent(
+                            cancelar
+                        )
+
+                        cancelar.recycle()
 
                         if (distanciaX < 0) {
 
@@ -2758,7 +2735,7 @@ class VideoViewerActivity : Activity() {
                 }
             }
 
-            return super.onTouchEvent(
+            return super.dispatchTouchEvent(
                 event
             )
         }

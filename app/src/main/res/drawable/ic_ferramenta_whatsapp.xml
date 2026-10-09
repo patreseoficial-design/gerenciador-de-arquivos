@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Balão de conversa com vassoura (limpeza do WhatsApp) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#25D366"
+        android:pathData="M24,4C12.95,4 4,12.06 4,22C4,27.3 6.55,32.06 10.6,35.36L8.5,43.5L17.3,39.1C19.4,39.7 21.65,40 24,40C35.05,40 44,31.94 44,22C44,12.06 35.05,4 24,4Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M27.6,11.2L30.4,12.6L25.6,22.2L22.8,20.8Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M19.5,20.5L28.5,25L26,31.5L14.5,25.8Z"/>
+</vector>
