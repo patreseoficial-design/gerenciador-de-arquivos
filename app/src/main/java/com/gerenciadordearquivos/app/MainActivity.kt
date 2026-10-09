@@ -380,26 +380,39 @@ class MainActivity : AppCompatActivity() {
 
         thread {
 
-            val arquivos =
-                try {
 
-                    pasta.listFiles()
-                        ?.sortedWith(
-                            compareBy<File> {
-                                !it.isDirectory
-                            }.thenBy {
-                                it.name.lowercase(
-                                    Locale.getDefault()
-                                )
-                            }
+val arquivos =
+    try {
+        val lista =
+            pasta.listFiles()?.toList()
+                ?: emptyList()
+
+        if (
+            pasta.absoluteFile ==
+            Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS
+            ).absoluteFile
+        ) {
+            lista.sortedWith(
+                compareBy<File> { !it.isDirectory }
+                    .thenByDescending { it.lastModified() }
+            )
+        } else {
+            lista.sortedWith(
+                compareBy<File> { !it.isDirectory }
+                    .thenBy {
+                        it.name.lowercase(
+                            Locale.getDefault()
                         )
-                        ?: emptyList()
-
-                } catch (
-                    _: Exception
-                ) {
-
-                    emptyList()
+                    }
+            )
+        }
+    } catch (
+        _: Exception
+    ) {
+        emptyList()
+    }
+emptyList()
                 }
 
             runOnUiThread {
