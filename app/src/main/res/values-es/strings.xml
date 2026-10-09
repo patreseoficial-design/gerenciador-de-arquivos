@@ -2,6 +2,6 @@
 <resources>
 
     <!-- Nome que aparece embaixo do ícone do app -->
-    <string name="app_name">Archivos Pro</string>
+    <string name="app_name">Gestor de Archivos Pro</string>
 
 </resources>

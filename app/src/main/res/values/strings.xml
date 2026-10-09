@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Arquivos Pro</string>
+    <string name="app_name">Gerenciador de Arquivos Pro</string>
 
     <string name="widget_descricao">Mostra o espaço livre do celular</string>
 

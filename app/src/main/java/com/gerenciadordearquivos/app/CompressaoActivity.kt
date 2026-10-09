@@ -160,7 +160,7 @@ class CompressaoActivity : TelaBase() {
         AlertDialog.Builder(this)
             .setTitle(tr("Comprimir {0} foto(s)?", marcados.size))
             .setMessage(
-                tr("As fotos originais irão para a lixeira do Arquivos Pro (dá para restaurar se não gostar).")
+                tr("As fotos originais irão para a lixeira do Gerenciador de Arquivos Pro (dá para restaurar se não gostar).")
             )
             .setNegativeButton(tr("Cancelar"), null)
             .setPositiveButton(tr("Comprimir")) { _, _ -> comprimir(marcados) }

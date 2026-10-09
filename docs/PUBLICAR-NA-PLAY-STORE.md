@@ -30,7 +30,7 @@ A partir daí, cada build no GitHub Actions gera também o artefato **`app-relea
 
 ## 3. Criar o app no Play Console
 
-- **Nome do app na loja (título):** `Gerenciador de Arquivos Pro` (27 caracteres). A frase exata "gerenciador de arquivos" no título ajuda a aparecer nessa busca. **"Limpa celular"** fica no começo da descrição curta, para aparecer também nessa busca. No celular, embaixo do ícone, aparece **Arquivos Pro**. O título pode ser trocado depois a qualquer momento.
+- **Nome do app na loja (título):** `Gerenciador de Arquivos Pro` (27 caracteres). A frase exata "gerenciador de arquivos" no título ajuda a aparecer nessa busca. **"Limpa celular"** fica no começo da descrição curta, para aparecer também nessa busca. O mesmo nome aparece no topo do app e embaixo do ícone (alguns celulares encurtam nomes longos embaixo do ícone). O título pode ser trocado depois a qualquer momento.
 - **Idioma padrão:** Português (Brasil)
 - **App ou jogo:** App
 - **Gratuito**
@@ -195,7 +195,7 @@ O Play Console só deixa criar produtos depois que um AAB com a biblioteca de co
 
 1. **Monetizar → Produtos → Produtos no app → Criar produto**
 2. **ID do produto:** `premium` (exatamente assim, tudo minúsculo)
-3. **Nome:** Arquivos Pro Premium
+3. **Nome:** Gerenciador de Arquivos Pro Premium
 4. **Descrição:** Cofre com PIN, apagar fotos duplicadas e sem anúncios.
 5. **Preço:** R$ 9,90 → **Ativar**
 

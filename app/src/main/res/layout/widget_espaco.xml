@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Widget "Espaço livre" do Arquivos Pro -->
+<!-- Widget "Espaço livre" do Gerenciador de Arquivos Pro -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widgetRaiz"
@@ -13,7 +13,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="📁 Arquivos Pro"
+        android:text="📁 Gerenciador de Arquivos Pro"
         android:textColor="#BBBBBB"
         android:textSize="12sp"/>
 

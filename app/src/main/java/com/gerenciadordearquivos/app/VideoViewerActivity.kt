@@ -2386,7 +2386,7 @@ class VideoViewerActivity : Activity() {
                 tr("Enviar para lixeira?")
             )
             .setMessage(
-                tr("O arquivo será movido para a lixeira do Arquivos Pro.")
+                tr("O arquivo será movido para a lixeira do Gerenciador de Arquivos Pro.")
             )
             .setNegativeButton(
                 tr("CANCELAR"),
