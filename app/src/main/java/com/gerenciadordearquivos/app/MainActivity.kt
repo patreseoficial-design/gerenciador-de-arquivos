@@ -91,6 +91,8 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
 
+        private const val PEDIDO_PERMISSAO_ARQUIVOS = 10
+
         private val COR_TEXTO_PRINCIPAL =
             Color.rgb(20, 20, 20)
 
@@ -1380,14 +1382,17 @@ class MainActivity : AppCompatActivity() {
             val aplicativos =
                 try {
 
-                    pm.getInstalledApplications(
-                        PackageManager.GET_META_DATA
+                    // Apps com ícone na tela inicial (não precisa
+                    // da permissão QUERY_ALL_PACKAGES)
+                    pm.queryIntentActivities(
+                        Intent(Intent.ACTION_MAIN)
+                            .addCategory(Intent.CATEGORY_LAUNCHER),
+                        0
                     )
+                        .map { it.activityInfo.applicationInfo }
                         .filter { aplicativo ->
 
-                            pm.getLaunchIntentForPackage(
-                                aplicativo.packageName
-                            ) != null
+                            aplicativo.packageName != packageName
                         }
                         .map { aplicativo ->
 
@@ -3059,6 +3064,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /*
+     * Antes de pedir o acesso aos arquivos, explica o motivo
+     * (aviso exigido pela Play Store para permissões sensíveis).
+     */
     private fun verificarPermissao() {
 
         if (
@@ -3066,48 +3075,91 @@ class MainActivity : AppCompatActivity() {
             android.os.Build.VERSION_CODES.R
         ) {
 
-            if (
-                !Environment.isExternalStorageManager()
-            ) {
-
-                Toast.makeText(
-                    this,
-                    "Permita o acesso aos arquivos para usar o gerenciador",
-                    Toast.LENGTH_LONG
-                ).show()
-
-                try {
-
-                    val intent =
-                        Intent(
-                            Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
-                        )
-
-                    intent.data =
-                        Uri.parse(
-                            "package:$packageName"
-                        )
-
-                    startActivity(intent)
-
-                } catch (
-                    _: Exception
-                ) {
-
-                    try {
-
-                        startActivity(
-                            Intent(
-                                Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
-                            )
-                        )
-
-                    } catch (
-                        _: Exception
-                    ) {
-                    }
-                }
+            if (Environment.isExternalStorageManager()) {
+                return
             }
+
+            AlertDialog.Builder(this)
+                .setTitle("Acesso aos arquivos")
+                .setMessage(
+                    "Para mostrar, organizar, mover e apagar seus arquivos, " +
+                        "o Gerenciador de Arquivos precisa da permissão " +
+                        "\"Acesso a todos os arquivos\".\n\n" +
+                        "Seus arquivos ficam só no seu celular: o app não " +
+                        "envia nada para a internet."
+                )
+                .setCancelable(false)
+                .setNegativeButton("Agora não", null)
+                .setPositiveButton("Permitir") { _, _ ->
+                    abrirTelaDePermissao()
+                }
+                .show()
+
+        } else if (
+            checkSelfPermission(
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+
+            requestPermissions(
+                arrayOf(
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ),
+                PEDIDO_PERMISSAO_ARQUIVOS
+            )
+        }
+    }
+
+    private fun abrirTelaDePermissao() {
+
+        try {
+
+            val intent =
+                Intent(
+                    Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
+                )
+
+            intent.data =
+                Uri.parse(
+                    "package:$packageName"
+                )
+
+            startActivity(intent)
+
+        } catch (
+            _: Exception
+        ) {
+
+            try {
+
+                startActivity(
+                    Intent(
+                        Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
+                    )
+                )
+
+            } catch (
+                _: Exception
+            ) {
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+
+        super.onRequestPermissionsResult(
+            requestCode,
+            permissions,
+            grantResults
+        )
+
+        if (requestCode == PEDIDO_PERMISSAO_ARQUIVOS) {
+            atualizarArmazenamento()
         }
     }
 
