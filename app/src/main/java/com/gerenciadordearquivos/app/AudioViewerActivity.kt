@@ -21,6 +21,15 @@ import java.util.Locale
 
 class AudioViewerActivity : Activity() {
 
+    // Mesmo tamanho de letra do resto do app
+    override fun attachBaseContext(
+        novoContexto: android.content.Context
+    ) {
+        super.attachBaseContext(
+            ModoSimples.contexto(novoContexto)
+        )
+    }
+
     private var mediaPlayer: MediaPlayer? = null
 
     private lateinit var playPauseButton: ImageButton

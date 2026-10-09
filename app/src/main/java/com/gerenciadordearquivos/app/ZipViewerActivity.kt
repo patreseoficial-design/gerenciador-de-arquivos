@@ -17,6 +17,15 @@ import java.util.zip.ZipFile
 
 class ZipViewerActivity : AppCompatActivity() {
 
+    // Mesmo tamanho de letra do resto do app
+    override fun attachBaseContext(
+        novoContexto: android.content.Context
+    ) {
+        super.attachBaseContext(
+            ModoSimples.contexto(novoContexto)
+        )
+    }
+
     private lateinit var lista: ListView
 
     private var arquivoZip: File? = null

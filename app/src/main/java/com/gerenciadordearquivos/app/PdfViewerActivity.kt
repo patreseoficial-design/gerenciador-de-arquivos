@@ -18,6 +18,15 @@ import java.io.File
 
 class PdfViewerActivity : AppCompatActivity() {
 
+    // Mesmo tamanho de letra do resto do app
+    override fun attachBaseContext(
+        novoContexto: android.content.Context
+    ) {
+        super.attachBaseContext(
+            ModoSimples.contexto(novoContexto)
+        )
+    }
+
     private var renderer: PdfRenderer? = null
     private var descriptor: ParcelFileDescriptor? = null
 

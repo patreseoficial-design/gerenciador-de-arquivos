@@ -173,7 +173,7 @@
             <!-- LINHA 1 -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="115dp"
+                android:layout_height="125dp"
                 android:orientation="horizontal">
 
                 <!-- DOWNLOADS -->
@@ -268,7 +268,7 @@
             <!-- LINHA 2 -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="115dp"
+                android:layout_height="125dp"
                 android:orientation="horizontal">
 
                 <!-- ÁUDIO -->
@@ -364,7 +364,7 @@
             <!-- LINHA 3 -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="115dp"
+                android:layout_height="125dp"
                 android:orientation="horizontal">
 
                 <!-- APLICATIVOS -->
@@ -471,7 +471,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="105dp"
+                android:layout_height="118dp"
                 android:orientation="horizontal">
 
                 <LinearLayout
@@ -595,7 +595,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="105dp"
+                android:layout_height="118dp"
                 android:orientation="horizontal">
 
                 <LinearLayout
