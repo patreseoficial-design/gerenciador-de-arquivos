@@ -457,16 +457,13 @@
             </LinearLayout>
 
 
-            <!-- FERRAMENTAS -->
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="4dp"/>
-
+            <!-- LINHA 4 -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="118dp"
+                android:layout_height="125dp"
                 android:orientation="horizontal">
 
+                <!-- LIMPEZA DO WHATSAPP -->
                 <LinearLayout
                     android:id="@+id/toolWhatsApp"
                     android:layout_width="0dp"
@@ -480,23 +477,22 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
                         android:src="@drawable/ferramenta_whatsapp"
                         android:scaleType="fitCenter"
-                        android:contentDescription="Limpar\nWhatsApp"/>
+                        android:contentDescription="WhatsApp"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:gravity="center"
-                        android:text="Limpar\nWhatsApp"
+                        android:text="WhatsApp"
                         android:textColor="#222222"
-                        android:textSize="13sp"/>
+                        android:textSize="14sp"/>
 
                 </LinearLayout>
 
+                <!-- FOTOS DUPLICADAS -->
                 <LinearLayout
                     android:id="@+id/toolDuplicadas"
                     android:layout_width="0dp"
@@ -510,23 +506,22 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
                         android:src="@drawable/ferramenta_duplicadas"
                         android:scaleType="fitCenter"
-                        android:contentDescription="Fotos\nduplicadas"/>
+                        android:contentDescription="Duplicadas"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:gravity="center"
-                        android:text="Fotos\nduplicadas"
+                        android:text="Duplicadas"
                         android:textColor="#222222"
-                        android:textSize="13sp"/>
+                        android:textSize="14sp"/>
 
                 </LinearLayout>
 
+                <!-- COFRE -->
                 <LinearLayout
                     android:id="@+id/toolCofre"
                     android:layout_width="0dp"
@@ -540,8 +535,8 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
                         android:src="@drawable/ferramenta_cofre"
                         android:scaleType="fitCenter"
                         android:contentDescription="Cofre"/>
@@ -549,52 +544,21 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:gravity="center"
                         android:text="Cofre"
                         android:textColor="#222222"
-                        android:textSize="13sp"/>
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/toolPremium"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_margin="4dp"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:background="#FFFFFF"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <ImageView
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:src="@drawable/ferramenta_premium"
-                        android:scaleType="fitCenter"
-                        android:contentDescription="Premium"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:gravity="center"
-                        android:text="Premium"
-                        android:textColor="#222222"
-                        android:textSize="13sp"/>
+                        android:textSize="14sp"/>
 
                 </LinearLayout>
 
             </LinearLayout>
 
-
+            <!-- LINHA 5 -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="118dp"
+                android:layout_height="125dp"
                 android:orientation="horizontal">
 
+                <!-- COMPRIMIR FOTOS -->
                 <LinearLayout
                     android:id="@+id/toolComprimir"
                     android:layout_width="0dp"
@@ -608,23 +572,22 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
                         android:src="@drawable/ferramenta_comprimir"
                         android:scaleType="fitCenter"
-                        android:contentDescription="Comprimir\nfotos"/>
+                        android:contentDescription="Comprimir"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:gravity="center"
-                        android:text="Comprimir\nfotos"
+                        android:text="Comprimir"
                         android:textColor="#222222"
-                        android:textSize="13sp"/>
+                        android:textSize="14sp"/>
 
                 </LinearLayout>
 
+                <!-- PASSAR PARA O PC -->
                 <LinearLayout
                     android:id="@+id/toolWifi"
                     android:layout_width="0dp"
@@ -638,28 +601,49 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
                         android:src="@drawable/ferramenta_wifi"
                         android:scaleType="fitCenter"
-                        android:contentDescription="Passar\npara o PC"/>
+                        android:contentDescription="Para o PC"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:gravity="center"
-                        android:text="Passar\npara o PC"
+                        android:text="Para o PC"
                         android:textColor="#222222"
-                        android:textSize="13sp"/>
+                        android:textSize="14sp"/>
 
                 </LinearLayout>
 
-                <Space
+                <!-- PREMIUM -->
+                <LinearLayout
+                    android:id="@+id/toolPremium"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="2"
-                    android:layout_margin="4dp"/>
+                    android:layout_weight="1"
+                    android:layout_margin="4dp"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:background="#FFFFFF"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="95dp"
+                        android:layout_height="80dp"
+                        android:src="@drawable/ferramenta_premium"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="Premium"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Premium"
+                        android:textColor="#222222"
+                        android:textSize="14sp"/>
+
+                </LinearLayout>
 
             </LinearLayout>
 
