@@ -58,6 +58,7 @@ class PremiumActivity : TelaBase() {
         listOf(
             "🔒  Cofre com PIN para esconder fotos e arquivos",
             "🖼️  Apagar fotos e vídeos duplicados com 1 toque",
+            "🗜️  Comprimir fotos (até 4x menores, mesma qualidade na tela)",
             "🚫  Sem nenhum anúncio",
             "💛  Ajuda a manter o app sendo melhorado"
         ).forEach {

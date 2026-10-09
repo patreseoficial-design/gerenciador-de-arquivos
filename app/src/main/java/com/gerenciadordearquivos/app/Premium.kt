@@ -23,8 +23,8 @@ import com.android.billingclient.api.QueryPurchasesParams
  *   ID do produto: premium   (produto de compra única / "in-app")
  *   Preço: R$ 9,90
  *
- * O Premium libera: Cofre, remover fotos duplicadas e app sem
- * anúncios.
+ * O Premium libera: Cofre, remover fotos duplicadas, comprimir
+ * fotos e app sem anúncios.
  * =============================================================
  */
 

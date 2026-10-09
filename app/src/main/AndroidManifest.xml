@@ -39,6 +39,14 @@
 
     </queries>
 
+    <!-- Transferência pelo Wi-Fi, anúncios e compras -->
+    <uses-permission
+        android:name="android.permission.INTERNET" />
+
+    <!-- Aviso de celular quase cheio (Android 13+) -->
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Permite pedir a desinstalação de aplicativos -->
     <uses-permission
         android:name="android.permission.REQUEST_DELETE_PACKAGES" />
@@ -120,6 +128,29 @@
         <activity
             android:name=".PremiumActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".CompressaoActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".TransferenciaWifiActivity"
+            android:exported="false" />
+
+        <!-- WIDGET: ESPAÇO LIVRE -->
+        <receiver
+            android:name=".WidgetEspaco"
+            android:exported="false">
+
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_espaco_info" />
+
+        </receiver>
 
         <!-- FILE PROVIDER -->
         <provider

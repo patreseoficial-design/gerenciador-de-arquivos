@@ -72,6 +72,12 @@ open class TelaBase : AppCompatActivity() {
             setOf("mp3", "wav", "ogg", "m4a", "aac", "flac", "opus", "amr")
     }
 
+    override fun attachBaseContext(
+        novoContexto: android.content.Context
+    ) {
+        super.attachBaseContext(ModoSimples.contexto(novoContexto))
+    }
+
     override fun onCreate(
         savedInstanceState: Bundle?
     ) {

@@ -161,6 +161,15 @@ class MainActivity : AppCompatActivity() {
             )
     }
 
+    // Letras grandes (opção do menu ⋮)
+    override fun attachBaseContext(
+        novoContexto: android.content.Context
+    ) {
+        super.attachBaseContext(
+            ModoSimples.contexto(novoContexto)
+        )
+    }
+
     override fun onCreate(
         savedInstanceState: Bundle?
     ) {
@@ -182,6 +191,21 @@ class MainActivity : AppCompatActivity() {
 
         Premium.aoMudar(aoMudarPremium)
 
+        // Aviso diário de celular quase cheio + widget
+        AvisoArmazenamento.agendar(this)
+
+        pedirPermissaoDeAviso()
+
+        // Veio da notificação ou do widget
+        if (
+            intent?.getBooleanExtra(
+                AvisoArmazenamento.EXTRA_ABRIR_ANALISE,
+                false
+            ) == true
+        ) {
+            analisarArmazenamento()
+        }
+
         Anuncios.iniciar(this) {
             if (!isFinishing) {
                 Anuncios.mostrarBanner(
@@ -190,6 +214,56 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
+    }
+
+    override fun onNewIntent(
+        novo: Intent
+    ) {
+
+        super.onNewIntent(novo)
+
+        if (
+            novo.getBooleanExtra(
+                AvisoArmazenamento.EXTRA_ABRIR_ANALISE,
+                false
+            )
+        ) {
+            analisarArmazenamento()
+        }
+    }
+
+    // Android 13+: pede uma vez para mostrar o aviso de celular cheio
+    private fun pedirPermissaoDeAviso() {
+
+        if (android.os.Build.VERSION.SDK_INT < 33) {
+            return
+        }
+
+        val prefs =
+            getSharedPreferences("preferencias", MODE_PRIVATE)
+
+        if (prefs.getBoolean("pediu_notificacao", false)) {
+            return
+        }
+
+        if (
+            checkSelfPermission(
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        prefs.edit()
+            .putBoolean("pediu_notificacao", true)
+            .apply()
+
+        requestPermissions(
+            arrayOf(
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ),
+            PEDIDO_PERMISSAO_ARQUIVOS + 1
+        )
     }
 
     private val aoMudarPremium: (Boolean) -> Unit = { ativo ->
@@ -378,6 +452,24 @@ class MainActivity : AppCompatActivity() {
 
             startActivity(
                 Intent(this, CofreActivity::class.java)
+            )
+        }
+
+        findViewById<View>(
+            R.id.toolComprimir
+        ).setOnClickListener {
+
+            startActivity(
+                Intent(this, CompressaoActivity::class.java)
+            )
+        }
+
+        findViewById<View>(
+            R.id.toolWifi
+        ).setOnClickListener {
+
+            startActivity(
+                Intent(this, TransferenciaWifiActivity::class.java)
             )
         }
 
@@ -2427,6 +2519,45 @@ class MainActivity : AppCompatActivity() {
             startActivity(
                 Intent(this, PremiumActivity::class.java)
             )
+        }
+
+        adicionarOpcaoMenu(
+            menu,
+            "A",
+            if (ModoSimples.ativo(this)) "Letras grandes: ligado"
+            else "Letras grandes: desligado"
+        ) {
+
+            ModoSimples.definir(
+                this,
+                !ModoSimples.ativo(this)
+            )
+
+            // Recria a tela com o novo tamanho de letra
+            recreate()
+        }
+
+        adicionarOpcaoMenu(
+            menu,
+            "!",
+            if (AvisoArmazenamento.ativo(this)) "Avisar celular cheio: ligado"
+            else "Avisar celular cheio: desligado"
+        ) {
+
+            val ligar =
+                !AvisoArmazenamento.ativo(this)
+
+            AvisoArmazenamento.definir(
+                this,
+                ligar
+            )
+
+            Toast.makeText(
+                this,
+                if (ligar) "Vamos avisar quando o celular estiver quase cheio"
+                else "Aviso de celular cheio desligado",
+                Toast.LENGTH_SHORT
+            ).show()
         }
 
         adicionarOpcaoMenu(

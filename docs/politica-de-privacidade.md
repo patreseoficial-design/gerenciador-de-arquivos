@@ -17,6 +17,8 @@ O **Faxina** ("app") é um gerenciador de arquivos e de limpeza para Android. Es
 | Acesso a todos os arquivos (`MANAGE_EXTERNAL_STORAGE`) e, no Android 10 ou anterior, leitura/gravação do armazenamento | Mostrar, abrir, copiar, mover, renomear e apagar arquivos e pastas, analisar o espaço, limpar o WhatsApp, achar fotos duplicadas, usar o Cofre e o cartão de memória. É a função principal do app. |
 | Consulta de apps com ícone na tela inicial (`<queries>`) | Mostrar a lista de aplicativos (aba Aplicativos) e escolher com qual app abrir ou compartilhar um arquivo. |
 | Pedir desinstalação de apps (`REQUEST_DELETE_PACKAGES`) | Abrir a tela de desinstalação do Android quando **você** toca em "Desinstalar". O Android sempre pede a sua confirmação. |
+| Notificações (Android 13+) | Avisar quando o celular estiver quase cheio. Pode ser desligado no menu ⋮. |
+| Rede local (Wi-Fi) | Recurso "Passar para o PC": enquanto essa tela está aberta, o computador **da sua própria rede Wi-Fi** acessa os arquivos pelo navegador, com um código secreto. Nada passa por servidores da internet. |
 | Internet e ID de publicidade | Usadas **somente** pelos anúncios (Google AdMob) e pela compra do Premium (Google Play). |
 
 ## Anúncios (Google AdMob)
