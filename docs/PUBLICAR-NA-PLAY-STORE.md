@@ -1,4 +1,4 @@
-# Como publicar o Faxina na Play Store
+# Como publicar o Arquivos Faxina na Play Store
 
 Siga os passos na ordem. Tudo que for para **copiar e colar** está em blocos.
 
@@ -30,7 +30,7 @@ A partir daí, cada build no GitHub Actions gera também o artefato **`app-relea
 
 ## 3. Criar o app no Play Console
 
-- **Nome do app na loja:** `Faxina: Arquivos e Limpeza` (o nome que aparece no celular é só **Faxina**)
+- **Nome do app na loja:** `Gerenciador de Arquivos Faxina` (30 caracteres, o máximo do Google). Ele traz as palavras que as pessoas mais buscam ("gerenciador de arquivos"), e a descrição curta completa com "limpar celular". No celular, embaixo do ícone, aparece **Arquivos Faxina**.
 - **Idioma padrão:** Português (Brasil)
 - **App ou jogo:** App
 - **Gratuito**
@@ -41,7 +41,7 @@ A partir daí, cada build no GitHub Actions gera também o artefato **`app-relea
 **Descrição curta** (até 80 caracteres):
 
 ```
-Limpe o WhatsApp, apague fotos repetidas e organize seus arquivos. Em português!
+Limpar celular, WhatsApp e fotos repetidas. Gerenciador de arquivos fácil!
 ```
 
 **Descrição completa:**

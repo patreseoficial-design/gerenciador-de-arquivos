@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Nome que aparece embaixo do ícone do app -->
+    <string name="app_name">Archivos Faxina</string>
+
+</resources>

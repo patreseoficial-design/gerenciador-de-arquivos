@@ -35,7 +35,7 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:translationY="8dp"
-            android:text="Faxina"
+            android:text="Arquivos Faxina"
             android:textColor="#FFFFFF"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -458,16 +458,9 @@
 
 
             <!-- FERRAMENTAS -->
-            <TextView
+            <Space
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:layout_marginStart="4dp"
-                android:layout_marginBottom="4dp"
-                android:text="Ferramentas de limpeza"
-                android:textColor="#222222"
-                android:textSize="16sp"
-                android:textStyle="bold"/>
+                android:layout_height="4dp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
