@@ -44,6 +44,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var currentPath: TextView
     private lateinit var fileList: ListView
     private lateinit var mediaGrid: GridView
+    private lateinit var appTabs: LinearLayout
+    private lateinit var tabAppsNativos: TextView
+    private lateinit var tabAppsBaixados: TextView
 
     private lateinit var storageInfo: TextView
     private lateinit var storageProgress: ProgressBar
@@ -61,6 +64,12 @@ class MainActivity : AppCompatActivity() {
     private var tipoDeMidiaAtual: Set<String> = TIPO_IMAGEM
 
     private var categoriaMidiaAtual = ""
+
+    private var aplicativosNativos: List<AppInfoItem> = emptyList()
+
+    private var aplicativosBaixados: List<AppInfoItem> = emptyList()
+
+    private var abaAppsNativos = true
 
     private val thumbnailExecutor =
         Executors.newFixedThreadPool(3)
@@ -183,6 +192,15 @@ class MainActivity : AppCompatActivity() {
         mediaGrid =
             findViewById(R.id.mediaGrid)
 
+        appTabs =
+            findViewById(R.id.appTabs)
+
+        tabAppsNativos =
+            findViewById(R.id.tabAppsNativos)
+
+        tabAppsBaixados =
+            findViewById(R.id.tabAppsBaixados)
+
         storageInfo =
             findViewById(R.id.storageInfo)
 
@@ -287,6 +305,20 @@ class MainActivity : AppCompatActivity() {
 
             voltar()
         }
+
+        tabAppsNativos.setOnClickListener {
+
+            mostrarAbaAplicativos(
+                nativos = true
+            )
+        }
+
+        tabAppsBaixados.setOnClickListener {
+
+            mostrarAbaAplicativos(
+                nativos = false
+            )
+        }
     }
 
     private fun configurarPesquisa() {
@@ -356,6 +388,9 @@ class MainActivity : AppCompatActivity() {
 
         fileScreen.visibility =
             View.VISIBLE
+
+        appTabs.visibility =
+            View.GONE
 
         fileScreenTitle.text =
             titulo
@@ -516,6 +551,9 @@ class MainActivity : AppCompatActivity() {
         fileScreen.visibility =
             View.VISIBLE
 
+        appTabs.visibility =
+            View.GONE
+
         fileScreenTitle.text =
             titulo
 
@@ -547,6 +585,9 @@ class MainActivity : AppCompatActivity() {
 
         fileScreen.visibility =
             View.VISIBLE
+
+        appTabs.visibility =
+            View.GONE
 
         fileScreenTitle.text =
             pasta.name
@@ -1041,6 +1082,9 @@ class MainActivity : AppCompatActivity() {
         fileScreen.visibility =
             View.VISIBLE
 
+        appTabs.visibility =
+            View.GONE
+
         fileScreenTitle.text =
             titulo
 
@@ -1173,6 +1217,9 @@ class MainActivity : AppCompatActivity() {
         fileScreen.visibility =
             View.VISIBLE
 
+        appTabs.visibility =
+            View.GONE
+
         fileScreenTitle.text =
             "Aplicativos"
 
@@ -1227,57 +1274,124 @@ class MainActivity : AppCompatActivity() {
                     emptyList()
                 }
 
+            val (nativos, baixados) =
+                aplicativos.partition {
+                    ehAplicativoNativo(it.info)
+                }
+
             runOnUiThread {
 
-                currentPath.text =
-                    "${aplicativos.size} aplicativos instalados"
-
-                fileList.adapter =
-                    AppListAdapter(
-                        aplicativos
-                    )
-
-                fileList.setOnItemClickListener {
-                        _,
-                        _,
-                        position,
-                        _ ->
-
-                    if (
-                        position < 0 ||
-                        position >= aplicativos.size
-                    ) {
-                        return@setOnItemClickListener
-                    }
-
-                    abrirAplicativo(
-                        aplicativos[position]
-                    )
+                if (
+                    fileScreen.visibility != View.VISIBLE ||
+                    fileScreenTitle.text.toString() != "Aplicativos"
+                ) {
+                    return@runOnUiThread
                 }
 
-                fileList.setOnItemLongClickListener {
-                        _,
-                        view,
-                        position,
-                        _ ->
+                aplicativosNativos =
+                    nativos
 
-                    if (
-                        position >= 0 &&
-                        position < aplicativos.size
-                    ) {
+                aplicativosBaixados =
+                    baixados
 
-                        mostrarMenuAplicativo(
-                            aplicativos[position],
-                            view
-                        )
+                appTabs.visibility =
+                    View.VISIBLE
 
-                        true
+                mostrarAbaAplicativos(
+                    abaAppsNativos
+                )
+            }
+        }
+    }
 
-                    } else {
+    // Apps que vêm com o celular (do sistema ou do fabricante),
+    // inclusive os que já receberam atualização pela loja
+    private fun ehAplicativoNativo(
+        info: ApplicationInfo
+    ): Boolean {
 
-                        false
-                    }
-                }
+        return (
+            info.flags and
+                (ApplicationInfo.FLAG_SYSTEM or
+                    ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)
+            ) != 0
+    }
+
+    private fun mostrarAbaAplicativos(
+        nativos: Boolean
+    ) {
+
+        abaAppsNativos =
+            nativos
+
+        val aplicativos =
+            if (nativos) {
+                aplicativosNativos
+            } else {
+                aplicativosBaixados
+            }
+
+        tabAppsNativos.setTextColor(
+            if (nativos) Color.parseColor("#1E88E5")
+            else Color.parseColor("#777777")
+        )
+
+        tabAppsBaixados.setTextColor(
+            if (nativos) Color.parseColor("#777777")
+            else Color.parseColor("#1E88E5")
+        )
+
+        currentPath.text =
+            if (nativos) {
+                "${aplicativos.size} aplicativos nativos"
+            } else {
+                "${aplicativos.size} aplicativos baixados"
+            }
+
+        fileList.adapter =
+            AppListAdapter(
+                aplicativos
+            )
+
+        fileList.setOnItemClickListener {
+                _,
+                _,
+                position,
+                _ ->
+
+            if (
+                position < 0 ||
+                position >= aplicativos.size
+            ) {
+                return@setOnItemClickListener
+            }
+
+            abrirAplicativo(
+                aplicativos[position]
+            )
+        }
+
+        fileList.setOnItemLongClickListener {
+                _,
+                view,
+                position,
+                _ ->
+
+            if (
+                position >= 0 &&
+                position < aplicativos.size
+            ) {
+
+                mostrarMenuAplicativo(
+                    aplicativos[position],
+                    view
+                )
+
+                true
+
+            } else {
+
+                false
             }
         }
     }
@@ -1435,6 +1549,9 @@ class MainActivity : AppCompatActivity() {
 
         fileScreen.visibility =
             View.VISIBLE
+
+        appTabs.visibility =
+            View.GONE
 
         fileScreenTitle.text =
             "Pesquisa"
@@ -2095,6 +2212,9 @@ class MainActivity : AppCompatActivity() {
         fileScreen.visibility =
             View.VISIBLE
 
+        appTabs.visibility =
+            View.GONE
+
         fileScreenTitle.text =
             "Análise do armazenamento"
 
@@ -2237,6 +2357,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         fileScreen.visibility =
+            View.GONE
+
+        appTabs.visibility =
             View.GONE
 
         homeScroll.visibility =
