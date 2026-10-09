@@ -1,4 +1,4 @@
-# Faxina na Play Store em vários idiomas e países
+# Gerenciador de Arquivos Pro na Play Store em vários idiomas e países
 
 ## Como ligar no Play Console
 
@@ -15,7 +15,7 @@ Os prints da loja podem ser os mesmos em todos os idiomas no começo. Depois val
 
 **Title (30):**
 ```
-File Manager & Cleaner Faxina
+File Manager Pro: Cleaner
 ```
 
 **Short description (80):**
@@ -25,7 +25,7 @@ Clean WhatsApp, delete duplicate photos and organize your files. Simple & fast!
 
 **Full description:**
 ```
-Phone full? Faxina cleans, organizes and protects your files in a simple way.
+Phone full? Files Pro cleans, organizes and protects your files in a simple way.
 
 🧹 WHATSAPP CLEANER
 • See how much space WhatsApp photos, videos, audio, stickers and documents take
@@ -78,7 +78,7 @@ Your files never leave your phone.
 
 **Título (30):**
 ```
-Gestor de Archivos Faxina
+Gestor de Archivos Pro
 ```
 
 **Descripción breve (80):**
@@ -88,7 +88,7 @@ Limpia WhatsApp, borra fotos repetidas y organiza tus archivos. ¡Fácil y rápi
 
 **Descripción completa:**
 ```
-¿Móvil lleno? Faxina limpia, organiza y protege tus archivos de forma sencilla.
+¿Móvil lleno? Archivos Pro limpia, organiza y protege tus archivos de forma sencilla.
 
 🧹 LIMPIEZA DE WHATSAPP
 • Mira cuánto ocupan fotos, videos, audios, stickers y documentos de WhatsApp
@@ -139,7 +139,7 @@ Tus archivos nunca salen de tu móvil.
 
 **Titre (30) :**
 ```
-Gestionnaire Fichiers Faxina
+Gestionnaire Fichiers Pro
 ```
 
 **Description courte (80) :**
@@ -149,7 +149,7 @@ Nettoyez WhatsApp, supprimez les photos en double et rangez vos fichiers.
 
 **Description complète :**
 ```
-Téléphone plein ? Faxina nettoie, range et protège vos fichiers, tout simplement.
+Téléphone plein ? Fichiers Pro nettoie, range et protège vos fichiers, tout simplement.
 
 🧹 NETTOYAGE WHATSAPP
 • Voyez la place prise par les photos, vidéos, audios, autocollants et documents WhatsApp
@@ -200,7 +200,7 @@ Vos fichiers ne quittent jamais votre téléphone.
 
 **Titel (30):**
 ```
-Dateimanager Faxina
+Dateimanager Pro
 ```
 
 **Kurzbeschreibung (80):**
@@ -210,7 +210,7 @@ WhatsApp bereinigen, doppelte Fotos löschen, Dateien ordnen. Einfach & schnell!
 
 **Vollständige Beschreibung:**
 ```
-Handy voll? Faxina bereinigt, ordnet und schützt deine Dateien – ganz einfach.
+Handy voll? Dateien Pro bereinigt, ordnet und schützt deine Dateien – ganz einfach.
 
 🧹 WHATSAPP-BEREINIGUNG
 • Sieh, wie viel Platz Fotos, Videos, Audios, Sticker und Dokumente von WhatsApp belegen
@@ -261,7 +261,7 @@ Deine Dateien verlassen nie dein Handy.
 
 **Titolo (30):**
 ```
-Gestore File Faxina
+Gestore File Pro
 ```
 
 **Descrizione breve (80):**
@@ -271,7 +271,7 @@ Pulisci WhatsApp, elimina le foto doppie e organizza i file. Facile e veloce!
 
 **Descrizione completa:**
 ```
-Telefono pieno? Faxina pulisce, organizza e protegge i tuoi file in modo semplice.
+Telefono pieno? File Pro pulisce, organizza e protegge i tuoi file in modo semplice.
 
 🧹 PULIZIA DI WHATSAPP
 • Scopri quanto spazio occupano foto, video, audio, sticker e documenti di WhatsApp
@@ -322,7 +322,7 @@ I tuoi file non lasciano mai il telefono.
 
 **Judul (30):**
 ```
-Pengelola File Faxina
+Pengelola File Pro
 ```
 
 **Deskripsi singkat (80):**
@@ -332,7 +332,7 @@ Bersihkan WhatsApp, hapus foto duplikat, dan rapikan file kamu. Mudah & cepat!
 
 **Deskripsi lengkap:**
 ```
-Ponsel penuh? Faxina membersihkan, merapikan, dan melindungi file kamu dengan mudah.
+Ponsel penuh? File Pro membersihkan, merapikan, dan melindungi file kamu dengan mudah.
 
 🧹 PEMBERSIH WHATSAPP
 • Lihat berapa banyak ruang yang dipakai foto, video, audio, stiker, dan dokumen WhatsApp

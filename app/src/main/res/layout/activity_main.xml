@@ -35,7 +35,7 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:translationY="8dp"
-            android:text="Arquivos Faxina"
+            android:text="Arquivos Pro"
             android:textColor="#FFFFFF"
             android:textSize="20sp"
             android:textStyle="bold"

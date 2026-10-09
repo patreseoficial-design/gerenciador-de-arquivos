@@ -284,7 +284,7 @@ class LimpezaWhatsAppActivity : TelaBase() {
 
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle(tr("Limpar {0} arquivo(s)?", marcados.size))
-            .setMessage(tr("Eles vão para a lixeira do Faxina e podem ser restaurados."))
+            .setMessage(tr("Eles vão para a lixeira do Arquivos Pro e podem ser restaurados."))
             .setNegativeButton(tr("Cancelar"), null)
             .setPositiveButton(tr("Limpar")) { _, _ ->
 

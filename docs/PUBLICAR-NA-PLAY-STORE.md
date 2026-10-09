@@ -1,4 +1,4 @@
-# Como publicar o Arquivos Faxina na Play Store
+# Como publicar o Gerenciador de Arquivos Pro na Play Store
 
 Siga os passos na ordem. Tudo que for para **copiar e colar** está em blocos.
 
@@ -30,7 +30,7 @@ A partir daí, cada build no GitHub Actions gera também o artefato **`app-relea
 
 ## 3. Criar o app no Play Console
 
-- **Nome do app na loja:** `Gerenciador de Arquivos Faxina` (30 caracteres, o máximo do Google). Ele traz as palavras que as pessoas mais buscam ("gerenciador de arquivos"), e a descrição curta completa com "limpar celular". No celular, embaixo do ícone, aparece **Arquivos Faxina**.
+- **Nome do app na loja:** `Gerenciador de Arquivos Pro` (27 caracteres). Traz as palavras mais buscadas ("gerenciador de arquivos"). No celular, embaixo do ícone, aparece **Arquivos Pro**.
 - **Idioma padrão:** Português (Brasil)
 - **App ou jogo:** App
 - **Gratuito**
@@ -47,7 +47,7 @@ Limpar celular, WhatsApp e fotos repetidas. Gerenciador de arquivos fácil!
 **Descrição completa:**
 
 ```
-Celular cheio? O Faxina limpa, organiza e protege seus arquivos de um jeito simples e todo em português.
+Celular cheio? O Arquivos Pro limpa, organiza e protege seus arquivos de um jeito simples e todo em português.
 
 🧹 LIMPEZA DO WHATSAPP
 • Veja quanto ocupam fotos, vídeos, áudios, figurinhas e documentos do WhatsApp
@@ -195,7 +195,7 @@ O Play Console só deixa criar produtos depois que um AAB com a biblioteca de co
 
 1. **Monetizar → Produtos → Produtos no app → Criar produto**
 2. **ID do produto:** `premium` (exatamente assim, tudo minúsculo)
-3. **Nome:** Faxina Premium
+3. **Nome:** Arquivos Pro Premium
 4. **Descrição:** Cofre com PIN, apagar fotos duplicadas e sem anúncios.
 5. **Preço:** R$ 9,90 → **Ativar**
 
