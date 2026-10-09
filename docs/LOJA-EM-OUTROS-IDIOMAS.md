@@ -15,12 +15,12 @@ Os prints da loja podem ser os mesmos em todos os idiomas no começo. Depois val
 
 **Title (30):**
 ```
-File Manager Pro: Cleaner
+File Manager Pro
 ```
 
 **Short description (80):**
 ```
-Clean WhatsApp, delete duplicate photos and organize your files. Simple & fast!
+Phone cleaner: WhatsApp, duplicate photos and big files. Simple & fast!
 ```
 
 **Full description:**
@@ -83,7 +83,7 @@ Gestor de Archivos Pro
 
 **Descripción breve (80):**
 ```
-Limpia WhatsApp, borra fotos repetidas y organiza tus archivos. ¡Fácil y rápido!
+Limpiar celular: WhatsApp, fotos repetidas y archivos grandes. ¡Fácil!
 ```
 
 **Descripción completa:**
@@ -144,7 +144,7 @@ Gestionnaire Fichiers Pro
 
 **Description courte (80) :**
 ```
-Nettoyez WhatsApp, supprimez les photos en double et rangez vos fichiers.
+Nettoyeur de téléphone : WhatsApp, photos en double et gros fichiers.
 ```
 
 **Description complète :**
@@ -205,7 +205,7 @@ Dateimanager Pro
 
 **Kurzbeschreibung (80):**
 ```
-WhatsApp bereinigen, doppelte Fotos löschen, Dateien ordnen. Einfach & schnell!
+Handy-Cleaner: WhatsApp, doppelte Fotos und große Dateien. Einfach & schnell!
 ```
 
 **Vollständige Beschreibung:**
@@ -266,7 +266,7 @@ Gestore File Pro
 
 **Descrizione breve (80):**
 ```
-Pulisci WhatsApp, elimina le foto doppie e organizza i file. Facile e veloce!
+Pulizia telefono: WhatsApp, foto doppie e file grandi. Facile e veloce!
 ```
 
 **Descrizione completa:**
@@ -327,7 +327,7 @@ Pengelola File Pro
 
 **Deskripsi singkat (80):**
 ```
-Bersihkan WhatsApp, hapus foto duplikat, dan rapikan file kamu. Mudah & cepat!
+Pembersih HP: WhatsApp, foto duplikat, dan file besar. Mudah & cepat!
 ```
 
 **Deskripsi lengkap:**
