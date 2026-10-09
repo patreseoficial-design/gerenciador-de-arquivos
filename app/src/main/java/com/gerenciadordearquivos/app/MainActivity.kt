@@ -273,6 +273,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val aoMudarPremium: (Boolean) -> Unit = { ativo ->
+
+        mostrarSeloPremium()
+
+        findViewById<TextView>(R.id.infoPremium)?.text =
+            if (ativo) tr("Ativo") else Premium.preco()
+
         if (ativo) {
             Anuncios.esconderBanner(
                 findViewById(R.id.bannerContainer)
@@ -2161,7 +2167,6 @@ class MainActivity : AppCompatActivity() {
 
     private val ordemDaGrade =
         intArrayOf(
-            R.id.categoryStorage,
             R.id.categoryDownloads,
             R.id.categoryAnalysis,
             R.id.categoryImages,
@@ -2238,6 +2243,31 @@ class MainActivity : AppCompatActivity() {
         gradeMontada = true
     }
 
+    // Ferramentas pagas mostram "⭐ Premium" em dourado embaixo
+    private fun mostrarSeloPremium() {
+
+        val premium =
+            Premium.ativo(this)
+
+        listOf(
+            R.id.infoDuplicadas,
+            R.id.infoCofre,
+            R.id.infoComprimir
+        ).forEach { id ->
+
+            findViewById<TextView>(id)?.let {
+
+                if (premium) {
+                    it.text = " "
+                    it.setTextColor(Color.rgb(136, 136, 136))
+                } else {
+                    it.text = "⭐ Premium"
+                    it.setTextColor(Color.rgb(201, 151, 28))
+                }
+            }
+        }
+    }
+
     // Tamanho e quantidade embaixo de cada bloco (ex.: "1,7 GB (2043)")
     private var ultimaContagemHome = 0L
 
@@ -2257,6 +2287,8 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.infoWifi)?.text =
             "Wi-Fi"
+
+        mostrarSeloPremium()
 
         thread {
 
@@ -2348,7 +2380,9 @@ class MainActivity : AppCompatActivity() {
                 mostrar(R.id.infoLixeira, if (lixeira.quantidade == 0) tr("Vazia") else formatarBytes(lixeira.bytes))
                 mostrar(R.id.infoWhatsApp, if (whatsapp.quantidade == 0) " " else formatarBytes(whatsapp.bytes))
                 mostrar(R.id.infoApps, tr("{0} apps", quantidadeApps))
-                mostrar(R.id.infoCofre, if (itensCofre == 0) " " else tr("{0} item(ns)", itensCofre))
+                if (Premium.ativo(this)) {
+                    mostrar(R.id.infoCofre, if (itensCofre == 0) " " else tr("{0} item(ns)", itensCofre))
+                }
             }
         }
     }
@@ -3575,7 +3609,7 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
 
                     storageInfo.text =
-                        "${formatarBytes(usado)} / ${formatarBytes(total)}"
+                        tr("{0} usados de {1}", formatarBytes(usado), formatarBytes(total))
 
                     findViewById<TextView>(R.id.infoAnalise)?.text =
                         tr("{0}% em uso", percentual)
@@ -4695,16 +4729,16 @@ class MainActivity : AppCompatActivity() {
         return when (extensao) {
 
             in TIPO_IMAGEM ->
-                R.drawable.imagens
+                R.drawable.cat_imagens
 
             in TIPO_VIDEO ->
-                R.drawable.videos
+                R.drawable.cat_videos
 
             in TIPO_AUDIO ->
-                R.drawable.audios
+                R.drawable.cat_audios
 
             "apk", "apks", "xapk" ->
-                R.drawable.aplicativos
+                R.drawable.cat_aplicativos
 
             "pdf" ->
                 R.drawable.ic_tipo_pdf
@@ -6790,11 +6824,17 @@ class MainActivity : AppCompatActivity() {
 
                     thumbnailExecutor.execute {
 
+                        // Se a primeira não abrir (arquivo corrompido,
+                        // formato não suportado), tenta as próximas
                         val thumb =
-                            carregarMiniatura(
-                                exemplo,
-                                tamanhoImagem
-                            )
+                            pasta.arquivos
+                                .take(8)
+                                .firstNotNullOfOrNull {
+                                    carregarMiniatura(
+                                        it,
+                                        tamanhoImagem
+                                    )
+                                }
 
                         if (thumb != null) {
 
@@ -6860,11 +6900,12 @@ class MainActivity : AppCompatActivity() {
             nome.includeFontPadding =
                 true
 
+            // Altura acompanha o texto (não corta o nome)
             layout.addView(
                 nome,
                 LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
-                    42
+                    ViewGroup.LayoutParams.WRAP_CONTENT
                 )
             )
 
@@ -6899,7 +6940,7 @@ class MainActivity : AppCompatActivity() {
                 quantidade,
                 LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
-                    26
+                    ViewGroup.LayoutParams.WRAP_CONTENT
                 )
             )
 
@@ -7301,11 +7342,18 @@ class MainActivity : AppCompatActivity() {
                         arquivo.absolutePath
                     )
 
+                    // Alguns vídeos não têm quadro no início:
+                    // tenta outros pontos antes de desistir
                     val frame =
                         retriever.getFrameAtTime(
                             0,
                             MediaMetadataRetriever.OPTION_CLOSEST_SYNC
                         )
+                            ?: retriever.getFrameAtTime(
+                                1_000_000,
+                                MediaMetadataRetriever.OPTION_CLOSEST_SYNC
+                            )
+                            ?: retriever.frameAtTime
 
                     if (frame != null) {
 

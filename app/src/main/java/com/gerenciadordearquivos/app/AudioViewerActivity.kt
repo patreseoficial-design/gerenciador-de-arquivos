@@ -225,7 +225,7 @@ class AudioViewerActivity : Activity() {
         val iconeAudio = ImageView(this).apply {
 
             setImageResource(
-                R.drawable.audios
+                R.drawable.cat_audios
             )
 
             scaleType = ImageView.ScaleType.CENTER_INSIDE
