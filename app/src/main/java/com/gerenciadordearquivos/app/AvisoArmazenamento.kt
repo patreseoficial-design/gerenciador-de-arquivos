@@ -133,7 +133,7 @@ object AvisoArmazenamento {
             NotificationCompat.Builder(context, CANAL)
                 .setSmallIcon(R.drawable.ic_acao_lixeira)
                 .setContentTitle(tr("Seu celular está quase cheio"))
-                .setContentText(tr("Só {0} livres. Toque para liberar espaço com o Faxina.", livre))
+                .setContentText(tr("Só {0} livres. Toque para liberar espaço com o Arquivos Pro.", livre))
                 .setContentIntent(abrir)
                 .setAutoCancel(true)
                 .build()

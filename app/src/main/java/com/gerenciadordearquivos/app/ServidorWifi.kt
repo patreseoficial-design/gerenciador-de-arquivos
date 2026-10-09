@@ -212,7 +212,7 @@ class ServidorWifi(
         html.append(
             """<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Faxina - ${escapar(pasta.name.ifEmpty { "Celular" })}</title>
+<title>Arquivos Pro - ${escapar(pasta.name.ifEmpty { "Celular" })}</title>
 <style>
 body{font-family:system-ui,sans-serif;margin:0;background:#f5f5f5;color:#222}
 header{background:#242424;color:#fff;padding:14px 20px;font-size:20px;font-weight:bold}
@@ -224,7 +224,7 @@ ul{padding:0;margin:0}
 .t{color:#777;white-space:nowrap}
 button{background:#1e88e5;color:#fff;border:0;border-radius:20px;padding:10px 18px;font-size:15px;cursor:pointer}
 </style></head><body>
-<header>🧹 Faxina — arquivos do celular</header><main>
+<header>🧹 Arquivos Pro — arquivos do celular</header><main>
 <div class="caixa"><b>📁 /${escapar(relativo(pasta))}</b>"""
         )
 
