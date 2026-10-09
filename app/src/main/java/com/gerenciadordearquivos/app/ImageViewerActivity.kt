@@ -563,12 +563,7 @@ class ImageViewerActivity : Activity() {
         )
 
         inferior.setBackgroundColor(
-            Color.argb(
-                190,
-                0,
-                0,
-                0
-            )
+            Color.BLACK
         )
 
         adicionarBotaoInferior(
@@ -696,29 +691,63 @@ class ImageViewerActivity : Activity() {
             0
         )
 
-        val iconeView =
-            TextView(this)
+        val iconeRes =
+            MenuEscuro.iconeDaAcao(texto)
 
-        iconeView.text =
-            icone
+        if (iconeRes != null) {
 
-        iconeView.textSize =
-            24f
+            val iconeView =
+                ImageView(this)
 
-        iconeView.gravity =
-            Gravity.CENTER
-
-        iconeView.setTextColor(
-            Color.WHITE
-        )
-
-        coluna.addView(
-            iconeView,
-            LinearLayout.LayoutParams(
-                dp(42),
-                dp(36)
+            iconeView.setImageResource(
+                iconeRes
             )
-        )
+
+            iconeView.setColorFilter(
+                Color.WHITE
+            )
+
+            iconeView.setPadding(
+                0,
+                dp(4),
+                0,
+                dp(4)
+            )
+
+            coluna.addView(
+                iconeView,
+                LinearLayout.LayoutParams(
+                    dp(42),
+                    dp(34)
+                )
+            )
+
+        } else {
+
+            val iconeView =
+                TextView(this)
+
+            iconeView.text =
+                icone
+
+            iconeView.textSize =
+                24f
+
+            iconeView.gravity =
+                Gravity.CENTER
+
+            iconeView.setTextColor(
+                Color.WHITE
+            )
+
+            coluna.addView(
+                iconeView,
+                LinearLayout.LayoutParams(
+                    dp(42),
+                    dp(34)
+                )
+            )
+        }
 
         val textoView =
             TextView(this)
@@ -727,7 +756,13 @@ class ImageViewerActivity : Activity() {
             texto
 
         textoView.textSize =
-            11f
+            13f
+
+        textoView.typeface =
+            android.graphics.Typeface.create(
+                "sans-serif-medium",
+                android.graphics.Typeface.NORMAL
+            )
 
         textoView.gravity =
             Gravity.CENTER
@@ -736,10 +771,13 @@ class ImageViewerActivity : Activity() {
             Color.WHITE
         )
 
+        textoView.maxLines =
+            1
+
         coluna.addView(
             textoView,
             LinearLayout.LayoutParams(
-                dp(70),
+                LinearLayout.LayoutParams.MATCH_PARENT,
                 dp(25)
             )
         )
@@ -915,6 +953,12 @@ class ImageViewerActivity : Activity() {
                         !isDestroyed
                     ) {
 
+                        // Mipmap: a foto reduzida para caber na tela
+                        // fica lisa como na galeria, sem serrilhado
+                        bitmap.setHasMipMap(
+                            true
+                        )
+
                         imageView.setImageBitmap(
                             bitmap
                         )
@@ -1087,36 +1131,27 @@ class ImageViewerActivity : Activity() {
      */
 
     private fun mostrarMenu(
-        ancora: View
+        ancora: View,
+        acimaDaBarraInferior: Boolean = false
     ) {
 
         val layout =
             LinearLayout(this)
 
-        layout.orientation =
-            LinearLayout.VERTICAL
-
-        layout.setPadding(
-            0,
-            dp(8),
-            0,
-            dp(8)
-        )
-
-        layout.setBackgroundColor(
-            Color.WHITE
+        MenuEscuro.prepararMenu(
+            layout
         )
 
         val popup =
             PopupWindow(
                 layout,
-                dp(245),
+                dp(270),
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 true
             )
 
         popup.setBackgroundDrawable(
-            ColorDrawable(Color.WHITE)
+            ColorDrawable(Color.TRANSPARENT)
         )
 
         popup.isOutsideTouchable =
@@ -1194,6 +1229,18 @@ class ImageViewerActivity : Activity() {
             moverParaLixeira()
         }
 
+        if (acimaDaBarraInferior) {
+
+            popup.showAtLocation(
+                window.decorView,
+                Gravity.BOTTOM or Gravity.END,
+                dp(8),
+                dp(86)
+            )
+
+            return
+        }
+
         ancora.post {
 
             val location =
@@ -1206,7 +1253,7 @@ class ImageViewerActivity : Activity() {
             val x =
                 location[0] +
                     ancora.width -
-                    dp(245)
+                    dp(270)
 
             val y =
                 location[1] +
@@ -1228,49 +1275,10 @@ class ImageViewerActivity : Activity() {
 
     private fun mostrarMenuInferior() {
 
-        val opcoes =
-            arrayOf(
-                "Abrir com",
-                "Informações",
-                "Renomear",
-                "Criar cópia",
-                "Criar pasta",
-                "Mover para lixeira"
-            )
-
-        AlertDialog.Builder(this)
-            .setTitle(
-                "Mais opções"
-            )
-            .setItems(
-                opcoes
-            ) { _, qual ->
-
-                when (qual) {
-
-                    0 ->
-                        abrirComAplicativo()
-
-                    1 ->
-                        mostrarInformacoes()
-
-                    2 ->
-                        renomearArquivo()
-
-                    3 ->
-                        mostrarEscolhaDePastaParaCopiar()
-
-                    4 ->
-                        criarPasta(
-                            arquivoAtual.parentFile
-                                ?: Environment.getExternalStorageDirectory()
-                        )
-
-                    5 ->
-                        moverParaLixeira()
-                }
-            }
-            .show()
+        mostrarMenu(
+            window.decorView,
+            acimaDaBarraInferior = true
+        )
     }
 
 
@@ -1281,98 +1289,13 @@ class ImageViewerActivity : Activity() {
         acao: () -> Unit
     ) {
 
-        val linha =
-            LinearLayout(this)
-
-        linha.orientation =
-            LinearLayout.HORIZONTAL
-
-        linha.gravity =
-            Gravity.CENTER_VERTICAL
-
-        linha.setPadding(
-            dp(18),
-            0,
-            dp(18),
-            0
-        )
-
-        val iconeView =
-            TextView(this)
-
-        iconeView.text =
-            icone
-
-        iconeView.textSize =
-            20f
-
-        iconeView.gravity =
-            Gravity.CENTER
-
-        iconeView.setTextColor(
-            Color.rgb(
-                55,
-                55,
-                55
-            )
-        )
-
-        linha.addView(
-            iconeView,
-            LinearLayout.LayoutParams(
-                dp(32),
-                dp(56)
-            )
-        )
-
-        val textoView =
-            TextView(this)
-
-        textoView.text =
-            texto
-
-        textoView.textSize =
-            16f
-
-        textoView.setTextColor(
-            Color.rgb(
-                35,
-                35,
-                35
-            )
-        )
-
-        textoView.gravity =
-            Gravity.CENTER_VERTICAL
-
-        val textoParams =
-            LinearLayout.LayoutParams(
-                0,
-                dp(56),
-                1f
-            )
-
-        textoParams.setMargins(
-            dp(8),
-            0,
-            0,
-            0
-        )
-
-        linha.addView(
-            textoView,
-            textoParams
-        )
-
-        linha.isClickable =
-            true
-
-        linha.setOnClickListener {
-            acao()
-        }
-
         layout.addView(
-            linha
+            MenuEscuro.criarLinha(
+                this,
+                icone,
+                texto,
+                acao
+            )
         )
     }
 

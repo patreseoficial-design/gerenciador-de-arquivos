@@ -1591,8 +1591,8 @@ class VideoViewerActivity : Activity() {
         layout.orientation =
             LinearLayout.VERTICAL
 
-        layout.setBackgroundColor(
-            Color.rgb(35, 35, 35)
+        MenuEscuro.prepararMenu(
+            layout
         )
 
         val opcoes =
@@ -1610,7 +1610,7 @@ class VideoViewerActivity : Activity() {
         val popup =
             PopupWindow(
                 layout,
-                dp(260),
+                dp(270),
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 true
             )
@@ -1621,27 +1621,11 @@ class VideoViewerActivity : Activity() {
         for (opcao in opcoes) {
 
             val item =
-                TextView(this)
-
-            item.text =
-                opcao
-
-            item.textSize =
-                16f
-
-            item.setTextColor(
-                Color.WHITE
-            )
-
-            item.gravity =
-                Gravity.CENTER_VERTICAL
-
-            item.setPadding(
-                dp(20),
-                dp(16),
-                dp(20),
-                dp(16)
-            )
+                MenuEscuro.criarLinha(
+                    this,
+                    "",
+                    opcao
+                ) {}
 
             item.setOnClickListener {
 
@@ -1678,17 +1662,13 @@ class VideoViewerActivity : Activity() {
             }
 
             layout.addView(
-                item,
-                LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
+                item
             )
         }
 
         popup.setBackgroundDrawable(
             android.graphics.drawable.ColorDrawable(
-                Color.rgb(35, 35, 35)
+                Color.TRANSPARENT
             )
         )
 

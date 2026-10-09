@@ -71,6 +71,8 @@ class MainActivity : AppCompatActivity() {
 
     private var abaAppsNativos = true
 
+    private var popupMenuAtual: PopupWindow? = null
+
     private val thumbnailExecutor =
         Executors.newFixedThreadPool(3)
 
@@ -87,6 +89,12 @@ class MainActivity : AppCompatActivity() {
         }
 
     companion object {
+
+        private val COR_TEXTO_PRINCIPAL =
+            Color.rgb(20, 20, 20)
+
+        private val COR_TEXTO_SECUNDARIO =
+            Color.rgb(85, 85, 85)
 
         private val TIPO_IMAGEM =
             setOf(
@@ -409,6 +417,35 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    // Downloads (e suas subpastas) aparece do mais recente
+    // para o mais antigo, como na pasta de downloads do celular
+    private fun estaEmDownloads(
+        pasta: File
+    ): Boolean {
+
+        return try {
+
+            val downloads =
+                Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS
+                ).canonicalPath
+
+            val caminho =
+                pasta.canonicalPath
+
+            caminho == downloads ||
+                caminho.startsWith(
+                    downloads + File.separator
+                )
+
+        } catch (
+            _: Exception
+        ) {
+
+            false
+        }
+    }
+
     private fun carregarArquivos(
         pasta: File
     ) {
@@ -422,15 +459,11 @@ class MainActivity : AppCompatActivity() {
                             ?: emptyList()
 
                     if (
-                        pasta.absoluteFile ==
-                        Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_DOWNLOADS
-                        ).absoluteFile
+                        estaEmDownloads(pasta)
                     ) {
-                        lista.sortedWith(
-                            compareBy<File> { !it.isDirectory }
-                                .thenByDescending { it.lastModified() }
-                        )
+                        lista.sortedByDescending {
+                            it.lastModified()
+                        }
                     } else {
                         lista.sortedWith(
                             compareBy<File> { !it.isDirectory }
@@ -1446,18 +1479,8 @@ class MainActivity : AppCompatActivity() {
         val menu =
             LinearLayout(this)
 
-        menu.orientation =
-            LinearLayout.VERTICAL
-
-        menu.setBackgroundColor(
-            Color.WHITE
-        )
-
-        menu.setPadding(
-            0,
-            6,
-            0,
-            6
+        MenuEscuro.prepararMenu(
+            menu
         )
 
         adicionarOpcaoMenu(
@@ -2678,18 +2701,8 @@ if (arquivo.isDirectory) {
         val menu =
             LinearLayout(this)
 
-        menu.orientation =
-            LinearLayout.VERTICAL
-
-        menu.setBackgroundColor(
-            Color.WHITE
-        )
-
-        menu.setPadding(
-            0,
-            6,
-            0,
-            6
+        MenuEscuro.prepararMenu(
+            menu
         )
 
         adicionarOpcaoMenu(
@@ -2783,92 +2796,20 @@ if (arquivo.isDirectory) {
         acao: () -> Unit
     ) {
 
-        val linha =
-            LinearLayout(this)
-
-        linha.orientation =
-            LinearLayout.HORIZONTAL
-
-        linha.gravity =
-            Gravity.CENTER_VERTICAL
-
-        linha.setPadding(
-            18,
-            0,
-            18,
-            0
-        )
-
-        linha.isClickable =
-            true
-
-        val simbolo =
-            TextView(this)
-
-        simbolo.text =
-            icone
-
-        simbolo.textSize =
-            21f
-
-        simbolo.gravity =
-            Gravity.CENTER
-
-        simbolo.setTextColor(
-            Color.rgb(
-                60,
-                60,
-                60
-            )
-        )
-
-        linha.addView(
-            simbolo,
-            LinearLayout.LayoutParams(
-                38,
-                56
-            )
-        )
-
-        val nome =
-            TextView(this)
-
-        nome.text =
-            texto
-
-        nome.textSize =
-            15f
-
-        nome.setTextColor(
-            Color.rgb(
-                40,
-                40,
-                40
-            )
-        )
-
-        nome.gravity =
-            Gravity.CENTER_VERTICAL
-
-        linha.addView(
-            nome,
-            LinearLayout.LayoutParams(
-                0,
-                56,
-                1f
-            )
-        )
-
-        linha.setOnClickListener {
-            acao()
-        }
-
         menu.addView(
-            linha,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                56
-            )
+            MenuEscuro.criarLinha(
+                this,
+                icone,
+                texto
+            ) {
+
+                popupMenuAtual?.dismiss()
+
+                popupMenuAtual =
+                    null
+
+                acao()
+            }
         )
     }
 
@@ -2880,7 +2821,7 @@ if (arquivo.isDirectory) {
         val largura =
             (
                 resources.displayMetrics.density *
-                        270
+                        280
                 ).toInt()
 
         val popup =
@@ -2893,7 +2834,7 @@ if (arquivo.isDirectory) {
 
         popup.setBackgroundDrawable(
             android.graphics.drawable.ColorDrawable(
-                Color.WHITE
+                Color.TRANSPARENT
             )
         )
 
@@ -2902,6 +2843,11 @@ if (arquivo.isDirectory) {
 
         popup.isFocusable =
             true
+
+        popupMenuAtual?.dismiss()
+
+        popupMenuAtual =
+            popup
 
         if (
             android.os.Build.VERSION.SDK_INT >=
@@ -3001,11 +2947,8 @@ if (arquivo.isDirectory) {
         val menu =
             LinearLayout(this)
 
-        menu.orientation =
-            LinearLayout.VERTICAL
-
-        menu.setBackgroundColor(
-            Color.WHITE
+        MenuEscuro.prepararMenu(
+            menu
         )
 
         adicionarOpcaoMenu(
@@ -4339,10 +4282,10 @@ if (arquivo.isDirectory) {
                 arquivo.name
 
             nome.textSize =
-                15f
+                17f
 
             nome.setTextColor(
-                Color.DKGRAY
+                COR_TEXTO_PRINCIPAL
             )
 
             nome.maxLines =
@@ -4379,10 +4322,10 @@ if (arquivo.isDirectory) {
                 }
 
             info.textSize =
-                12f
+                14f
 
             info.setTextColor(
-                Color.GRAY
+                COR_TEXTO_SECUNDARIO
             )
 
             textos.addView(
@@ -4603,10 +4546,10 @@ if (arquivo.isDirectory) {
                 pasta.pasta.name
 
             nome.textSize =
-                13f
+                15f
 
             nome.setTextColor(
-                Color.DKGRAY
+                COR_TEXTO_PRINCIPAL
             )
 
             nome.gravity =
@@ -4638,10 +4581,10 @@ if (arquivo.isDirectory) {
                 "(${pasta.arquivos.size})"
 
             quantidade.textSize =
-                12f
+                13f
 
             quantidade.setTextColor(
-                Color.GRAY
+                COR_TEXTO_SECUNDARIO
             )
 
             quantidade.gravity =
@@ -4968,10 +4911,10 @@ if (arquivo.isDirectory) {
                 aplicativo.nome
 
             nome.textSize =
-                16f
+                17f
 
             nome.setTextColor(
-                Color.DKGRAY
+                COR_TEXTO_PRINCIPAL
             )
 
             nome.maxLines =
@@ -4997,10 +4940,10 @@ if (arquivo.isDirectory) {
                 aplicativo.info.packageName
 
             pacote.textSize =
-                11f
+                13f
 
             pacote.setTextColor(
-                Color.GRAY
+                COR_TEXTO_SECUNDARIO
             )
 
             pacote.maxLines =
@@ -5086,23 +5029,9 @@ if (arquivo.isDirectory) {
                             maior > tamanho
                         ) {
 
-                            val escala =
-                                tamanho.toFloat() /
-                                        maior.toFloat()
-
-                            Bitmap.createScaledBitmap(
+                            reduzirComQualidade(
                                 frame,
-                                (
-                                    largura *
-                                            escala
-                                    ).toInt()
-                                        .coerceAtLeast(1),
-                                (
-                                    altura *
-                                            escala
-                                    ).toInt()
-                                        .coerceAtLeast(1),
-                                true
+                                tamanho
                             )
 
                         } else {
@@ -5172,7 +5101,12 @@ if (arquivo.isDirectory) {
                 BitmapFactory.decodeFile(
                     arquivo.absolutePath,
                     options
-                )
+                )?.let {
+                    reduzirComQualidade(
+                        it,
+                        tamanho
+                    )
+                }
             }
 
         } catch (
@@ -5187,6 +5121,66 @@ if (arquivo.isDirectory) {
 
             null
         }
+    }
+
+    // Reduz a imagem em etapas de no máximo metade do tamanho,
+    // até o menor lado ficar do tamanho da miniatura. Reduzir
+    // tudo de uma vez deixa a miniatura serrilhada ("pixada").
+    private fun reduzirComQualidade(
+        original: Bitmap,
+        tamanho: Int
+    ): Bitmap {
+
+        var atual =
+            original
+
+        while (true) {
+
+            val menorLado =
+                minOf(
+                    atual.width,
+                    atual.height
+                )
+
+            if (menorLado <= tamanho) {
+                break
+            }
+
+            val proximoMenor =
+                maxOf(
+                    menorLado / 2,
+                    tamanho
+                )
+
+            val escala =
+                proximoMenor.toFloat() /
+                        menorLado.toFloat()
+
+            val reduzida =
+                Bitmap.createScaledBitmap(
+                    atual,
+                    (atual.width * escala)
+                        .toInt()
+                        .coerceAtLeast(1),
+                    (atual.height * escala)
+                        .toInt()
+                        .coerceAtLeast(1),
+                    true
+                )
+
+            if (atual !== original) {
+                atual.recycle()
+            }
+
+            atual =
+                reduzida
+        }
+
+        if (atual !== original) {
+            original.recycle()
+        }
+
+        return atual
     }
 
     // ============================================================

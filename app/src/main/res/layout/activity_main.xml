@@ -518,8 +518,8 @@
             android:gravity="center_vertical"
             android:ellipsize="middle"
             android:maxLines="1"
-            android:textColor="#555555"
-            android:textSize="14sp"
+            android:textColor="#333333"
+            android:textSize="15sp"
             android:background="#F5F5F5"/>
 
         <!-- ABAS DOS APLICATIVOS -->
