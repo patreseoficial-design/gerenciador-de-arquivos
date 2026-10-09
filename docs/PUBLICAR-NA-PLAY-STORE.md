@@ -1,4 +1,4 @@
-# Como publicar o Gerenciador de Arquivos na Play Store
+# Como publicar o Faxina na Play Store
 
 Siga os passos na ordem. Tudo que for para **copiar e colar** está em blocos.
 
@@ -30,7 +30,7 @@ A partir daí, cada build no GitHub Actions gera também o artefato **`app-relea
 
 ## 3. Criar o app no Play Console
 
-- **Nome do app:** escolha um nome próprio, não genérico. Exemplos: "Arquivos Fácil", "Organiza Arquivos", "Limpa & Organiza". O nome "Gerenciador de Arquivos" puro some na busca no meio de centenas de apps iguais.
+- **Nome do app na loja:** `Faxina: Arquivos e Limpeza` (o nome que aparece no celular é só **Faxina**)
 - **Idioma padrão:** Português (Brasil)
 - **App ou jogo:** App
 - **Gratuito**
@@ -41,40 +41,42 @@ A partir daí, cada build no GitHub Actions gera também o artefato **`app-relea
 **Descrição curta** (até 80 caracteres):
 
 ```
-Organize, limpe e libere espaço no celular de um jeito simples e em português.
+Limpe o WhatsApp, apague fotos repetidas e organize seus arquivos. Em português!
 ```
 
 **Descrição completa:**
 
 ```
-Gerenciador de arquivos simples, leve e todo em português, feito para quem quer encontrar e organizar as coisas do celular sem complicação.
+Celular cheio? O Faxina limpa, organiza e protege seus arquivos de um jeito simples e todo em português.
 
-LIBERE ESPAÇO
-• Análise do armazenamento: veja quanto ocupam fotos, vídeos, músicas, documentos e instaladores
-• Sugestões do que apagar: arquivos grandes, downloads antigos, APKs esquecidos, miniaturas em cache e arquivos vazios
-• Lixeira com restaurar: nada some sem querer, e você esvazia quando quiser
+🧹 LIMPEZA DO WHATSAPP
+• Veja quanto ocupam fotos, vídeos, áudios, figurinhas e documentos do WhatsApp
+• Marque os arquivos com mais de 30 dias e libere espaço com 1 toque
 
-TUDO ORGANIZADO
-• Imagens, Vídeos, Áudios, Documentos e Downloads separados
+🖼️ FOTOS DUPLICADAS
+• Encontre fotos e vídeos repetidos no celular
+• O original fica guardado e as cópias vão embora
+
+📊 ANÁLISE DO ARMAZENAMENTO
+• Veja o que está ocupando espaço: fotos, vídeos, músicas, documentos e instaladores
+• Sugestões do que apagar: arquivos grandes, downloads antigos, APKs esquecidos e mais
+
+🗑️ LIXEIRA COM RESTAURAR
+• Nada some sem querer: restaure o que apagou ou esvazie quando quiser
+
+🔒 COFRE
+• Esconda fotos e arquivos pessoais com PIN
+
+📁 TUDO ORGANIZADO
+• Imagens, Vídeos, Áudios, Documentos, Downloads e Aplicativos
 • Ícones para cada tipo de arquivo (PDF, Word, Excel, músicas, vídeos, APKs...)
-• Downloads do mais recente para o mais antigo
+• Fotos em alta qualidade, player de vídeo e música, leitor de PDF e ZIP
+• Cartão de memória: veja o espaço e mova arquivos entre o celular e o cartão
 
-VEJA SEM SAIR DO APP
-• Fotos em alta qualidade, com zoom
-• Player de vídeo: deslize para o lado para ir ao próximo
-• Player de música, leitor de PDF e abertura de arquivos ZIP
+⭐ PREMIUM (compra única, sem assinatura)
+• Cofre, apagar duplicadas com 1 toque e sem anúncios
 
-CARTÃO DE MEMÓRIA
-• Veja o espaço do cartão e o que tem nele
-• Mova arquivos do celular para o cartão e do cartão para o celular
-
-APLICATIVOS
-• Lista separada entre apps do celular e apps baixados
-• Abra, veja informações ou desinstale
-
-PRIVACIDADE
-• Sem acesso à internet: seus arquivos nunca saem do celular
-• Nenhum dado é coletado
+Seus arquivos nunca saem do seu celular.
 ```
 
 **Imagens necessárias:**
@@ -89,20 +91,28 @@ PRIVACIDADE
 https://github.com/patreseoficial-design/gerenciador-de-arquivos/blob/main/docs/politica-de-privacidade.md
 ```
 
-> Antes de publicar, troque `[SEU E-MAIL DE CONTATO]` no arquivo `docs/politica-de-privacidade.md` pelo seu e-mail.
 
 ---
 
 ## 4. Formulários do "Conteúdo do app"
 
-### Segurança dos dados
+### Segurança dos dados (com anúncios do AdMob)
 
-- O app coleta ou compartilha algum dos tipos de dados do usuário? → **Não**
-- (O app não tem permissão de internet, não tem anúncios nem analytics.)
+Responda assim. Confira também o guia oficial do Google: https://support.google.com/admob/answer/11581186
+
+- O app coleta ou compartilha dados do usuário? → **Sim**
+- Os dados são criptografados em trânsito? → **Sim**
+- O usuário pode pedir a exclusão dos dados? → **Não** (o app não guarda dados em servidor; os dados do AdMob são do Google)
+- Tipos de dados (todos **coletados e compartilhados**, para **Publicidade ou marketing**, **Análise** e **Prevenção de fraudes**):
+  - **Identificadores do dispositivo ou outros IDs** (ID de publicidade)
+  - **Localização aproximada** (pelo IP)
+  - **Atividade no app → Interações com o app**
+  - **Informações e desempenho do app → Registros de falhas e Diagnóstico**
+- **Compras** (Premium): a Google Play processa o pagamento. O app não coleta dados de pagamento.
 
 ### Anúncios
 
-- O app contém anúncios? → **Não** (por enquanto, veja o passo 7)
+- O app contém anúncios? → **Sim**
 
 ### Classificação de conteúdo
 
@@ -152,14 +162,50 @@ Depois dos 14 dias, o Console libera o pedido de **acesso à produção**.
 
 ---
 
-## 7. Plano de ganhos (sugestão)
+## 7. Dinheiro: anúncios (AdMob) e Premium (R$ 9,90)
 
-1. **Lançar sem anúncios** para juntar as primeiras avaliações boas. Nota alta é o que faz o app aparecer na busca.
-2. Quando passar de cerca de **1.000 usuários ativos por dia**, adicionar:
-   - um **banner discreto** só na tela inicial;
-   - no máximo um anúncio de tela cheia **depois de uma limpeza concluída** ("Você liberou X MB!"), nunca no meio do uso.
-3. Oferecer uma **versão sem anúncios** com compra única barata.
-4. Colocar anúncios exige: SDK do AdMob, permissão de internet, a tela de consentimento (UMP) e atualizar a Segurança dos dados e esta política. Isso é feito numa versão futura.
+### Onde você recebe (perfil de pagamentos)
+
+Tudo é ligado à sua conta Google (**patreseoficial@gmail.com**):
+- **Vendas do Premium:** em **Play Console → Configurar → Perfil de pagamentos**, crie o perfil de comerciante com seus dados e conta bancária. A Google fica com **15%** de cada venda; o resto cai na sua conta todo mês.
+- **Anúncios:** em **AdMob → Pagamentos**, cadastre seus dados e conta bancária. O AdMob paga quando o saldo passa do valor mínimo da sua região.
+
+### Criar o produto Premium (depois de enviar o primeiro AAB)
+
+O Play Console só deixa criar produtos depois que um AAB com a biblioteca de compras foi enviado (o teste fechado do passo 5 já serve).
+
+1. **Monetizar → Produtos → Produtos no app → Criar produto**
+2. **ID do produto:** `premium` (exatamente assim, tudo minúsculo)
+3. **Nome:** Faxina Premium
+4. **Descrição:** Cofre com PIN, apagar fotos duplicadas e sem anúncios.
+5. **Preço:** R$ 9,90 → **Ativar**
+
+Para testar sem pagar: em **Configurações → Teste de licença**, adicione o seu e-mail. Compras feitas com ele são de teste.
+
+### Ligar os anúncios de verdade (AdMob)
+
+Por enquanto o app usa os **anúncios de teste do Google**: eles aparecem, mas **não geram dinheiro**. Para ganhar:
+
+1. Entre em https://admob.google.com com a mesma conta Google.
+2. **Apps → Adicionar app → Android** (depois de publicado, ligue o app à Play Store).
+3. Copie o **ID do app** (formato `ca-app-pub-XXXX~YYYY`).
+4. Crie 2 **blocos de anúncios**:
+   - **Banner** → copie o ID (formato `ca-app-pub-XXXX/ZZZZ`)
+   - **Intersticial** → copie o ID
+5. No GitHub, em **Settings → Secrets and variables → Actions**, crie:
+   - `ADMOB_APP_ID` = ID do app
+   - `ADMOB_BANNER_ID` = ID do banner
+   - `ADMOB_INTERSTICIAL_ID` = ID do intersticial
+6. Rode o build de novo: o próximo AAB já sai com os anúncios de verdade.
+7. Em **AdMob → Privacidade e mensagens**, crie a mensagem de consentimento (GDPR) para a Europa. O app já mostra essa mensagem quando for necessário.
+
+> ⚠️ Nunca clique nos seus próprios anúncios de verdade: o AdMob bloqueia a conta. Para testar, use a versão de teste (sem os Secrets) ou adicione seu celular como "dispositivo de teste" no AdMob.
+
+### Como os anúncios aparecem (para não irritar o usuário)
+
+- Um banner no fim da tela inicial.
+- Uma tela cheia **só depois de uma limpeza concluída**, no máximo a cada 3 minutos.
+- Quem compra o Premium não vê nenhum anúncio.
 
 ## 8. Antes de cada atualização
 

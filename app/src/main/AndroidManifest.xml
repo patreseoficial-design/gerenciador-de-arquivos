@@ -99,6 +99,28 @@
 
         </activity>
 
+        <!-- ID do app no AdMob (vem do build.gradle.kts) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/admob_app_id" />
+
+        <!-- FERRAMENTAS: WhatsApp, duplicadas, cofre e Premium -->
+        <activity
+            android:name=".LimpezaWhatsAppActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".DuplicadasActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".CofreActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".PremiumActivity"
+            android:exported="false" />
+
         <!-- FILE PROVIDER -->
         <provider
             android:name="androidx.core.content.FileProvider"

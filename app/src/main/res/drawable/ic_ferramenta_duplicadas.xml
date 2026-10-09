@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Duas fotos sobrepostas (duplicadas) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#90CAF9"
+        android:pathData="M14,6H40C41.1,6 42,6.9 42,8V30C42,31.1 41.1,32 40,32H14C12.9,32 12,31.1 12,30V8C12,6.9 12.9,6 14,6Z"/>
+    <path
+        android:fillColor="#1E88E5"
+        android:pathData="M8,16H34C35.1,16 36,16.9 36,18V40C36,41.1 35.1,42 34,42H8C6.9,42 6,41.1 6,40V18C6,16.9 6.9,16 8,16Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M10,38L17,28L22,34L26,29L32,38Z"/>
+    <path
+        android:fillColor="#FFF59D"
+        android:pathData="M27,21.5m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"/>
+</vector>

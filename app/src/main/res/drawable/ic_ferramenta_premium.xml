@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Estrela dourada (Premium) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#F5A623"
+        android:pathData="M24,4L30.2,16.6L44,18.6L34,28.4L36.4,42.2L24,35.7L11.6,42.2L14,28.4L4,18.6L17.8,16.6Z"/>
+    <path
+        android:fillColor="#FFD54F"
+        android:pathData="M24,10.5L28.3,19.2L37.9,20.6L31,27.4L32.6,37L24,32.5Z"/>
+</vector>

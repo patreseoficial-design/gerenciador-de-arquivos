@@ -91,7 +91,13 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
 
+        private const val URL_POLITICA_PRIVACIDADE =
+            "https://github.com/patreseoficial-design/gerenciador-de-arquivos/blob/main/docs/politica-de-privacidade.md"
+
         private const val PEDIDO_PERMISSAO_ARQUIVOS = 10
+
+        // Pasta onde ficam a lixeira e o cofre
+        private const val PASTA_INTERNA = ".GerenciadorArquivos"
 
         private val COR_TEXTO_PRINCIPAL =
             Color.rgb(20, 20, 20)
@@ -170,6 +176,28 @@ class MainActivity : AppCompatActivity() {
 
         atualizarArmazenamento()
         verificarPermissao()
+
+        // Premium (Google Play) e anúncios
+        Premium.iniciar(this)
+
+        Premium.aoMudar(aoMudarPremium)
+
+        Anuncios.iniciar(this) {
+            if (!isFinishing) {
+                Anuncios.mostrarBanner(
+                    this,
+                    findViewById(R.id.bannerContainer)
+                )
+            }
+        }
+    }
+
+    private val aoMudarPremium: (Boolean) -> Unit = { ativo ->
+        if (ativo) {
+            Anuncios.esconderBanner(
+                findViewById(R.id.bannerContainer)
+            )
+        }
     }
 
     override fun onResume() {
@@ -324,6 +352,49 @@ class MainActivity : AppCompatActivity() {
         ).setOnClickListener {
 
             abrirCartao()
+        }
+
+        findViewById<View>(
+            R.id.toolWhatsApp
+        ).setOnClickListener {
+
+            startActivity(
+                Intent(this, LimpezaWhatsAppActivity::class.java)
+            )
+        }
+
+        findViewById<View>(
+            R.id.toolDuplicadas
+        ).setOnClickListener {
+
+            startActivity(
+                Intent(this, DuplicadasActivity::class.java)
+            )
+        }
+
+        findViewById<View>(
+            R.id.toolCofre
+        ).setOnClickListener {
+
+            startActivity(
+                Intent(this, CofreActivity::class.java)
+            )
+        }
+
+        findViewById<View>(
+            R.id.toolPremium
+        ).setOnClickListener {
+
+            startActivity(
+                Intent(this, PremiumActivity::class.java)
+            )
+        }
+
+        findViewById<View>(
+            R.id.menuButton
+        ).setOnClickListener { botao ->
+
+            mostrarMenuPrincipal(botao)
         }
 
         findViewById<View>(
@@ -486,8 +557,11 @@ class MainActivity : AppCompatActivity() {
 
             val arquivos =
                 try {
+                    // A pasta interna do app (lixeira e cofre)
+                    // não aparece na navegação
                     val lista =
-                        pasta.listFiles()?.toList()
+                        pasta.listFiles()
+                            ?.filter { it.name != PASTA_INTERNA }
                             ?: emptyList()
 
                     if (
@@ -1794,6 +1868,8 @@ class MainActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
 
+                        Anuncios.mostrarAposLimpeza(this)
+
                         abrirLixeira()
                     }
                 }
@@ -2329,6 +2405,118 @@ class MainActivity : AppCompatActivity() {
     }
 
     // ============================================================
+    // MENU PRINCIPAL (⋮)
+    // ============================================================
+
+    private fun mostrarMenuPrincipal(
+        ancora: View
+    ) {
+
+        val menu =
+            LinearLayout(this)
+
+        MenuEscuro.prepararMenu(
+            menu
+        )
+
+        adicionarOpcaoMenu(
+            menu,
+            "★",
+            if (Premium.ativo(this)) "Premium ativo ⭐" else "Faxina Premium"
+        ) {
+            startActivity(
+                Intent(this, PremiumActivity::class.java)
+            )
+        }
+
+        adicionarOpcaoMenu(
+            menu,
+            "ⓘ",
+            "Política de privacidade"
+        ) {
+            try {
+                startActivity(
+                    Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(URL_POLITICA_PRIVACIDADE)
+                    )
+                )
+            } catch (
+                _: Exception
+            ) {
+                Toast.makeText(
+                    this,
+                    "Não foi possível abrir o navegador",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        mostrarPopup(
+            menu,
+            ancora
+        )
+    }
+
+    // ============================================================
+    // COFRE
+    // ============================================================
+
+    private fun moverParaCofre(
+        arquivo: File
+    ) {
+
+        if (!Premium.ativo(this)) {
+
+            Toast.makeText(
+                this,
+                "O Cofre faz parte do Premium",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            startActivity(
+                Intent(this, PremiumActivity::class.java)
+            )
+
+            return
+        }
+
+        if (!Cofre.temPin(this)) {
+
+            Toast.makeText(
+                this,
+                "Abra o Cofre e crie um PIN primeiro",
+                Toast.LENGTH_LONG
+            ).show()
+
+            startActivity(
+                Intent(this, CofreActivity::class.java)
+            )
+
+            return
+        }
+
+        if (Cofre.guardar(this, arquivo)) {
+
+            Toast.makeText(
+                this,
+                "Guardado no cofre 🔒",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            recarregarTelaAtual()
+
+        } else {
+
+            Toast.makeText(
+                this,
+                "Não foi possível guardar no cofre",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    // ============================================================
     // BOTÕES E TEXTOS DA BARRA DE AÇÕES
     // ============================================================
 
@@ -2526,7 +2714,8 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     if (
-                        arquivo.isDirectory
+                        arquivo.isDirectory &&
+                        arquivo.name != PASTA_INTERNA
                     ) {
 
                         procurar(
@@ -3083,7 +3272,7 @@ class MainActivity : AppCompatActivity() {
                 .setTitle("Acesso aos arquivos")
                 .setMessage(
                     "Para mostrar, organizar, mover e apagar seus arquivos, " +
-                        "o Gerenciador de Arquivos precisa da permissão " +
+                        "o Faxina precisa da permissão " +
                         "\"Acesso a todos os arquivos\".\n\n" +
                         "Seus arquivos ficam só no seu celular: o app não " +
                         "envia nada para a internet."
@@ -3331,11 +3520,8 @@ class MainActivity : AppCompatActivity() {
                         continue
                     }
 
-                    // A lixeira é contada à parte
-                    if (
-                        item.absolutePath ==
-                        Armazenamento.pastaLixeira.absolutePath
-                    ) {
+                    // Lixeira e cofre ficam de fora
+                    if (item.name == PASTA_INTERNA) {
                         continue
                     }
 
@@ -3695,6 +3881,8 @@ class MainActivity : AppCompatActivity() {
                                     "$movidos arquivo(s) movidos para a lixeira",
                                     Toast.LENGTH_LONG
                                 ).show()
+
+                                Anuncios.mostrarAposLimpeza(this)
 
                                 analisarArmazenamento()
                             }
@@ -4438,6 +4626,17 @@ class MainActivity : AppCompatActivity() {
             menu,
             arquivo
         )
+
+        adicionarOpcaoMenu(
+            menu,
+            "🔒",
+            "Mover para o cofre"
+        ) {
+
+            moverParaCofre(
+                arquivo
+            )
+        }
 
         adicionarOpcaoMenu(
             menu,
@@ -6996,6 +7195,8 @@ class MainActivity : AppCompatActivity() {
     // ============================================================
 
     override fun onDestroy() {
+
+        Premium.removerOuvinte(aoMudarPremium)
 
         try {
 
