@@ -15,7 +15,7 @@ Os prints da loja podem ser os mesmos em todos os idiomas no começo. Depois val
 
 **Title (30):**
 ```
-Faxina: File Manager & Cleaner
+File Manager & Cleaner Faxina
 ```
 
 **Short description (80):**
@@ -78,7 +78,7 @@ Your files never leave your phone.
 
 **Título (30):**
 ```
-Faxina: Archivos y Limpieza
+Gestor de Archivos Faxina
 ```
 
 **Descripción breve (80):**
@@ -139,7 +139,7 @@ Tus archivos nunca salen de tu móvil.
 
 **Titre (30) :**
 ```
-Faxina : Fichiers et Nettoyage
+Gestionnaire Fichiers Faxina
 ```
 
 **Description courte (80) :**
@@ -200,7 +200,7 @@ Vos fichiers ne quittent jamais votre téléphone.
 
 **Titel (30):**
 ```
-Faxina: Dateien & Reinigung
+Dateimanager Faxina
 ```
 
 **Kurzbeschreibung (80):**
@@ -261,7 +261,7 @@ Deine Dateien verlassen nie dein Handy.
 
 **Titolo (30):**
 ```
-Faxina: File e Pulizia
+Gestore File Faxina
 ```
 
 **Descrizione breve (80):**
@@ -322,7 +322,7 @@ I tuoi file non lasciano mai il telefono.
 
 **Judul (30):**
 ```
-Faxina: File & Pembersih
+Pengelola File Faxina
 ```
 
 **Deskripsi singkat (80):**

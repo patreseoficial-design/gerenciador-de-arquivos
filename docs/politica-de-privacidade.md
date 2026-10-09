@@ -1,8 +1,8 @@
-# Política de Privacidade — Faxina: Arquivos e Limpeza
+# Política de Privacidade — Gerenciador de Arquivos Faxina
 
 _Última atualização: 9 de outubro de 2026_
 
-O **Faxina** ("app") é um gerenciador de arquivos e de limpeza para Android. Esta política explica quais dados são usados e como.
+O **Gerenciador de Arquivos Faxina** ("app") é um gerenciador de arquivos e de limpeza para Android. Esta política explica quais dados são usados e como.
 
 ## Resumo
 

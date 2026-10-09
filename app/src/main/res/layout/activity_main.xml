@@ -35,7 +35,7 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:translationY="8dp"
-            android:text="Faxina"
+            android:text="Arquivos Faxina"
             android:textColor="#FFFFFF"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -458,16 +458,9 @@
 
 
             <!-- FERRAMENTAS -->
-            <TextView
+            <Space
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:layout_marginStart="4dp"
-                android:layout_marginBottom="4dp"
-                android:text="Ferramentas de limpeza"
-                android:textColor="#222222"
-                android:textSize="16sp"
-                android:textStyle="bold"/>
+                android:layout_height="4dp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -487,9 +480,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:src="@drawable/ic_ferramenta_whatsapp"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:src="@drawable/ferramenta_whatsapp"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Limpar\nWhatsApp"/>
 
                     <TextView
@@ -516,9 +510,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:src="@drawable/ic_ferramenta_duplicadas"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:src="@drawable/ferramenta_duplicadas"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Fotos\nduplicadas"/>
 
                     <TextView
@@ -545,9 +540,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:src="@drawable/ic_ferramenta_cofre"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:src="@drawable/ferramenta_cofre"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Cofre"/>
 
                     <TextView
@@ -574,9 +570,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:src="@drawable/ic_ferramenta_premium"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:src="@drawable/ferramenta_premium"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Premium"/>
 
                     <TextView
@@ -611,9 +608,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:src="@drawable/ic_ferramenta_comprimir"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:src="@drawable/ferramenta_comprimir"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Comprimir\nfotos"/>
 
                     <TextView
@@ -640,9 +638,10 @@
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:src="@drawable/ic_ferramenta_wifi"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:src="@drawable/ferramenta_wifi"
+                        android:scaleType="fitCenter"
                         android:contentDescription="Passar\npara o PC"/>
 
                     <TextView
