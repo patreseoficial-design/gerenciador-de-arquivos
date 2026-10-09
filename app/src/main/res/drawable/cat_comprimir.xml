@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ícone "comprimir" (placa de vidro). Gerado no mesmo estilo dos demais. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#000000"
+        android:fillAlpha="0.12"
+        android:pathData="M14,6H34A10,10 0,0 1,44,16V36A10,10 0,0 1,34,46H14A10,10 0,0 1,4,36V16A10,10 0,0 1,14,6Z"/>
+    <path
+        android:fillColor="#EEF2F6"
+        android:strokeColor="#C5CED8"
+        android:strokeWidth="0.6"
+        android:pathData="M13,3H35A10,10 0,0 1,45,13V35A10,10 0,0 1,35,45H13A10,10 0,0 1,3,35V13A10,10 0,0 1,13,3Z"/>
+    <path
+        android:fillColor="#4A1650"
+        android:pathData="M13.5,6H34.5A7.5,7.5 0,0 1,42,13.5V34.5A7.5,7.5 0,0 1,34.5,42H13.5A7.5,7.5 0,0 1,6,34.5V13.5A7.5,7.5 0,0 1,13.5,6Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.13"
+        android:pathData="M13.5,6H34.5A7.5,7.5 0,0 1,42,13.5V21H6V13.5A7.5,7.5 0,0 1,13.5,6Z"/>
+    <path
+        android:strokeColor="#F2C94C"
+        android:strokeAlpha="0.85"
+        android:strokeWidth="1.1"
+        android:pathData="M24,10.5A13.5,13.5 0,1 1,23.99 10.5Z"/>
+    <group
+        android:translateX="14.16"
+        android:translateY="14.16"
+        android:scaleX="0.82"
+        android:scaleY="0.82">
+        <path
+            android:fillColor="#F2C94C"
+            android:pathData="M8,19h3v3h2v-3h3l-4,-4 -4,4zM16,4h-3V1h-2v3H8l4,4 4,-4zM4,9v2h16V9H4zM4,12h16v2H4z"/>
+    </group>
+</vector>

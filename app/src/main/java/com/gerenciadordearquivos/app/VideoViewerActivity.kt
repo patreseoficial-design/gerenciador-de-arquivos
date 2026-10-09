@@ -574,11 +574,15 @@ class VideoViewerActivity : Activity() {
             )
         )
 
+        // Altura cresce com a letra (não corta o nome do vídeo)
+        barraSuperior.minimumHeight =
+            dp(64)
+
         principal.addView(
             barraSuperior,
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(64)
+                ViewGroup.LayoutParams.WRAP_CONTENT
             )
         )
     }

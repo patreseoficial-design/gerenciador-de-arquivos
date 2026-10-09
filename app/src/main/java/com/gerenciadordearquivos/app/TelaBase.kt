@@ -302,10 +302,10 @@ open class TelaBase : AppCompatActivity() {
         if (arquivo.isDirectory) return R.drawable.ic_folder
 
         return when (arquivo.extension.lowercase(Locale.getDefault())) {
-            in TIPO_IMAGEM -> R.drawable.imagens
-            in TIPO_VIDEO -> R.drawable.videos
-            in TIPO_AUDIO -> R.drawable.audios
-            "apk" -> R.drawable.aplicativos
+            in TIPO_IMAGEM -> R.drawable.cat_imagens
+            in TIPO_VIDEO -> R.drawable.cat_videos
+            in TIPO_AUDIO -> R.drawable.cat_audios
+            "apk" -> R.drawable.cat_aplicativos
             "pdf" -> R.drawable.ic_tipo_pdf
             "doc", "docx", "odt", "rtf" -> R.drawable.ic_tipo_word
             "xls", "xlsx", "ods", "csv" -> R.drawable.ic_tipo_excel

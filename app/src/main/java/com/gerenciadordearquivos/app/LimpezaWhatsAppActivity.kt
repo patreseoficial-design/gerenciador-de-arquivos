@@ -34,10 +34,10 @@ class LimpezaWhatsAppActivity : TelaBase() {
 
     private val categorias =
         listOf(
-            Categoria(tr("Fotos"), listOf("WhatsApp Images"), R.drawable.imagens),
-            Categoria(tr("Vídeos"), listOf("WhatsApp Video", "WhatsApp Video Notes"), R.drawable.videos),
-            Categoria(tr("Áudios e mensagens de voz"), listOf("WhatsApp Audio", "WhatsApp Voice Notes"), R.drawable.audios),
-            Categoria(tr("Documentos"), listOf("WhatsApp Documents"), R.drawable.documentos),
+            Categoria(tr("Fotos"), listOf("WhatsApp Images"), R.drawable.cat_imagens),
+            Categoria(tr("Vídeos"), listOf("WhatsApp Video", "WhatsApp Video Notes"), R.drawable.cat_videos),
+            Categoria(tr("Áudios e mensagens de voz"), listOf("WhatsApp Audio", "WhatsApp Voice Notes"), R.drawable.cat_audios),
+            Categoria(tr("Documentos"), listOf("WhatsApp Documents"), R.drawable.cat_documentos),
             Categoria(tr("Figurinhas"), listOf("WhatsApp Stickers"), R.drawable.ic_tipo_arquivo),
             Categoria(tr("GIFs"), listOf("WhatsApp Animated Gifs"), R.drawable.ic_tipo_arquivo),
             Categoria(tr("Status salvos"), listOf(".Statuses"), R.drawable.ic_tipo_arquivo)

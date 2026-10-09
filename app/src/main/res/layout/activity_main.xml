@@ -109,6 +109,70 @@
                 android:layout_width="match_parent"
                 android:layout_height="14dp"/>
 
+            <!-- ARMAZENAMENTO PRINCIPAL (com a barra de uso) -->
+            <LinearLayout
+                android:id="@+id/categoryStorage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="96dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="18dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:background="@drawable/fundo_cartao_inicio"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:src="@drawable/cat_armazenamento"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="Armazenamento principal"/>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:paddingStart="14dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Armazenamento principal"
+                        android:textColor="#222222"
+                        android:textSize="17sp"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/storageInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Calculando..."
+                        android:textColor="#666666"
+                        android:textSize="13sp"/>
+
+                    <ProgressBar
+                        android:id="@+id/storageProgress"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="8dp"
+                        android:layout_marginTop="8dp"
+                        android:max="100"
+                        android:progress="0"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="6dp"/>
+
             <!--
                 GRADE DA TELA INICIAL
                 Sem quadros: ícone, nome e informação embaixo.
@@ -121,58 +185,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <LinearLayout
-                    android:id="@+id/categoryStorage"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center_horizontal"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"
-                    android:paddingStart="2dp"
-                    android:paddingEnd="2dp"
-                    android:background="?android:attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <ImageView
-                        android:layout_width="76dp"
-                        android:layout_height="76dp"
-                        android:src="@drawable/armazenamento"
-                        android:scaleType="fitCenter"
-                        android:contentDescription="Armazenamento"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Armazenamento"
-                        android:textColor="#222222"
-                        android:textSize="15sp"
-                        android:singleLine="true"
-                        android:ellipsize="end"/>
-
-                    <TextView
-                        android:id="@+id/storageInfo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text=" "
-                        android:textColor="#888888"
-                        android:textSize="12sp"
-                        android:singleLine="true"
-                        android:ellipsize="end"/>
-
-                    <!-- Barra de uso (usada pelo código; fica escondida) -->
-                    <ProgressBar
-                        android:id="@+id/storageProgress"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="0dp"
-                        android:layout_height="0dp"
-                        android:visibility="gone"/>
-
-                </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/categoryDownloads"
@@ -192,7 +204,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/downloads"
+                        android:src="@drawable/cat_downloads"
                         android:scaleType="fitCenter"
                         android:contentDescription="Downloads"/>
 
@@ -237,7 +249,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/ic_analise"
+                        android:src="@drawable/cat_analise"
                         android:scaleType="fitCenter"
                         android:contentDescription="Análise"/>
 
@@ -282,7 +294,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/imagens"
+                        android:src="@drawable/cat_imagens"
                         android:scaleType="fitCenter"
                         android:contentDescription="Imagens"/>
 
@@ -327,7 +339,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/audios"
+                        android:src="@drawable/cat_audios"
                         android:scaleType="fitCenter"
                         android:contentDescription="Áudio"/>
 
@@ -372,7 +384,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/videos"
+                        android:src="@drawable/cat_videos"
                         android:scaleType="fitCenter"
                         android:contentDescription="Vídeos"/>
 
@@ -417,7 +429,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/documentos"
+                        android:src="@drawable/cat_documentos"
                         android:scaleType="fitCenter"
                         android:contentDescription="Documentos"/>
 
@@ -462,7 +474,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/aplicativos"
+                        android:src="@drawable/cat_aplicativos"
                         android:scaleType="fitCenter"
                         android:contentDescription="Aplicativos"/>
 
@@ -507,7 +519,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/lixeira"
+                        android:src="@drawable/cat_lixeira"
                         android:scaleType="fitCenter"
                         android:contentDescription="Lixeira"/>
 
@@ -552,7 +564,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/cartao_memoria"
+                        android:src="@drawable/cat_cartao"
                         android:scaleType="fitCenter"
                         android:contentDescription="SD card"/>
 
@@ -597,7 +609,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/ferramenta_whatsapp"
+                        android:src="@drawable/cat_whatsapp"
                         android:scaleType="fitCenter"
                         android:contentDescription="WhatsApp"/>
 
@@ -642,7 +654,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/ferramenta_duplicadas"
+                        android:src="@drawable/cat_duplicadas"
                         android:scaleType="fitCenter"
                         android:contentDescription="Duplicadas"/>
 
@@ -687,7 +699,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/ferramenta_cofre"
+                        android:src="@drawable/cat_cofre"
                         android:scaleType="fitCenter"
                         android:contentDescription="Cofre"/>
 
@@ -732,7 +744,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/ferramenta_comprimir"
+                        android:src="@drawable/cat_comprimir"
                         android:scaleType="fitCenter"
                         android:contentDescription="Comprimir"/>
 
@@ -777,7 +789,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/ferramenta_wifi"
+                        android:src="@drawable/cat_pc"
                         android:scaleType="fitCenter"
                         android:contentDescription="Para o PC"/>
 
@@ -822,7 +834,7 @@
                     <ImageView
                         android:layout_width="76dp"
                         android:layout_height="76dp"
-                        android:src="@drawable/ferramenta_premium"
+                        android:src="@drawable/cat_premium"
                         android:scaleType="fitCenter"
                         android:contentDescription="Premium"/>
 
