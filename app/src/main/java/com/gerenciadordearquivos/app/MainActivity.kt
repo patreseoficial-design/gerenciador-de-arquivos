@@ -2353,7 +2353,9 @@ class MainActivity : AppCompatActivity() {
 
             listOf(
                 "Android/media/com.whatsapp/WhatsApp/Media",
-                "WhatsApp/Media"
+                "Android/media/com.whatsapp.w4b/WhatsApp Business/Media",
+                "WhatsApp/Media",
+                "WhatsApp Business/Media"
             ).map { File(rootPath, it) }
                 .filter { it.isDirectory }
                 .forEach { pasta ->
