@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
 
         private const val URL_POLITICA_PRIVACIDADE =
-            "https://github.com/patreseoficial-design/gerenciador-de-arquivos/blob/main/docs/politica-de-privacidade.md"
+            "https://github.com/patreseoficial-design/politica-privacidade/blob/main/README.md"
 
         private const val PEDIDO_PERMISSAO_ARQUIVOS = 10
 
@@ -2302,7 +2302,7 @@ class MainActivity : AppCompatActivity() {
             if (Premium.ativo(this)) tr("Ativo") else Premium.preco()
 
         findViewById<TextView>(R.id.infoWifi)?.text =
-            "Wi-Fi"
+            tr("PC e celular")
 
         mostrarSeloPremium()
 
