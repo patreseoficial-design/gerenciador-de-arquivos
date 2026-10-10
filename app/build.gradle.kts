@@ -18,7 +18,7 @@ android {
 
     defaultConfig {
         applicationId = "com.gerenciadordearquivos.app"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 35
 
         // Cada envio para a Play Store precisa de um número maior:
