@@ -796,13 +796,13 @@
                         android:layout_height="76dp"
                         android:src="@drawable/cat_pc"
                         android:scaleType="fitCenter"
-                        android:contentDescription="Para o PC"/>
+                        android:contentDescription="Via Wi-Fi"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Para o PC"
+                        android:text="Via Wi-Fi"
                         android:textColor="#222222"
                         android:textSize="15sp"
                         android:singleLine="true"

@@ -70,8 +70,8 @@ Celular cheio? O Gerenciador de Arquivos Pro limpa o celular, organiza e protege
 🗜️ COMPRIMIR FOTOS
 • Deixe as fotos até 4 vezes menores, mantendo a qualidade, a data e o local
 
-💻 PASSAR PARA O COMPUTADOR
-• Baixe e envie arquivos entre o celular e o PC pelo Wi-Fi, sem cabo
+💻 PASSAR ARQUIVOS PELO WI-FI
+• Baixe e envie arquivos entre o celular e o PC, outro celular ou tablet pelo Wi-Fi, sem cabo
 
 🔔 AVISO DE CELULAR CHEIO E WIDGET
 • Receba um aviso quando o espaço estiver acabando
@@ -101,7 +101,7 @@ Seus arquivos nunca saem do seu celular.
 **Política de privacidade (URL):**
 
 ```
-https://github.com/patreseoficial-design/gerenciador-de-arquivos/blob/main/docs/politica-de-privacidade.md
+https://github.com/patreseoficial-design/politica-privacidade/blob/main/README.md
 ```
 
 

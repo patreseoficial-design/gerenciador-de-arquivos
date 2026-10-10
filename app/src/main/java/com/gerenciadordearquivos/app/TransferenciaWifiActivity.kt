@@ -27,7 +27,7 @@ class TransferenciaWifiActivity : TelaBase() {
 
         super.onCreate(savedInstanceState)
 
-        titulo.text = tr("Passar para o computador")
+        titulo.text = tr("Passar arquivos pelo Wi-Fi")
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
@@ -55,7 +55,7 @@ class TransferenciaWifiActivity : TelaBase() {
 
             acoes.addView(
                 criarTexto(
-                    tr("O celular e o computador precisam estar na mesma rede Wi-Fi (ou o computador conectado no roteador do celular)."),
+                    tr("O outro aparelho (computador, celular ou tablet) precisa estar na mesma rede Wi-Fi que este celular (ou conectado no roteador dele)."),
                     16f,
                     COR_TEXTO
                 )
@@ -85,7 +85,7 @@ class TransferenciaWifiActivity : TelaBase() {
 
         status.text = tr("✅ Pronto! Deixe esta tela aberta")
 
-        acoes.addView(criarTexto(tr("No computador, abra o navegador e digite:"), 16f, COR_TEXTO))
+        acoes.addView(criarTexto(tr("No outro aparelho, abra o navegador e digite:"), 16f, COR_TEXTO))
 
         acoes.addView(
             criarTexto(endereco, 24f, COR_AZUL, true).apply {
@@ -104,7 +104,7 @@ class TransferenciaWifiActivity : TelaBase() {
 
         acoes.addView(
             criarTexto(
-                tr("• O computador precisa estar no mesmo Wi-Fi.\n• No navegador você pode baixar arquivos do celular e enviar arquivos do computador para qualquer pasta.\n• Só quem tiver o código do endereço consegue entrar.\n• Ao fechar esta tela, a transferência para."),
+                tr("• Funciona com computador, outro celular ou tablet no mesmo Wi-Fi (o outro aparelho não precisa ter o app).\n• No navegador você pode baixar arquivos deste celular e enviar arquivos do outro aparelho para qualquer pasta.\n• Só quem tiver o código do endereço consegue entrar.\n• Ao fechar esta tela, a transferência para."),
                 14f
             )
         )
@@ -117,7 +117,7 @@ class TransferenciaWifiActivity : TelaBase() {
     private fun mostrarRecebidos() {
 
         val texto =
-            tr("📥 Recebidos do computador:\n") +
+            tr("📥 Recebidos do outro aparelho:\n") +
                 recebidos.take(8).joinToString("\n") { "• $it" }
 
         val existente = acoes.findViewWithTag<android.widget.TextView>("recebidos")
