@@ -19,7 +19,7 @@ android {
     defaultConfig {
         applicationId = "com.gerenciadordearquivos.app"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
 
         // Cada envio para a Play Store precisa de um número maior:
         // usa o número da execução do GitHub Actions
