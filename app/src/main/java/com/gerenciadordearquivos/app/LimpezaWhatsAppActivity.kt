@@ -30,6 +30,11 @@ class LimpezaWhatsAppActivity : TelaBase() {
     ) {
         val tamanho: Long
             get() = arquivos.sumOf { it.length() }
+
+        // No WhatsApp Business as pastas se chamam
+        // "WhatsApp Business Images", "WhatsApp Business Video"...
+        val pastasComBusiness: List<String>
+            get() = (pastas + pastas.map { it.replaceFirst("WhatsApp ", "WhatsApp Business ") }).distinct()
     }
 
     private val categorias =
@@ -70,7 +75,8 @@ class LimpezaWhatsAppActivity : TelaBase() {
     }
 
     // Pastas de mídia do WhatsApp e do WhatsApp Business
-    // (local novo no Android 11+ e local antigo)
+    // (local novo no Android 11+ e local antigo). As duas são
+    // somadas juntas em cada categoria.
     private fun pastasDeMidia(): List<File> {
 
         val raiz = Armazenamento.raizCelular
@@ -101,7 +107,7 @@ class LimpezaWhatsAppActivity : TelaBase() {
 
             for (midia in midias) {
                 for (categoria in categorias) {
-                    for (nomePasta in categoria.pastas) {
+                    for (nomePasta in categoria.pastasComBusiness) {
                         File(midia, nomePasta)
                             .walkTopDown()
                             .filter { it.isFile && it.name != ".nomedia" }

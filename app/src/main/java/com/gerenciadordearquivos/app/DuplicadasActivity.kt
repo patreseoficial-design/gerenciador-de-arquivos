@@ -56,7 +56,9 @@ class DuplicadasActivity : TelaBase() {
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES),
             File(raiz, "Android/media/com.whatsapp/WhatsApp/Media"),
-            File(raiz, "WhatsApp/Media")
+            File(raiz, "Android/media/com.whatsapp.w4b/WhatsApp Business/Media"),
+            File(raiz, "WhatsApp/Media"),
+            File(raiz, "WhatsApp Business/Media")
         ).filter { it.isDirectory }
     }
 

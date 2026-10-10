@@ -50,7 +50,7 @@ Limpa celular: WhatsApp, fotos repetidas e arquivos grandes. Fácil e rápido!
 Celular cheio? O Gerenciador de Arquivos Pro limpa o celular, organiza e protege seus arquivos de um jeito simples e todo em português.
 
 🧹 LIMPEZA DO WHATSAPP
-• Veja quanto ocupam fotos, vídeos, áudios, figurinhas e documentos do WhatsApp
+• Veja quanto ocupam fotos, vídeos, áudios, figurinhas e documentos do WhatsApp e do WhatsApp Business
 • Marque os arquivos com mais de 30 dias e libere espaço com 1 toque
 
 🖼️ FOTOS DUPLICADAS
