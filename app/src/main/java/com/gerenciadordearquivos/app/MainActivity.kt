@@ -1,6 +1,7 @@
 package com.gerenciadordearquivos.app
 
 import android.app.AlertDialog
+import androidx.activity.OnBackPressedCallback
 import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -174,6 +175,21 @@ class MainActivity : AppCompatActivity() {
         savedInstanceState: Bundle?
     ) {
         super.onCreate(savedInstanceState)
+
+        // Botão/gesto de voltar: nas telas de arquivos volta uma
+        // pasta; na tela inicial fecha o app
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (fileScreen.visibility == View.VISIBLE) {
+                        voltar()
+                    } else {
+                        finish()
+                    }
+                }
+            }
+        )
 
         setContentView(
             R.layout.activity_main
@@ -7659,18 +7675,4 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    override fun onBackPressed() {
-
-        if (
-            fileScreen.visibility ==
-            View.VISIBLE
-        ) {
-
-            voltar()
-
-        } else {
-
-            super.onBackPressed()
-        }
-    }
 }
